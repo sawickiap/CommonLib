@@ -1,0 +1,441 @@
+/** \page Module_TokDoc TokDoc Module
+
+
+Header: TokDoc.hpp \n
+Module elements: \ref code_tokdoc
+
+\section tokdoc_introduction Motivation
+
+Tokenizer module provides a simple text notation, which can form a base for your
+description languages or programming languages and provides classes to
+parse (common::Tokenizer), as well as save (common::TokenWriter) your data
+using this notation.
+These classes offer incremental reading/writing documents so you can
+process/generate your data on-the-fly while serializing them in this notation.
+
+It is the most straightforward and efficient way to do it from the computer's
+perspective, but sometimes it is more convenient or desireable to have a
+persistent representation of the document in memory, being able to manipulate
+it, load and save it on demand withing single call.
+It is equavalent to the DOM model of HTML and XML.
+That's what the TokDoc module provides.
+To do it, it also defines it's own description language called just "TokDoc".
+
+\section tokdoc_language_spec Language Specification
+
+TokDoc is also the name of a description language supported by this module.
+The language is based on the syntax supported by Tokenizer module.
+It can be thought of as an alternative to XML,
+so it's best explained in comparison to XML.
+Comparing to XML:
+
+- It is much simpler.
+- It is more efficient to process.
+- It is more readable.
+- It has less redundancy.
+- It requires less storage space and bandwidth.
+
+Here is a sample document in TokDoc format:
+
+\verbatim
+Resolution = { 1024, 768 };
+Details = High;
+Profiles = {
+  "Tom" {
+    Level = 30;
+    SkinColor = 0xFF8080FF;
+    CurrentMap = "Dungeons of Sorrow";
+    HP = 98.7;
+  }
+}
+\endverbatim
+
+Key features of TokDoc language are:
+
+- It has a map structure, so there are Key-Value pairs.
+- It has a tree structure, so there are nodes which can have subnodes.
+- Node names are case-sensitive.
+- Node order is preserved (they are not sorted automatically).
+
+XML DOM model defines many types of nodes, like element, attributes, text.
+TokDoc has only one type of node which is called just Node and represented by
+an object of type common::tokdoc::Node, so there is no class hierarchy here.
+Each node can have:
+
+- Name of type string (can be empty).
+- Value of type string (can be empty).
+- Subnodes (a collection of 0 or more nodes).
+
+Thanks to this design you can easily build Key-Value maps as well as sequences of items.
+
+Here is how the language corresponds to this data model:
+
+- <tt>name = val</tt> means node with Name equal to "name", Value equal to "val" and no subnodes.
+- <tt>val</tt> means node with empty Name, Value equal to "val" and no subnodes.
+- <tt>name = { 1, 2 }</tt> means node with Name "name", empty value and two subnodes.
+- <tt>val { 1, 2 }</tt> means node with empty name, Value "val" and two subnodes
+  (notice the difference to the previous example!).
+- <tt>name = val { 1, 2 }</tt> means node with Name "name", Value "val" and two subnodes.
+
+Subsequent nodes must be separated with comma (<tt>,</tt>) or semicolon (<tt>;</tt>),
+unless it's the last node in a <tt>{ }</tt> section or in the whole document
+(ending separator is optional in this case).
+Parsing of child nodes ends when <tt>}</tt> symbol or end of document is met.
+
+Here is how TokDoc language relates to the notation supported by Tokenizer module.
+Node name can be an identifier or a string.
+Node value can be an identifier, a string, character, integer number or real number.
+The only symbols used are <tt>= , ; { }</tt>.
+Line breaks must not be configured to be recognized as separate tokens.
+Keywords are not used.
+
+Any combination of the possibilities shown above is legal.
+It's not possible only to define a node with empty name, empty value and no children
+(such nodes are skipped during saving).
+For example, you can write a sequence of nodes with given names and empty values like this:
+<tt>name1=, name2=</tt>.
+Of course it's quite strange example.
+More typical applications and their data models are:
+
+\verbatim
+Level = 30;
+SkinColor = 0xFF8080FF;
+CurrentMap = "Dungeons of Sorrow";
+HP = 98.7;
+\endverbatim
+
+The example above can be used to store some properies as Key-Value pairs,
+where keys is a propety names and values can have different types.
+Document like this corresponds to nodes with some unique names, meaningful values
+(which must be parsed to different types) and no subnodes.
+
+\verbatim
+Resolution = { 1024, 768 };
+ScalingMatrix = {
+  0.5, 0.0, 0.0,
+  0.0, 0.5, 0.0,
+  0.0, 0.0, 0.5,
+};
+\endverbatim
+
+Two nodes corresponding to the document above have names, but have no values.
+They have subnodes instead.
+Each of these subnodes has numeric value (stored as string) and empty name.
+That's the way you can represent complex data types like vectors and matrices,
+where a property must store several primitive values.
+
+\verbatim
+"Tom" { Level=30, };
+"Bob" = { Level=23, };
+\endverbatim
+
+Above you can see two ways to store named objects.
+If you have a sequence of many objects and for each of them you need to save
+a name along with some parameters, you can use nodes representing these objects
+with subnodes representing parameters.
+The "Tom" node has label stored in its value, while the "Bob" node has label in its name.
+The choice of notation is yours, but always remember about this difference.
+
+\verbatim
+Level = int { 30 };
+SkinColor = color { 0xFF8080FF };
+CurrentMap = string { "Dungeons of Sorrow" };
+HP = float { 98.7 };
+Resolution = vector2 { 1024, 768 };
+\endverbatim
+
+Using both name and value of a node which has some subnodes can be useful to store additional metadata.
+As an example for the document above, we can imagine code that doesn't know the type of each read property in advance.
+So whenever it meets new node, the value of this node can serve as a hint about
+what type of data should be expected in subnode(s).
+Such approach can be also useful when deserializing an object from a class hierarchy,
+when we must first know the type of current object to create the correct instance
+and then make it load its internal data.
+
+\verbatim
+DiffuseTexture = "Leaf.jpg" { Compression=DXT5, Size=1024 }
+\endverbatim
+
+You can also do the opposite, like in the example above.
+Here, the value of the node is used as the main data field and properties
+in subnodes serve as metadata to provide additional parameters.
+
+\verbatim
+10.223, 10.225, 11.567;
+13.105, 14.467, 10.453;
+9.216, 12.347, 11.65;
+\endverbatim
+
+Finally, you can use TokDoc to just store a sequence of numerical.
+In the example above we have 9 nodes, each having the number stored as string in its value.
+It's not te most efficient way of serializing such data though.
+If you have thousands or millions of records,
+you better consider using binary format.
+
+Some final notes:
+In TokDoc language, as in every notation processed with Tokenizer module,
+you are free to format your document by inserting whitespaces
+(spaces, tabs and line breaks) between tokens wherever you want.
+
+There is no single root node that must be written in the document text.
+In your code you actually must have such node (which I call document node),
+but it only plays the role of subnode collection.
+Its name and value are ignored.
+
+\section tokdoc_api_overview API Overview
+
+The API of TokDoc module is inspired by TinyXML library -
+great, free and lightweight XML parser for C++.
+I believe the interface of TokDoc is quite self-descriptive, so I provide only a general overview here.
+
+The most important component is common::tokdoc::Node class.
+It has the code where all the processing and data storing takes places.
+You can see Node class as a structure - it has public Name and Value fields,
+as well as a bunch of methods to read and manipulate subnodes.
+
+Each node refers to its subnodes and frees them from heap memory when destroyed.
+A node has no vector of pointers to all subnodes though.
+Instead, each subnode keeps only a pointer to its parent, first and last child (subnode),
+as well as to the previous and next sibling.
+So the elegant and efficient way to traverse all child nodes of given node is a loop like this:
+
+\verbatim
+// Preqisitions
+using namespace common::tokdoc;
+// Input
+Node *givenNode;
+void ProcessChildNode(const Node *childNode);
+
+for (
+  Node *childNode = givenNode->GetFirstChild();
+  childNode != NULL;
+  childNode = childNode->GetNextSibling())
+{
+  ProcessChildNode(childNode);
+}
+\endverbatim
+
+You can iterate over subnodes in reverse direction as well using methods
+GetLastChild and GetPrevSibling.
+
+It's a %common task to refer to a node with given name.
+Methods are provided to help with this task: FindFirstChild, FindLastChild.
+Subnode search is single level, not recursive.
+Be aware though that they perform a linear search.
+The MustFindFirstChild method is provided for convenience when you expect certain subnode
+to necessarily exist. It throws an exception of type common::Error when subnode with given
+name cannot be found.
+
+As node names don't have to be uniue, you can have many sibling nodes with same name.
+To iterate over subnodes with given name, write a look similar to the one above.
+
+\verbatim
+// Preqisitions
+using namespace common::tokdoc;
+// Input
+string subnodeName;
+Node *givenNode;
+void ProcessChildNode(const Node *childNode);
+
+for (
+  Node *childNode = givenNode->FindFirstChild(subnodeName);
+  childNode != NULL;
+  childNode = childNode->FindNextSibling(subnodeName))
+{
+  ProcessChildNode(childNode);
+}
+\endverbatim
+
+You can also look for subnodes with empty name by searching for nodes which have name equal to EMPTY_STRING.
+It's not the same as iterating over all subnodes.
+
+By using Node class you can read the structure of TokDoc document, but also build and alter it.
+There are two general groups of methods that support this.
+The first one performs some data copying and memory allocation, while the second one do not
+(which is more efficient of course).
+
+You can copy nodes using Node class copy constructor, operator= or CopyFrom method.
+All contained data are copied replacing old ones, including name string, value string
+and also all child nodes, recursively.
+Keep in mind that this can involve lots of memory allocations.
+You can copy only subnodes with CopyChildrenFrom method.
+You can clear node data and destroy subnodes using methods Clear or DeleteAllChildren.
+
+To build your document tree, you must define a root "document" node and insert child nodes to it.
+Inserting subnodes in any place is fast, as it's done in constant time.
+To insert a child node, use one of methods InsertChildAtBegin, InsertChildAtEnd,
+InsertChildBefore, InsertChildAfter.
+The node passed as addThis parameter will stay untouched, while a copy will be allocated and inserted as a new subnode.
+To delete subnode (with all its children), call DeleteChild method.
+Given subnode and all its children will be automatically freed from memory.
+Here is an example of building DokToc document using methods described before:
+
+\verbatim
+using namespace common::tokdoc;
+
+Node document;
+Node property;
+
+property.Name = "Lavel";
+property.Value = "30";
+document.InsertChildAtEnd(property);
+
+property.Name = "CurrentMap";
+property.Value = "Dungeons of Sorrow";
+document.InsertChildAtEnd(property);
+\endverbatim
+
+The more efficient way to add child nodes is to use
+methods that directly link given node to the document tree.
+By passing a node you previously allocated with operator new to one of methods
+LinkChildAtBegin, LinkChildAtEnd, LinkChildBefore, LinkChildAfter,
+you pass its ownership to the parent node so it will automatically free it in destructor by calling delete operator.
+The code below does the same as code above while no node copying is involved here:
+
+\verbatim
+using namespace common::tokdoc;
+
+Node document;
+
+document.LinkChildAtEnd(new Node("Level", "30"));
+document.LinkChildAtEnd(new Node("CurrentMap", "Dungeons of Sorrow"));
+\endverbatim
+
+To assist in storing and parsing values of different types to/from TokDoc nodes,
+many helper functions are provided in common::tokdoc namespace.
+Overloaded versions of NodeTo and NodeFrom functions help with converting between
+node and almost any simple value you may use.
+Atomic values like integer and real numbers, booleans, characters, as well as strings
+are stored in node's Value field.
+More complex types like VEC3 or MATRIX from Math module are stored using subnodes.
+
+If a node cannot be correcty converted to a value of expected data type (e.g. there is a parsing error),
+the NodeTo function returns false or (when required parameter is set to true),
+throws an exception.
+There is a rule you can utilize that when this function fails,
+the value of output parameter passed stays untouched,
+so you can just assign a default value first and then "try" to load current value from TokDoc node.
+
+It's a %common task to store values in subnodes with particular names,
+so SubnodeFrom and SubnodeTo function templates are provided for your convenience to help with that.
+
+\section tokdoc_example Example
+
+A more sophisticated example is provided here that tests some aspects of the
+TokDoc module by creating document, saving it to a string, reading it back
+and validating parsed data.
+
+\verbatim
+using namespace common;
+
+void TestTokDoc()
+{
+  using namespace tokdoc;
+
+  const int intVal = 1;
+  const float floatVal = 1.f;
+  const VEC4 vectorVal = VEC4(1.f, 2.f, 3.f, 4.f);
+  tstring stringVal = _T("String 1");
+  const int arr[] = { 1, 2, 3, 4 };
+
+  tstring docStr;
+
+  {
+    Node doc;
+    
+    {
+      Node config;
+      SubnodeFrom(config, _T("int1"), intVal);
+      SubnodeFrom(config, _T("float1"), floatVal);
+      SubnodeFrom(config, _T("vector1"), vectorVal);
+      SubnodeFrom(config, _T("string1"), stringVal);
+      
+      {
+        Node vecNode;
+        NodeFromVector(vecNode, std::vector<int>(arr, arr+_countof(arr)));
+        vecNode.Name = _T("stdvector1");
+        config.InsertChildAtEnd(vecNode);
+      }
+
+      config.LinkChildAtBegin(new Node(_T("LonelyVal")));
+
+      Node *docConfigNode = new Node();
+      doc.LinkChildAtEnd(docConfigNode);
+      docConfigNode->CopyFrom(config);
+      docConfigNode->Name = _T("Config");
+    }
+
+    {
+      TokenWriter tok(&docStr);
+      tok.RegisterSymbol(_T('{'), true, true, 1);
+      tok.RegisterSymbol(_T('}'), true, true, -1);
+      tok.RegisterSymbol(_T('='), true, true, 0);
+      tok.RegisterSymbol(_T(','), false, true, 0);
+      tok.RegisterSymbol(_T(';'), false, true, 0);
+      doc.SaveChildren(tok);
+    }
+  }
+
+  // Here we have document storead in docStr.
+
+  {
+    Node doc;
+
+    {
+      Tokenizer tok(&docStr, Tokenizer::FLAG_MULTILINE_STRINGS);
+      tok.Next();
+      doc.LoadChildren(tok);
+    }
+
+    Node &configNode = doc.MustFindFirstChild(_T("Config"));
+
+    int intTmp;
+    SubnodeTo(intTmp, configNode, _T("int1"), SUBNODE_REQUIRED);
+    assert(intTmp == intVal);
+
+    float floatTmp;
+    SubnodeTo(floatTmp, configNode, _T("float1"), SUBNODE_REQUIRED);
+    assert(floatTmp == floatVal);
+
+    VEC4 vectorTmp;
+    SubnodeTo(vectorTmp, configNode, _T("vector1"), SUBNODE_REQUIRED);
+    assert(vectorTmp == vectorVal);
+
+    tstring stringTmp;
+    SubnodeTo(stringTmp, configNode, _T("string1"), SUBNODE_REQUIRED);
+    assert(stringTmp == stringVal);
+
+    std::vector<int> stdVectorTmp;
+    Node &vectorNode = configNode.MustFindFirstChild(_T("stdvector1"));
+    NodeToVector(stdVectorTmp, vectorNode, true);
+    assert(stdVectorTmp == std::vector<int>(arr, arr+_countof(arr)));
+
+    assert(configNode.GetFirstChild() && configNode.GetFirstChild()->Name == EMPTY_STRING);
+  }
+}
+\endverbatim
+
+Document created by this code is:
+
+\verbatim
+"Config" = {
+  "LonelyVal";
+  "int1" = "1";
+  "float1" = "1";
+  "vector1" = {
+    "1";
+    "2";
+    "3";
+    "4";
+  };
+  "string1" = "String 1";
+  "vector1" = {
+    "1";
+    "2";
+    "3";
+    "4";
+  };
+};
+\endverbatim
+
+*/

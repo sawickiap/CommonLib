@@ -1,0 +1,45 @@
+/** \page Module_Files Modu³ Files
+
+
+Nag³ówek: Files.hpp \n
+Elementy modu³u: \ref code_files
+
+\section Files_Wstep Wstêp
+
+To modu³ do obs³ugi plików i systemu plików. Zawiera:
+
+- common::FileStream - klasa strumienia do zapisywania i odczytywania treœci pliku
+- common::DirLister - klasa do listowania zawartoœci katalogu
+- Funkcje do operacji na systemie plików, w tym:
+  - Zapisywanie i odczytywanie ca³ych plików
+  - Sprawdzanie, czy plik albo katalog istnieje
+  - Odczytywanie i zapisywanie daty modyfikacji, utworzenia i ostatniego dostêpu
+  - Tworzenie, usuwanie, zmiana nazwy i przenoszenie plików i katalogów
+
+
+\section Files_Uwagi Uwagi
+
+- Wiele funkcji posiada wariant z Must-. Wówczas funkcja zwracaj¹ca bool w
+przypadku b³êdu zwraca false, a funkcja Must- w przypadku b³êdu rzuca wyj¹tek.
+- Blokowanie plików: \n
+  W obecnej implementacji:
+  - Windows - jeœli Lock=true, przy trybie do zapisu plik jest blokowany przed
+    zapisem i odczytem, przy trybie tylko do odczytu plik jest blokowany tylko
+    przed zapisem.
+  - Linux - jeœli Lock=true, plik jest blokowany ca³kowicie (funkcja flock).
+
+
+\section Files_Niema Czego nie ma
+
+- Nie ma funkcji do listowania dysków w Windows, bo one s¹ charakterystyczne
+tylko dla jednego systemu, wiêc mo¿na z powodzeniem u¿ywaæ wprost funkcji
+WinAPI, jak GetLogicalDrives, GetDriveType i innych z listy "Volume Management
+Functions".
+- Nie ma kopiowania ani przenoszenia katalogów wraz z ca³¹ zawartoœci¹, bo API
+systemowe te¿ tego nie maj¹ (WinAPI ma tylko MoveFile[Ex] potrafi¹ce przenosiæ
+katalogi wy³¹cznie w ramach jednej partycji). Trzebaby to pisaæ we w³asnym
+zakresie. Poza tym nie jest a¿ tak potrzebne no i bez asynchronicznoœci oraz
+paska postêpu nie ma zbyt wielkiego sensu.
+
+
+*/

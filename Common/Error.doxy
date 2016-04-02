@@ -1,0 +1,124 @@
+/** \page Module_Error Modu³ Error
+
+
+Nag³ówek: Error.hpp \n
+Elementy modu³u: \ref code_error
+
+Ten modu³ to propozycja ujednoliconego mechanizmu obs³ugi b³êdów w programie z
+u¿yciem wyj¹tków C++. Mo¿na go u¿ywaæ w swoim kodzie. U¿ywaj¹ go te¿ niektóre
+inne modu³y CommonLib, m.in. Stream i Files.
+
+Klas¹ bazow¹ wyj¹tku jest common::Error. Przechowuje ona stos stringów z
+komunikatami b³edów. Motywacjê takiego podejœcie znajdziesz w moim artykule:
+"Problemy z obs³ug¹ b³êdów w kodzie C++", Adam Sawicki, Grudzieñ 2005. Pisz¹c w
+skrócie: obs³uga b³êdów w programie jest niezwykle istotna dla efektywnego
+znajdowania i poprawnia b³êdów w programie oraz identyfikowania i rozwi¹zywania
+problemów podczas jego u¿ywania. Tymczasem ani komunikat b³êdu z miejsca jego
+wyst¹pienia - ten najni¿szego poziomu - na przyk³ad "Nie mo¿na skonwertowaæ
+liczby na ³añcuch", ani komunikat z miejsca jego odebrania - ten nawy¿szego
+poziomu, na przyk³ad "Nie mo¿na uruchomiæ programu" - nie daje pe³nej informacji
+potrzebnej do zidentyfikowania problemu. Dopiero dok³adanie na stos komunikatów
+b³êdów w czasie "przelotu" wyj¹tku a potem ich zdjêcie ze stosu w odwrotnej
+kolejnoœci daje pe³ny obraz sytuacji, na przyk³ad:
+
+\verbatim
+Nie mo¿na uruchomiæ programu
+Nie mo¿na wczytaæ pliku: Config.dat
+B³¹d sk³adni. Wiersz: 23, Kolumna: 8, Znak: 56
+Nie mo¿na skonwertowaæ liczby na ³añcuch
+\endverbatim
+
+Dostêpne s¹ makra do otaczania treœci funkcji, aby wygodniej ³apaæ b³êdy,
+dopisywaæ nowy komunikat do stosu i rzucaæ je dalej.
+
+
+\section error_klasy Klasy wyj¹tków
+
+Klasa common::Error nie jest polimorficzna. Jedynym sensem istnienia jej klas
+pochodnych jest obecnoœæ konstruktora, który inicjalizuje b³¹d komunikatem z
+danymi charakterystycznymi dla danej biblioteki w razie potrzeby samemu
+pobieraj¹c dane tego b³êdu. Innymi s³owy - zamienia b³¹d danej biblioteki na
+ujednolicony mechanizm obs³ugi b³êdów oferowany przez modu³ Error. Dostêpne s¹
+klasy:
+
+- common::Error - b³¹d w³asny u¿ytkownika \n
+  Klasa bazowa wyj¹tku
+
+- common::ErrnoError - b³êdy biblioteki standardowej C i Linux API \n
+  Pobiera kod i komunikat b³êdu ze zmiennej errno.
+- common::Win32Error - b³edy Windows API \n
+  Pobiera kod i komunikat b³êdu z funkcji GetLastError.
+  (Tylko w Windows)
+
+- common::SDLError - b³edy biblioteki SDL \n
+  (Tylko jeœli zdefiniujesz makro USE_SDL)
+- common::OpenGLError - b³êdy biblioteki OpenGL \n
+  (Tylko jeœli zdefiniujesz makro USE_OPENGL)
+- common::FmodError - b³êdy biblioteki FMOD \n
+  (Tylko jeœli zdefiniujesz makro USE_FMOD)
+- common::DirectXError - b³êdy biblioteki DirectX \n
+  (Tylko jeœli zdefiniujesz makro USE_DIRECTX)
+- common::WinSockError - b³êdy biblioteki WinSock (czêœæ Windows API) \n
+  (Tylko jeœli zdefiniujesz makro USE_WINSOCK)
+- common::DevILError - b³êdy biblioteki DevIL do obs³ugi obrazków \n
+  (Tylko jeœli zdefiniujesz makro USE_DEVIL)
+- common::AVIFileError - b³êdy biblioteki AVI File (czêœæ Windows API) \n
+  (Tylko jeœli zdefiniujesz makro USE_AVI_FILE)
+
+
+\section error_przyklad Przyk³ad
+
+\code
+void RobCos()
+{
+  ERR_TRY;
+
+  throw common::Error("Jakiœ b³¹d");
+
+  ERR_CATCH_FUNC;
+}
+
+void WczytajKonfiguracje(const string &NazwaPliku)
+{
+  ERR_TRY;
+
+  RobCos();
+
+  ERR_CATCH("Nie mo¿na wczytaæ pliku: " + NazwaPliku);
+}
+
+void UruchomProgram()
+{
+  ERR_TRY;
+
+  WczytajKonfiguracje("Config.dat");
+
+  ERR_CATCH("Nie mo¿na uruchomiæ programu");
+}
+
+void Test()
+{
+  try
+  {
+    UruchomProgram();
+  }
+  catch (const common::Error &e)
+  {
+    string Message;
+    e.GetMessage_(&Message);
+    MessageBox(g_MainWnd, Message.c_str(), "Mój program", MB_OK | MB_ICONERROR);
+  }
+}
+\endcode
+
+Przyk³ad ten zwróci komunikat b³êdu podobny do tego:
+
+\verbatim
+[test.cpp,1611] Nie mo¿na uruchomiæ programu
+[test.cpp,1602] Nie mo¿na wczytaæ pliku: Config.dat
+[test.cpp,1593] void __cdecl RobCos(void)
+Jakiœ b³¹d
+\endverbatim
+
+
+*/

@@ -1,0 +1,20 @@
+/** \page Module_BstrString BstrString Module
+
+
+Header: BstrString.hpp \n
+Module components: \ref code_bstrstring
+
+\section BstrString_Introduction Introduction
+
+This module exposes single class called BstrString.
+It's an object oriented wrapper for type BSTR, defined in Windows API
+for containing Unicode strings used in OLE Automation.
+It automatically allocates, frees and manages the string using functions
+like SysAllocString, SysFreeString or VarBstrCmp.
+Class interface is similar to std::string.
+The class is also able to take ownership of existing BSTR string.
+It supports transparent conversion from and to ANSI and Unicode strings of type
+char*, wchar_t*, std::string and std::wstring.
+String converted to different types can be conveniently accessed with
+methods b_str(), wc_str() and c_str().
+*/

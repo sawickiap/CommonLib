@@ -1,0 +1,112 @@
+/** \page Module_FreeList Modu³ FreeList
+
+Nag³ówek: FreeList.hpp \n
+Elementy modu³u: \ref code_freelist
+
+Modu³ FreeList rozszerza przestrzeñ nazw common o dwa szablony klas - common::FreeList
+oraz common::DynamicFreeList. Obiekty tych klas to napisane we w³asnym zakresie
+alokatory przeznaczone do alokowania du¿ych iloœci zmiennych jednego wybranego
+typu, które dzia³aj¹ znacz¹co szybciej ni¿ standardowe operatory new i delete.
+
+FreeList nadaj¹ siê dobrze wszêdzie tam, gdzie czêsto trzeba alokowaæ i zwalniaæ
+ró¿ne drobiazgi (niekoniecznie ma³e rozmiarem, bo dzia³aj¹ szybciej zarówno dla
+ma³ych jak i du¿ych elementów), na przyk³ad struktury cz¹steczek czy wêz³y
+drzewa BSP.
+
+Zalety:
+
+- Znacz¹co szybsza alokacja i zwalnianie obiektów.
+- Poprawiona Spatial Locality of Reference - lepsze wykorzystanie cache.
+
+Wady:
+
+- Trzeba utworzyæ FreeList i korzystaæ z niej przy alokacji i zwalnianiu.
+- Z powodu rezerwowania ca³ych du¿ych bloków pamiêci czêœæ pamiêci siê marnuje.
+
+
+\section FreeList_Rodzaje Rodzaje FreeList
+
+S¹ dwie klasy. Po utworzeniu ich obiektów dalsza obs³uga wygl¹da ju¿ tak samo.
+
+-# Klasa common::FreeList
+Rezerwuje jeden blok o podanej liczbie elementów i jest to maksymalna liczba
+elementów, jakie mo¿na z jej u¿yciem zaalokowaæ.
+Konstruktor: \n
+<tt>FreeList(uint Capacity);</tt>
+-# Klasa common::DynamicFreeList
+Zarz¹dza ca³¹ kolekcj¹ zarezerwowanych bloków o podanym rozmiarze (liczbie
+elementów w jednym bloku), potrafi rezerwowaæ nowe, a tak¿e zwalniaæ te
+kompletnie nieu¿ywane (oczywiœcie z pewn¹ histerez¹).
+Konstruktor: \n
+<tt>DynamicFreeList(uint BlockCapacity);</tt>
+
+
+\section FreeList_Obsluga Obs³uga
+
+\verbatim
+#include "Base.hpp"
+#include "FreeList.hpp"
+using namespace common;
+
+Utworzenie listy:
+  FreeList<int> L(1024);
+  DynamicFreeList<int> L(1024);
+
+Alokacja domyœlnym konstruktorem:
+(typy atomowe zostaj¹ niezainicjalizowane)
+  int *p = L.New();
+Alokacja jawnie wywo³anym domyœlnym konstruktorem:
+(typy atomowe zostaj¹ zainicjalizowane zerem)
+  int *p = L.New_ctor();
+Alokacja z wywo³aniem konstruktora z parametrami:
+(istniej¹ wersje dla 1, 2, 3, 4, 5 parametrów)
+  int *p = L.New(123);
+
+Zwolnienie pamiêci:
+(pamiêæ musi byæ przydzielona wczeœniej z puli tej listy)
+  L.Delete(p);
+
+Sprawdzanie stanu i statystyki - metody:
+- IsEmpty, IsFull
+- GetUsedCount, GetFreeCount, GetCapacity, GetUsedSize itd...
+\endverbatim
+
+
+\section FreeList_Uwagi Uwagi
+
+Przed ususniêciem obiektu listy zwolnione musz¹ byæ wszystkie zaalokowane z jej
+u¿yciem elementy. Jest to sprawdzane za pomoc¹ asercji.
+
+Ka¿da z wersji metod do alokacji New ma te¿ wersjê o nazwie TryNew, która w
+przypadku b³êdu (brak miejsca w bloku pamiêci) nie rzuca wyj¹tku std::bad_alloc
+jak tamte, tylko zwraca NULL.
+
+
+\section FreeList_BadAlloc Wydajnoœæ
+
+Pomiar dla 10240 losowych alokacji lub zwolnieñ (90% szansa na alokacjê, 10% na
+zwolnienie, na koñcu zwolnienie pozosta³ych zmiennych):
+
+\verbatim
+DEBUG:
+Element typu int:
+  FreeList : 68.0636 ms
+  DynamicFreeList : 184.441 ms
+  new i delete : 78.8142 ms
+Element typu zajmujacego 1024 bajty:
+  FreeList : 69.3896 ms
+  DynamicFreeList : 203.506 ms
+  new i delete : 93.2942 ms
+RELEASE:
+Element typu int:
+  FreeList : 7.87224 ms
+  DynamicFreeList : 11.4786 ms
+  new i delete : 17.0348 ms
+Element typu zajmujacego 1024 bajty:
+  FreeList : 9.18059 ms
+  DynamicFreeList : 18.0729 ms
+  new i delete : 24.0537 ms
+\endverbatim
+
+
+*/

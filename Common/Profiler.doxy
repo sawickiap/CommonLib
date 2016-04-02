@@ -1,0 +1,89 @@
+/** \page Module_Profiler Modu³ Profiler
+
+
+Nag³ówek: Profiler.hpp \n
+Elementy modu³u: \ref code_profiler
+
+\section profiler_wstep Wstêp
+
+common::Profiler to prosta klasa do pomiaru czasu ró¿nych operacji, która u³atwia
+znajdowanie miejsc w kodzie powoduj¹cych najwiêksze opóŸnienia.
+
+Klasa common::Profiler to podstawowa klasa do pomiaru. Przechowuje hierarchiê obiektów
+klasy common::ProfilerItem. Mo¿na tworzyæ jej obiekt samemu lub skorzystaæ z domyœlnego 
+w zmiennej common::g_Profiler.
+
+
+\section profiler_pomiar Pomiar
+
+Zbieranie statystyk opiera siê na wielokrotnym powtarzaniu pomiarów
+(automatycznie wyci¹gana jest œrednia) z u¿yciem jednej z tych metod:
+
+- Metod common::Profiler::Begin i common::Profiler::End
+- Tworzenia obiektów klasy common::Profile
+- Wygodnego makra PROFILE_GUARD
+
+Przyk³ad:
+
+\code
+void Operacja1()
+{
+ Wait(11);
+}
+
+void Operacja2()
+{
+  {
+    PROFILE_GUARD("Pod-operacja 1");
+    Wait(23);
+  }
+  {
+    PROFILE_GUARD("Pod-operacja 2");
+    Wait(10);
+  }
+}
+
+void Test()
+{
+  for (uint i = 0; i < 10; i++)
+  {
+    {
+      PROFILE_GUARD("Operacja 1");
+      Operacja1();
+    }
+    {
+      PROFILE_GUARD("Operacja 2");
+      Operacja2();
+    }
+  }
+}
+\endcode
+
+
+\section profiler_wyniki Wyniki
+
+Do wyników pomiaru mo¿na siê dostaæ za pomoc¹:
+
+- Bezpoœredni dostêp do drzewa obiektów klasy common::ProfilerItem, za pomoc¹ metody
+  common::Profiler::GetRootItem.
+- Pobranie ³añcucha z pe³nym wynikiem za pomoc¹ metody common::Profiler::FormatString.
+
+Przyk³ad:
+
+\code
+string s;
+common::g_Profiler.FormatString(&s);
+std::cout << s << std::endl;
+\endcode
+
+Dla powy¿szego kodu wynik wygl¹da tak:
+
+\verbatim
+Operacja 1 : 14.92 ms (10)
+Operacja 2 : 46.8442 ms (10)
+  Pod-operacja 1 : 31.2242 ms (10)
+  Pod-operacja 2 : 15.4256 ms (10)
+\endverbatim
+
+
+*/

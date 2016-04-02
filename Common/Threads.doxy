@@ -1,0 +1,81 @@
+/** \page Module_Threads Modu³ Threads
+
+
+Nag³ówek: Threads.hpp \n
+Elementy modu³u: \ref code_threads
+
+\section threads_ogolne Ogólne
+
+- Obiektowy
+- Przenoœny
+  - W Windows u¿ywa WinAPI
+  - W Linux u¿ywa pthreads i jego rozszerzeñ
+- W razie b³êdów rzuca wyj¹tki modu³u Error
+  Ale wiele funkcji dzia³aj¹cych na ju¿ utworzonych obiektach (Lock, Wait itp.)
+  dla optymalizacji wydajnoœci nie sprawdza b³êdów.
+- Wzorowany na:
+  - Na ksi¹¿ce "Modern Multithreading" (Carver, Tai, wyd. Wiley)
+  - Klasa common::Thread - na jêzyku Java
+  - Implementacja common::Cond w Windows - na bibliotece wxWidgets
+    http://www.wxwidgets.org/
+  - Implementacja common::Barrier w Windows - na wyk³adach dr in¿. Tomasza Olasa
+    http://icis.pcz.pl/~olas/
+- Korzysta z wzorca Pimpl. Dziêki temu nie wystawia do nag³ówka ¿adnych
+  zale¿noœci \#include.
+- Wydajnoœæ: Nie jest maksymalna (g³ównie przez ten Pimpl), ale nie powinna byæ
+  z³a.
+
+
+\section threads_skladniki Sk³adniki
+
+- common::Thread - klasa w¹tku
+
+Obiekty synchronizuj¹ce:
+
+- common::Mutex - muteks
+  - Klasa pomocnicza common::MutexLock i makro \ref MUTEX_LOCK
+- common::Semaphore - semafor zliczaj¹cy
+- common::Cond - zmienna warunkowa
+- common::Barrier - bariera
+- common::Event - zdarzenie (auto-reset lub manual-reset)
+
+
+\section threads_implementacja Implementacja
+
+\verbatim
+           |   Windows                            Linux
+-----------+--------------------------------------------------------------------
+Mutex      |   CRITICAL_SECTION lub Mutex         pthread_mutex_t
+Semaphore  |   Semaphore                          sem_t
+Cond       |   (emulowany)                        pthread_cond_t
+Barrier    |   (emulowany)                        pthread_barrier_t
+Event      |   Event                              (emulowany)
+\endverbatim
+
+
+\section threads_czego_nie_ma Czego nie ma
+
+- common::Thread: w¹tków Detached - wszystkie s¹ Joinable.
+Dlaczego? Poniewa¿ nie chcia³o mi siê tego pisaæ. Poza tym nie jest a¿ tak
+potrzebne.
+- common::Thread: mechanizmu cancelacji
+Dlaczego? Bo szczegó³y s¹ zale¿ne od danego problemu, zwykle to jest
+niepotrzebne i nie ma sensu zabieraæ czasu i pamiêci na dodatkowe zasoby dla
+ka¿dego w¹tku. Kto chce mieæ cancelacjê, mo¿e sobie ³atwo wstawiæ do klasy
+swojego w¹tku common::Event.
+- Semafora binarnego
+Dlaczego? Bo nie ma go natywnie ani w WinAPI ani w pthreads. Poza tym nie jest
+a¿ tak potrzebny, no i nie chce mi siê myœleæ jak go zrobiæ.
+- RW Lock
+Dlaczego? Bo to ju¿ bardziej zaawansowana sprawa, a ponadto zale¿na od
+konkregnego zastosowania. Nie zag³êbia³em siê w to jeszcze dok³adnie.
+- common::Event: PulseEvent
+Dlaczego? Bo nie jest to a¿ takie potrzebne - jest dziwne, a poza tym nie bardzo
+wiem jak to zasymulowaæ w common::Event w Linuksie.
+- Czekania z okreœlon¹ zamiast niezdefiniowanej kolejnoœci¹ wznawiania w¹tków.
+- Zmienne warunkowe: Innych Signaling Disciplines ni¿ Signal-and-Continue: np.
+Signal-and-Urgent-Wait, Signal-and-Exit, Urgent-Signal-and-Continue (wg ksi¹¿ki
+"Modern Multithreading", Carver, Tai, wyd. Wiley, str. 199).
+
+
+*/

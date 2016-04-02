@@ -1,0 +1,131 @@
+/** \page Module_Stream Modu³ Stream
+
+
+Nag³ówek: Stream.hpp \n
+Elementy modu³u: \ref code_stream
+
+\section stream_strumienie Strumienie
+
+Modu³ Stream ustanawia hierarchiê klas strumieni.
+
+Za³o¿enia strumieni:
+
+- Strumienie s¹ wzorowane na Delphi, C# i Java, zupe³nie ró¿ne od tych z
+biblioteki iostream w C++.
+- Reprezentuj¹ strumienie surowych danych binarnych. W przeciwieñstwie do
+iostream nie posiadaj¹ ¿adnych funkcji do zapisywania czy parsowania
+(odczytywania) danych w sposób tekstowy, tj. zamiany znaków na liczby czy inne
+typy.
+- Strumienie nie s¹ zaprojektowane by by³y super szybkie, za to wygodne,
+bezpieczne i polimorficzne. U¿ywaj¹ funkcji wirtualnych, sprawdzaj¹ wszystko i
+przy ka¿dym b³êdzie rzucaj¹ wyj¹tki modu³u Error.
+- W wiêkszoœci rodzajów strumieni kursor mo¿e byæ poza zakresem. Jedynie nie
+udadz¹ siê wtedy operacje zapisu i odczytu.
+- Te strumienie nie nadaj¹ siê do implementacji gniazd sieciowych, poniewa¿
+sytuacja w której strumieñ zg³asza koniec danych podczas gdy za chwilê kolejna
+próba odczytu mo¿e siê powieŸæ jest niezgodna z ide¹ tych strumieni.
+
+
+\section stream_organizacja_strumieni Organizacja strumieni
+
+Wa¿n¹ decyzj¹ projektow¹ by³ wybór, czy osobnymi klasami powinny byæ
+strumienie zapisu i odczytu, strumienie obs³uguj¹ce i nie obs³uguj¹ce kursora,
+czy mo¿e jedne i drugie albo ¿adne. Ostatecznie dostêpne s¹ dwie bazowe klasy
+strumieni:
+
+- common::Stream \n
+  Wspiera zapis i odczyt danych.
+- common::SeekableStream - dziedziczy z common::Stream \n
+  Dodatkowo wspiera sprawdzanie i zmianê d³ugoœci danych oraz pozycji kursora.
+
+Decyzja ta by³a dla mnie oczywista. To czy strumieñ wspiera kursor, to
+ewidentnie zale¿y od jego typu (np. strumieñ plikowy tak, strumieñ kompresji
+danych nie), podczas gdy to czy strumieñ jest do odczytu czy do zapisu albo do
+jednego i drugiego, to ju¿ sprawa danego strumienia zale¿na od parametrów, z
+jakimi zosta³ utworzony (np. czy plik ma byæ otwarty do zapisu czy do odczytu).
+
+
+\section stream_skladniki Sk³adniki
+
+Modu³ definiuje nastêpuj¹ce klasy:
+
+- common::Stream - klasa bazowa strumieni
+- common::SeekableStream - klasa bazowa strumieni z obs³ug¹ d³ugoœci i kursora
+
+- common::CharWriter - klasa przyspieszaj¹ca zapisywanie do strumienia po znaku
+  (wersja Unicode: common::WCharWriter, wersja zale¿na od u¿ywania Unicode: common::TCharWriter).
+- common::CharReader - klasa przyspieszaj¹ca odczytywanie ze strumienia po znaku
+  (wersja Unicode: common::WCharReader, wersja zale¿na od u¿ywania Unicode: common::TCharReader).
+
+- common::MemoryStream - strumieñ do bloku pamiêci o sta³ym rozmiarze
+- common::VectorStream - strumieñ do samorozszerzaj¹cego siê bloku pamiêci
+- common::StringStream - strumieñ do ³añcucha typu string
+
+- common::OverlayStream - klasa bazowa nak³adek na strumienie
+- common::CounterOverlayStream - nak³adka zliczaj¹ca zapisywane i odczytywane dane
+- common::LimitOverlayStream - nak³adka ograniczaj¹ca iloœæ zapisywanych i odczytywanych
+  danych
+- common::MultiWriterStream - strumieñ zapisuj¹cy na raz do wielu strumieni
+
+- common::Hash_Calc - strumieñ licz¹cy hash
+- common::CRC32_Calc - strumieñ licz¹cy sumê kontroln¹ CRC32
+- common::MD5_Calc - strumieñ licz¹cy sumê kontroln¹ MD5
+- common::XorCoder - strumieñ szyfruj¹cy i deszyfruj¹cy dane operacj¹ XOR
+
+- common::BinEncoder, common::BinDecoder - strumieñ koduj¹cy, dekoduj¹cy dane binarne jako ci¹g
+  zer i jedynek. Szczyt bezu¿ytecznoœci :) Ka¿dy bajt zamienia na 8 znaków.
+- common::HexEncoder, common::HexDecoder - strumieñ koduj¹cy, dekoduj¹cy dane binarne jako ci¹g
+  liczb szesnastkowych. Ka¿dy bajt zamienia na 2 znaki.
+- common::Base64Encoder, common::Base64Decoder - strumieñ koduj¹cy, dekoduj¹cy dane binarne w
+  formacie Base64. Ka¿de 3 bajty zamienia na 4 znaki.
+
+Modu³ Stream definiuje te¿ strukturê common::MD5_SUM reprezentuj¹c¹ sumê kontroln¹ MD5,
+a tak¿e jej konwersjê do i z ³añcucha.
+
+Inne modu³y - Files i ZlibUtils - rozszerzaj¹ hierarchiê strumieni o nowe klasy.
+
+
+\section stream_wlasne_klasy_strumieni W³asne klasy strumieni
+
+Poni¿ej jest szablon klasy strumienia.
+
+Metody oznaczone jako <tt>[x]</tt> maj¹ wersje oryginalne i nie trzeba ich implementowaæ,
+¿eby dzia³a³y, chyba ¿e w strumieniu danego rodzaju da siê zaimplementowaæ dan¹
+metodê bezpoœrednio, ¿eby dzia³a³a szybciej i lepiej.
+
+\code
+class XXX : public common::SeekableStream
+{
+private:
+  ...
+
+public:
+  XXX(...);
+  virtual ~XXX();
+  
+  // ======== Implementacja Stream ========
+  
+  virtual void Write(const void *Data, size_t Size);
+  virtual void Flush(); [x, domyœlnie nie robi nic]
+  
+  virtual size_t Read(void *Out, size_t MaxLength);
+  virtual void MustRead(void *Out, size_t Length); [x]
+  virtual bool End(); [dopiero w Seekable ma domyœln¹ implementacjê]
+  virtual size_t Skip(size_t MaxLength); [x]
+  
+  // ======== Implementacja Seekable ========
+  
+  virtual size_t GetSize();
+  virtual int GetPos();
+  virtual void SetPos(int pos);
+  virtual void SetPosFromCurrent(int pos); [x]
+  virtual void SetPosFromEnd(int pos); [x]
+  virtual void Rewind(); [x]
+  virtual void SetSize(size_t Size);
+  virtual void Truncate(); [x]
+  virtual void Clear(); [x]
+};
+\endcode
+
+
+*/

@@ -1,0 +1,18 @@
+  'a'  '\'' '\x41' // komentarz1
+// komentarz2
+  . , ab\
+cd
+
+  false true dupa; _123'a' /* asfjd32ur 02ur20 //////     **** /* dfs fsf dsf --   \
+d fsfdds sdfsd f
+*/
+
+a/* komentarz */b
+
+"ab
+c"
+"a b c"
+ "\"a\tb\"" 
+
++123 123. 0xFFFF,-.7e-2
+

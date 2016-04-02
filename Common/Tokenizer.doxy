@@ -1,0 +1,166 @@
+/** \page Module_Tokenizer Modu³ Tokenizer
+
+
+Nag³ówek: Tokenizer.hpp \n
+Elementy modu³u: \ref code_tokenizer
+
+\section tokenizer_wstep Wstêp
+
+To prosty tokenizer, który przetwarza ci¹g znaków na tokeny takie jak liczby,
+identifikatory, ³añcuchy, symbole itp. Obs³ugiwana sk³adnia jest wzorowana na
+C/C++. Jego za³o¿eniem jest zast¹piæ mój stary jêzyk opisu XNL2.
+
+Na jego bazie mo¿na budowaæ parsery ró¿nych plików np. konfiguracyjnych albo
+opisuj¹cych i przechowuj¹cych ró¿ne informacje - tekstowe, numeryczne i inne,
+dowolnie zorganizowane. Polecam go zamiast XML, bo XML jest bardzo rozwlek³y.
+Tokenizer raczej nie nadaje siê do budowy jêzyków programowania, a jedynie
+formatów opisu.
+
+
+\section tokenizer_ogolne Ogólne
+
+- Tokenizer w przypadku b³êdów rzuca wyj¹tki klasy common::TokenizerError, która
+oprócz tego co ka¿dy b³¹d modu³u Error niesie te¿ (zarówno w treœci komunikatu,
+jak i w osobnych polach) informacje na temat miejsca wyst¹pienia b³êdu w
+dokumencie (nr wiersza, kolumny i znaku). Jest to zawsze miejsce, od którego
+rozpoczyna siê token, który sprawi³ problem.
+- Wiersze, kolumny i znaki s¹ numerowane od 1, tak jak w edytorach tekstu.
+
+
+\section tokenizer_obsluga Obs³uga
+
+-# Wczytaæ dokument lub uzyskaæ strumieñ pozwalaj¹cy na jego wczytywanie.
+-# Utworzyæ obiekt klasy common::Tokenizer korzystaj¹c z jednego z jego konstruktorów.
+-# Opcjonalnie skonfigurowaæ tokenizer rejestruj¹c swoje s³owa kluczowe.
+-# Pobieraæ w pêtli kolejne tokeny metod¹ common::Tokenizer::Next(), po której mo¿na odczytywaæ:
+   - Typ tokena - metoda common::Tokenizer::GetToken()
+   - Informacje na temat tokena - metoda common::Tokenizer::GetString() i inne zale¿nie od typu
+     Przerwaæ pêtlê po napotkaniu common::Tokenizer::TOKEN_EOF.
+
+
+\section tokenizer_skladnia Sk³adnia
+
+Sk³adnia jest wzorowana na C/C++.
+
+Znak \\ po którym od razu nastêpuje koniec linii prze³amuje liniê tak, ¿e koniec
+linii jest ignorowany i dalej rozci¹ga siê ta sama linia, np.:
+
+\verbatim
+abc\
+def
+\endverbatim
+
+Komentarze mog¹ byæ:
+
+- jednowierszowe: <tt>// komentarz</tt> \n
+  Roci¹ga siê do koñca wiersza
+- wielowierszowe: <tt>/* komentarz * /</tt> (bez tej spacji, ale inaczej nie da³o siê tego zapisaæ w Doxygen)
+  Rozci¹ga siê do napotkania pierwszego <tt>* /</tt> \n
+  Nie mo¿na zagnie¿d¿aæ komentarzy.
+
+Symbolami s¹ znaki:
+
+\verbatim
+` ~ ! @ # $ % ^ & * ( ) = [ ] { } ; : , . < > ? \ | /
+\endverbatim
+
+Identyfikatorem jest ci¹g liter (tylko ASCII, bez polskich) i cyfr
+rozpoczynaj¹cy siê od litery. Znak <tt>_</tt> jest uwa¿any za literê. Przyk³ady:
+
+\verbatim
+abc   a123   _G
+\endverbatim
+
+S³owo kluczowe jest jak identyfikator. Jedyna ró¿nica polega na tym, ¿e jego
+specjalne znaczenie jako s³owa kluczowego zosta³o zarejestrowane.
+
+Liczba ca³kowita to na przyk³ad:
+Jeœli rozpoczyna siê od <tt>0</tt>, jest ósemkowa.
+Jeœli rozpoczyna siê od <tt>0x</tt> lub <tt>0X</tt>, jest szesnastkowa.
+
+\verbatim
+10   +2   -7   0777   0xFFFFFFFF
+\endverbatim
+
+Liczba zmiennoprzecinkowa to na przyk³ad:
+
+\verbatim
+10.5   -.2   3.1e-2
+\endverbatim
+
+Sta³a znakowa to pojedynczy znak objêty w apostrofy:
+
+\verbatim
+'A'   '\n'
+\endverbatim
+
+Sta³a ³añcuchowa to dowolna liczba znaków objêta w cudzys³owy.
+O tym czy wewn¹trz ³añcucha mo¿e siê znajdowaæ koniec wiersza (czy ³añcuch mo¿e
+siê rozci¹gaæ na wiele wierszy) decyduje flaga w konstruktorze tokena. Domyœlnie
+nie mo¿e.
+
+\verbatim
+"abc"   ""   "a b \"c\"\n"
+\endverbatim
+
+Sekwencje ucieczki, czyli sposób zapisywania znaków specjalnych wewn¹trz sta³ych
+znakowych i ³añcuchowych jest podobny do C/C++.
+
+- Znaki interpretowane dos³ownie: <tt>\\\\ \\? \\" \\'</tt>
+- Znaki specjalne: <tt>\\0 \\r \\n \\t \\v \\b \\f \\a</tt>
+- Dowolny znak zapisany jako dwucyfrowa liczba szesnastkowa: <tt>\\xFF \\x41 \\xA0</tt>
+
+
+\section tokenizer_przyklad Przyk³ad
+
+Jeœli plik ma strukturê tak¹ jak ten przyk³ad:
+
+\verbatim
+{
+  Nazwa1 = "Wartoœæ1"
+  Nazwa2 = "Wartoœæ2"
+}
+\endverbatim
+
+To kod, który parsuje go z u¿yciem modu³u Tokenizer mo¿e wygl¹daæ tak:
+
+\code
+void ParseMyFormat(std::map<string, string> &Out, const string &In)
+{
+  common::Tokenizer t(&In, 0);
+  t.Next();
+  t.AssertSymbol('{');
+  t.Next();
+  std::pair<string, string> Item;
+  while (!t.QuerySymbol('}'))
+  {
+    t.AssertToken(common::Tokenizer::TOKEN_IDENTIFIER);
+    Item.first = t.GetString();
+    t.Next();
+    t.AssertSymbol('=');
+    t.Next();
+    t.AssertToken(common::Tokenizer::TOKEN_STRING);
+    Item.second = t.GetString();
+    t.Next();
+    Out.insert(Item);
+  }
+  t.Next();
+  t.AssertEOF();
+}
+\endcode
+
+\section tokenizer_czego_nie_ma Czego nie ma
+
+- W³¹czania i wy³¹czania poszczególnych znaków jako symboli.
+By³o, ale ostatecznie zdecydowa³em siê zrezygnowaæ z tej funkcji.
+- Symboli wieloznakowych, np.: <tt>==</tt>
+By³o w planach, ale ostatecznie zrezygnowa³em bo uzna³em, ¿e siê nie przyda.
+- Przyrostków do liczb sygnalizuj¹cych ich typ, np.: <tt>1.0f</tt>
+Uzna³em, ¿e obejdzie siê bez tego.
+- Wracania do wczeœniejszych miejsc w dokumencie, podgl¹dania nastêpnych
+tokenów, odk³adania tokenów z powrotem
+- Parsera DOM, który rozk³ada³by dokument na listê tokenów
+Lepiej od razu parsowaæ strumieñ tokenów na docelowe dane.
+
+
+*/

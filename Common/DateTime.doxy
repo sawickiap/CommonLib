@@ -1,0 +1,168 @@
+/** \page Module_DateTime Modu³ DateTime
+
+
+Nag³ówek: DateTime.hpp \n
+Elementy modu³u: \ref code_datetime
+
+\section DateTime_Ogolne Uwagi ogólne
+
+- Modu³ nie jest mo¿e ekstremalnie optymalny, ale jest pisany pod k¹tem
+  szybkoœci i elegancji.
+- Wzorowany jest bibliotece wxWidgets - na module datetime (klasa wxDateTime i
+  pokrewne).
+- Bezpieczny zakres czasu, na którym potrafi operowaæ modu³, to mniej wiêcej
+  lata 1970 - 2037.
+- W³¹cza <time.h>
+
+
+\section DateTime_Typy Dostêpne typy
+
+- common::WEEKDAY - enum \n
+  Dzieñ tygodnia
+- common::MONTH - enum \n
+  Miesi¹c roku
+- common::NAME_FORM - enum (flagi bitowe) \n
+  Sposób generowania nazw dla dni tygodnia i miesiêcy
+- common::DATESPAN - struct \n
+  Reprezentuje odcinek czasu. Przechowuje osobne liczby ca³kowite dla: lat,
+  miesiêcy, tygodni i dni. Mo¿na za jego pomoc¹ przesuwaæ common::TMSTRUCT.
+- common::TIMESPAN - struct \n
+  Reprezentuje odcinek czasu. Przechowuje liczbê ca³kowit¹ ze znakiem w
+  milisekundach. Mo¿na za jego pomoc¹ przesuwaæ common::DATETIME.
+- common::TMSTRUCT - struct \n
+  Reprezentuje moment czasu. Przechowuje osobne pola: dzien, miesi¹c, rok,
+  godzina, minuta, sekunda, milisekunda. Pamiêta tak¿e dzieñ tygodnia, który
+  wyliczany jest przy pierwszym odczytaniu (pole mutable).
+- common::DATETIME - struct \n
+  Reprezentuje moment czasu. Przechowuje liczbê milisekund od epoki Uniksowej,
+  czyli 1 stycznia 1970.
+
+
+\section DateTime_Konwersja Konwersja z ³añcuchami
+
+- common::DATETIME: \n
+  SthToStr - pokazuje liczbê milisekund
+- common::TIMESPAN: \n
+  Metody ToString, ToString_Nice \n
+  SthToStr - pokazuje liczbê milisekund
+- common::TMSTRUCT: \n
+  Funkcje DateToStr, StrToDate \n
+  SthToStr, StrToSth - konwersja na ³añcuch wg domyœlnego formatu common::DEFAULT_FORMAT
+
+£añcuch formatuj¹cy - znaki o specjalnym znaczeniu:
+
+- <tt>h</tt>  - godzina 0-23
+- <tt>H</tt>  - godzina 00-23
+- <tt>m</tt>  - minuta 0-59
+- <tt>M</tt>  - minuta 00-59
+- <tt>s</tt>  - sekunda 0-59
+- <tt>S</tt>  - sekunda 00-59
+- <tt>w</tt>  - dzieñ tygodnia 1-7
+- <tt>W</tt>  - dzieñ tygodnia 1-7
+- <tt>wl</tt> - dzieñ tygodnia pn-ndz
+- <tt>wf</tt> - dzieñ tygodnia Pn-Ndz
+- <tt>wu</tt> - dzieñ tygodnia PN-NDZ
+- <tt>Wl</tt> - dzieñ tygodnia poniedzia³ek-niedziela
+- <tt>Wf</tt> - dzieñ tygodnia Poniedzia³ek-Niedziela
+- <tt>Wu</tt> - dzieñ tygodnia PONIEDZIA£EK-NIEDZIELA
+- <tt>d</tt>  - dzieñ 1-31
+- <tt>D</tt>  - dzieñ 01-31
+- <tt>n</tt>  - miesi¹c 1-12
+- <tt>N</tt>  - miesi¹c 01-12
+- <tt>nl</tt> - miesi¹c sty-gru
+- <tt>nf</tt> - miesi¹c Sty-Gru
+- <tt>nu</tt> - miesi¹c STY-GRU
+- <tt>Nl</tt> - miesi¹c styczeñ-grudzieñ
+- <tt>Nf</tt> - miesi¹c Styczeñ-Grudzieñ
+- <tt>Nu</tt> - miesi¹c STYCZEÑ-GRUDZIEÑ
+- <tt>y</tt>  - rok np. 97, 03
+- <tt>Y</tt>  - rok np. 1997, 2003
+- <tt>i</tt>  - milisekunda 0-999
+- <tt>I</tt>  - milisekunda 000-999
+
+Ka¿dy inny znak jest traktowany dos³ownie.
+
+Podczas parsowania common::StrToDate:
+
+- Ka¿da liczba mo¿e byæ lub nie byæ poprzedzona pocz¹tkowymi zerami.
+- Ka¿da nazwa mo¿e byæ w dowolnym z formatów.
+- Dzieñ tygodnia jest ignorowany.
+
+
+\section DateTime_KonwersjeMiedzyTypami Konwersje miêdzy typami
+
+\verbatim
+DATETIME  -> TMSTRUCT  : TMSTRUCT::ctor, TMSTRUCT::Set
+TMSTRUCT  -> DATETIME  : DATETIME::ctor, DATETIME::Set
+time_t    -> DATETIME  : DATETIME::ctor, DATETIME::Set
+DATETIME  -> time_t    : DATETIME::GetTicks
+struct tm -> DATETIME  : DATETIME::ctor, DATETIME::Set
+struct tm -> TMSTRUCT  : TMSTRUCT::ctor, TMSTRUCT::Set
+TMSTRUCT  -> struct tm : TMSTRUCT::GetTm
+\endverbatim
+
+
+\section DateTime_op Operatory
+
+\subsection DateTime_op1 Konstruktory
+
+Ka¿dy ma te¿ odpowiadaj¹c¹ metodê Set.
+
+\verbatim
+DATESPAN() - niezainicjalizowany
+DATESPAN(Years, Months, Weeks, Days)
+
+TIMESPAN() - niezainicjalizowany
+TIMESPAN(int8) - milisekundy
+TIMESPAN(Hours, Minutes, Seconds, [Milliseconds])
+
+TMSTRUCT() - niezainicjalizowany
+TMSTRUCT(DATETIME)
+TMSTRUCT(struct tm)
+
+DATETIME(Day, Month, Year, Hour, Minute, Second, [Millisecond])
+DATETIME(Day, Month, Year)
+DATETIME(time_t)
+DATETIME(struct tm)
+DATETIME(TMSTRUCT)
+\endverbatim
+
+\subsection DateTime_op2 Operatory porównania
+
+\verbatim
+DATESPAN == DATESPAN, DATESPAN != DATESPAN
+
+TIMESPAN == TIMESPAN, TIMESPAN != TIMESPAN
+TIMESPAN <  TIMESPAN, TIMESPAN >  TIMESPAN
+TIMESPAN <= TIMESPAN, TIMESPAN >= TIMESPAN
+
+DATETIME == DATETIME, DATETIME != DATETIME
+DATETIME <  DATETIME, DATETIME >  DATETIME
+DATETIME <= DATETIME, DATETIME >= DATETIME
+\endverbatim
+
+\subsection DateTime_op3 Operatory arytmetyczne
+
+Ka¿dy ma te¿ wersjê z przypisaniem np. +=
+
+\verbatim
+DATESPAN + DATESPAN = DATESPAN
+DATESPAN - DATESPAN = DATESPAN
+DATESPAN * int = DATESPAN, int * DATESPAN = DATESPAN
+
+TIMESPAN + TIMESPAN = TIMESPAN
+TIMESPAN - TIMESPAN = TIMESPAN
+TIMESPAN * int = TIMESPAN, int * TIMESPAN = TIMESPAN
+-TIMESPAN
+
+TMSTRUCT + DATESPAN = TMSTRUCT
+TMSTRUCT - DATESPAN = TMSTRUCT
+
+DATETIME + TIMESPAN = DATETIME
+DATETIME - TIMESPAN = DATETIME
+
+DATETIME - DATETIME = TIMESPAN
+\endverbatim
+
+
+*/

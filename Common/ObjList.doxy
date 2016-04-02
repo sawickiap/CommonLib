@@ -1,0 +1,286 @@
+/** \page Module_ObjList ObjList Module
+
+
+Header: ObjList.hpp \n
+Module components: \ref code_objlist
+
+\section ObjList_Introduction Manual
+
+ObjList module is a set of macros for defining doubly-linked list of objects.
+Lets say we have two classes: MyContainer and MyItem.
+We want to make each object of class MyContainer able to contain list of objects of class MyItem.
+Each objects of class MyItem will be able to lie within list of one of objects of type MyContainer (or none of them).
+
+To do this, you have to use all related macros in the correct way.
+All of these macros have same parameters and are in form of:
+
+\verbatim
+#define OBJLIST_...(ListT, ItemT, Name)
+\endverbatim
+
+Where:
+
+- ListT is a name of the container class (in our example: MyContainer).
+- ItemT is a name of the item class (in our example: MyItem).
+- Name is an identifier with name of the list (in our example it will be MyList).
+
+For example:
+
+\code
+// File MyContainer.hpp
+
+class MyItem;
+
+class MyContainer
+{
+public:
+	MyContainer();
+	~MyContainer();
+	
+	OBJLIST_LIST_METHODS(MyContainer, MyItem, MyList)
+
+private:
+	OBJLIST_LIST_FIELDS(MyContainer, MyItem, MyList)
+};
+
+// File MyContainer.cpp
+
+#include "MyContainer.hpp"
+#include "Item.hpp"
+
+OBJLIST_LIST_IMPL(MyContainer, MyItem, MyList)
+
+MyContainer::MyContainer()
+{
+	OBJLIST_LIST_CTOR(MyContainer, MyItem, MyList)
+}
+
+MyContainer::~MyContainer()
+{
+	OBJLIST_LIST_DTOR(MyContainer, MyItem, MyList)
+}
+
+// File MyItem.hpp
+
+class MyContainer;
+
+class MyItem
+{
+	MyItem();
+	~MyItem();
+
+	OBJLIST_ITEM_METHODS(MyContainer, MyItem, MyList)
+
+private:
+	OBJLIST_ITEM_FIELDS(MyContainer, MyItem, MyList)
+};
+
+// File MyItem.cpp
+
+#include "MyItem.hpp"
+#include "MyContainer.hpp"
+
+MyItem::MyItem()
+{
+	OBJLIST_ITEM_CTOR(MyContainer, MyItem, MyList)
+}
+
+MyItem::~MyItem()
+{
+	OBJLIST_ITEM_DTOR(MyContainer, MyItem, MyList)
+}
+\endcode
+
+Now MyItem class has following public methods:
+
+- <tt>bool MyList_IsOnList();</tt> - returns true if objects is on a list of any MyContainer object.
+- <tt>MyContainer * MyList_GetList();</tt> - returns container object that this item object belongs to. Returns NULL if not on any list.
+- <tt>MyItem * MyList_GetPrev();</tt> - returns previous object on the list. Returns NULL if this object is the last one on the list or not on any list.
+- <tt>MyItem * MyList_GetNext();</tt> - returns next object on the list. Returns NULL if this object is the first one on the list or not on any list.
+
+MyItem class also has following private declarations
+(you are discouraged to use them directly):
+
+- <tt>friend class MyContainer;</tt>
+- <tt>MyItem *m_MyList_Prev, *m_MyList_Next;</tt>
+- <tt>MyContainer *m_MyList_List;</tt>
+
+MyContainer class has following public methods:
+
+- <tt>MyItem * MyList_GetFirst();</tt> - returns first item object on the list. Returns NULL if list is empty.
+- <tt>MyItem * MyList_GetLast();</tt> - returns last item object on the list. Returns NULL if list is empty.
+- <tt>uint MyList_GetItemCount();</tt> - returns number of items in the list.
+- <tt>bool MyList_IsEmpty();</tt> - returns true if list is empty (contains 0 objects).
+- <tt>void MyList_InsertBack(MyItem *v);</tt> - adds new object to the end of the list.
+- <tt>void MyList_InsertFront(MyItem *v);</tt> - adds new object to the beginning of the list.
+- <tt>void MyList_InsertAfter(MyItem *v, MyItem *existingItem);</tt> - adds new object just after given object. existingItem must already lie on this list.
+- <tt>void MyList_InsertBefore(MyItem *v, MyItem *existingItem);</tt> - adds new object just before given object. existingItem must already lie on this list.
+- <tt>void MyList_Remove(MyItem *v);</tt> - removes object from the list. Object v must lie in this list.
+- <tt>void MyList_Clear();</tt> - removes all objects from the list.
+
+MyContainer class also has following private declarations
+(you are discouraged to use them directly):
+
+- <tt>MyItem *m_MyList_First, *m_MyList_Last;</tt>
+- <tt>uint m_MyList_ItemCount;</tt>
+
+The list mechanism described here does not delete any objects or free any memory by itself.
+You are still responsible for freeing dynamically allocated objects of type
+MyContainer, as well as MyItem.
+List connections are automatically managed though.
+Deleting MyContainer object removes all contained MyItem objects from its list, so they no longer lie in the list.
+Deleting MyItem object removed itself from MyContainer list so the list no longer contains pointer to that object.
+
+All methods listed above (except MyList_Clear) have computational complexity O(1),
+so inserting items into a list, removing items from the list, checking if
+item belongs to a list or retrieving list item count is very fast.
+
+Here is example of using classes defined above, including iterating through the list:
+
+\code
+MyContainer Container1;
+MyItem Item1, Item2, Item3;
+
+Container1.MyList_InsertBack(&Item1);
+Container1.MyList_InsertBack(&Item2);
+Container1.MyList_InsertBack(&Item3);
+
+for (
+	MyItem *item = Container1.MyList_GetFirst();
+	item != NULL;
+	item = item->MyList_GetNext() )
+{
+	std::cout << "Visiting item" << std::endl;
+}
+\endcode
+
+Object list gives you great flexibility.
+You can delete item objects and container objects whenever you want
+(as long as you do it on a single thread or protect all operations on the list with mutex).
+You can have item objects not belonging to any list.
+You can have multiple container objects and keep a list of (different) items inside each of them.
+
+
+\section ObjList_StaticList Static List
+
+There is also a set of macros available for creating static list.
+This way you can make your container class having static fields and methods,
+so there will be only one single list with specified name.
+That list could be accessed without creating any object of container class,
+just by referencing the class itself.
+For example:
+
+\code
+// File MyTest.hpp
+
+class MyItem2
+{
+public:
+	MyItem2();
+	~MyItem2();
+
+	STATIC_OBJLIST_ITEM_METHODS(MyStaticContainer, MyItem2, MyStaticList)
+
+private:
+	STATIC_OBJLIST_ITEM_FIELDS(MyStaticContainer, MyItem2, MyStaticList)
+};
+
+class MyStaticContainer
+{
+public:
+	STATIC_OBJLIST_LIST_METHODS(MyStaticContainer, MyItem2, MyStaticList)
+
+private:
+	STATIC_OBJLIST_LIST_FIELDS(MyStaticContainer, MyItem2, MyStaticList)
+};
+
+// File MyTest.cpp
+
+MyItem2::MyItem2()
+{
+	STATIC_OBJLIST_ITEM_CTOR(MyStaticContainer, MyItem2, MyStaticList)
+}
+
+MyItem2::~MyItem2()
+{
+	STATIC_OBJLIST_ITEM_DTOR(MyStaticContainer, MyItem2, MyStaticList)
+}
+
+STATIC_OBJLIST_LIST_IMPL(MyStaticContainer, MyItem2, MyStaticList)
+\endcode
+
+Code above defines following public methods in class MyItem2:
+
+- <tt>bool MyStaticList_IsOnList()</tt>
+- <tt>ItemT * MyStaticList_GetPrev()</tt>
+- <tt>ItemT * MyStaticList_GetNext()</tt>
+
+MyItem2 class also has following private declarations
+(you are discouraged to use them directly):
+
+- <tt>friend class MyStaticContainer;</tt>
+- <tt>MyItem2 *m_MyStaticList_Prev, *m_MyStaticList_Next;</tt>
+- <tt>bool m_MyStaticList_IsOnList;</tt>
+
+MyStaticContainer class has following static public methods:
+
+- <tt>static MyItem2 * MyStaticList_GetFirst();</tt>
+- <tt>static MyItem2 * MyStaticList_GetLast();</tt>
+- <tt>static uint MyStaticList_GetItemCount();</tt>
+- <tt>static bool MyStaticList_IsEmpty();</tt>
+- <tt>static void MyStaticList_InsertBack(MyItem2 *v);</tt>
+- <tt>static void MyStaticList_InsertFront(MyItem2 *v);</tt>
+- <tt>static void MyStaticList_InsertAfter(MyItem2 *v, MyItem2 *existingItem);</tt>
+- <tt>static void MyStaticList_InsertBefore(MyItem2 *v, MyItem2 *existingItem);</tt>
+- <tt>static void MyStaticList_Remove(MyItem2 *v);</tt>
+- <tt>static void MyStaticList_Clear();</tt>
+
+MyStaticContainer class also has following private static fields
+(you are discouraged to use them directly):
+
+- <tt>static MyItem2 *m_MyStaticList_First, *m_MyStaticList_Last;</tt>
+- <tt>static uint m_MyStaticList_ItemCount;</tt>
+
+Sample code:
+
+\code
+MyItem2 Item1, Item2, Item3;
+
+MyStaticContainer::MyStaticList_InsertBack(&Item1);
+MyStaticContainer::MyStaticList_InsertBack(&Item2);
+MyStaticContainer::MyStaticList_InsertBack(&Item3);
+
+for (
+	MyItem2 *item = MyStaticContainer::MyStaticList_GetFirst();
+	item != NULL;
+	item = item->MyStaticList_GetNext() )
+{
+	std::cout << "Visiting item" << std::endl;
+}
+\endcode
+
+
+\section ObjList_Rationale Rationale
+
+Why is this module designed like this, with all these strange macros instead of
+some clever template classes or why not just use std::list?
+
+ObjList gives you better performance, because:
+
+- It consumes constant and very little amount of memory in both container and item objects.
+- It does not create any new objects and does not dynamically allocate or free any memory.
+- It keeps all data inside your classes, which improves cache coherency.
+
+ObjList gives you better flexibility (especially thanks to custom name for any list).
+
+- You can make your container class having two lists (with different names) and
+  make your item class being able to belong to these two lists.
+  For example, object of class Scene can contain objects of class SceneItem on
+  list AllItems (all of them) and VisibleItems (only visible ones).
+- You can make your container class able to have many lists for objects with different types.
+- You can make your item class able to be contained in many lists, maybe from
+  different objects (e.g. Cotainer1 and Container2) or different classes (e.g. MyContainer, MySecondContainer).
+- You can even make your class a container for some item objects and item for
+  other list at the same time (e.g. a chapter may contain paragraphs and lie within a Book).
+
+*/

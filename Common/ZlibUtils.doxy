@@ -1,0 +1,26 @@
+/** \page Module_ZlibUtils Modu³ ZlibUtils
+
+Nag³ówek: ZlibUtils.hpp \n
+Elementy modu³u: \ref code_zlibutils
+
+Zilb to darmowa biblioteka Open Source przeznaczona do kompresji i dekompresji
+danych algorytmem Deflate, u¿ywanym m.in. w formatach plików GZ, ZIP i PNG.
+
+U¿ywaj tego modu³u wy³¹cznie jeœli u¿ywasz biblioteki zlib, poniewa¿ jej wymaga.
+Zawiera klasy strumieni bêd¹ce nak³adkami na funkcje biblioteki zlib, dziêki
+czemu zapewniony jest wygodny i ujednolicony dostêp do tych funkcji (interfejs
+biblioteki zlib jest koszmarny w obs³udze).
+
+Modu³ definiuje klasy:
+
+- common::ZlibError - klasa wyj¹tku zg³oszonego z biblioteki zlib, do u¿ytku
+  wewnêtrznego
+
+- common::ZlibCompressionStream - strumieñ kompresji danych do formatu zlib
+- common::GzipCompressionStream - strumieñ kompresji danych do formatu gzip
+- common::ZlibDecompressionStream - strumieñ dekompresji danych z formatu zlib
+- common::GzipDecompressionStream - strumieñ dekompresji danych z formatu gzip
+
+- common::GzipFileStream - strumieñ zapisu i odczytu pliku w formacie gzip (.gz)
+
+*/

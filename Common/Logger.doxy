@@ -1,0 +1,231 @@
+/** \page Module_Logger Modu³ Logger
+
+Nag³ówek: Logger.hpp \n
+Elementy modu³u: \ref code_logger
+
+\section logger_wstep Wstêp
+
+Logger to modu³ do logowania, czyli zapisywania krótkich komunikatów tekstowych
+do pliku, na konsolê i w dowolne inne miejsca - typowo przeznaczony do
+wyprowadzania informacji o zdarzeniach zachodz¹cych w programie, b³êdach itd.
+
+W³aœciwoœci:
+
+- Przenoœny \n
+  Dzia³a na Windowsie i Linuksie.
+- Wielow¹tkowy \n
+  Bezpieczny w¹tkowo. Sam te¿ wykorzystuje w¹tki.
+- Wypasiony \n
+  Ma praktycznie wszelkie mo¿liwoœci jakie tylko potrafi³em wymyœliæ :)
+
+- Uogólnienie logów \n
+  Log to abstrakcyjny obiekt, którym mo¿e byæ plik, konsola i dowolne inne
+  miejsce. Mo¿na pisaæ w³asne logi.
+- Rozdzielenie komunikatów od logów \n
+  Zapisywane komunikaty trafiaj¹ do centralnego loggera, a stamt¹d dopiero ka¿dy
+  jest mapowany na zero, jeden lub wiêcej logów.
+- Uogólniony podzia³ komunikatów \n
+  Komuniaty s¹ opisywane przez maskê bitow¹, która mo¿e oznaczaæ kategoriê,
+  priorytet lub cokolwiek i któr¹ mo¿na wykorzystaæ do mapowania na logi
+  docelowe, na prefiksy, kolory i dowolne inne rzeczy zale¿nie od loga.
+
+
+\section logger_podstawy Podstawy
+
+<b>Logger</b> to system logowania. Jest tylko jeden. Inicjalizuje siê go funkcj¹
+common::CreateLogger, a finalizuje - common::DestroyLogger. Miêdzy tymi wywo³aniami mo¿na
+otrzymaæ go funkcj¹ common::GetLogger.
+
+<b>Log</b> to obiekt klasy dziedzicz¹cej z interfejsu common::ILog. Reprezentuje miejsce,
+do którego mog¹ trafiaæ logowane komunikaty i odpowiada za ich zapisywanie
+do tego miejsca. Mo¿e to byæ na przyk³ad plik tekstowy w jakimœ formacie,
+realizowana z u¿yciem jakiegoœ API konsola albo cokolwiek.
+
+Prawid³owa sekwencja wywo³añ wygl¹da jak w przyk³adzie:
+
+\code
+// 1. Utworzenie loggera
+//    Utworzenie logów
+common::CreateLogger(false);
+common::Logger & Logger = common::GetLogger();
+common::TextFileLog *Log = new common::TextFileLog("Log.txt",
+  common::FILE_MODE_NORMAL, common::EOL_CRLF);
+
+// 2. Konfiguracja logów
+//    Konfiguracja loggera
+//    Zarejestrowanie logów
+Logger.AddLogMapping(0xFFFFFFFF, Log);
+
+// 3. U¿ywanie w czasie pracy programu
+Logger.Log(1, "Komunikat 1");
+Logger.Log(1, "Komunikat 2");
+Logger.Log(1, "Komunikat 3");
+
+// 4. Usuniêcie loggera
+common::DestroyLogger();
+
+// 5. Usuniêcie logów
+delete Log;
+\endcode
+
+Bardzo wa¿ne jest, aby logi usuwaæ dopiero po usuniêciu loggera. Wa¿ne te¿,
+by po rozpoczêciu u¿ywania loggera nie dokonywaæ ju¿ ¿adnej konfiguracji
+loggera ani logów, nie tworzyæ nowych logów itd.
+
+
+\section logger_typy_maski_mapowanie Typy, maski, mapowanie
+
+<b>Komunikat</b> to krótka wiadomoœæ tekstowa, która podlega zalogowaniu. Komunikat
+sk³ada siê z treœci (string) oraz typu (uint4). Treœæ powinna byæ w kodowaniu
+Windows-1250/Unicode (jak w ca³ym projekcie). Mo¿e zawieraæ koñce wiersza (w dowolnym
+formacie) - logi maj¹ obowi¹zek prawid³owo obs³ugiwaæ komunikaty
+wielowierszowe - ale jest to raczej niezalecane, bo powinna byæ krótka.
+
+<b>Typ komunikatu</b> to maska bitowa. Mo¿na jej nadaæ dowolne znaczenie, np.:
+
+- Rodzaj komunikatu
+- Rodzaj nadawcy komunikatu
+- Priorytet komunikatu
+
+Komunikaty logujemy za pomoc¹ metody common::Logger::Log podaj¹c kolejno typ i treœæ.
+Logger wysy³a go do zera, jednego lub wielu logów zale¿nie od mapowania.
+Podczas rejestrowania logów w loggerze podajemy <b>maskê bitow¹</b>, która bêdzie
+³¹czona operatorem \& z typem komunikatu i jeœli wynik bêdzie niezerowy,
+komunikat trafi do danego loga. W ten sposób mo¿na mapowaæ tylko wybrane typy
+komunikatów na wybrane logi. Log zarejestrowany z mask¹ 0xFFFFFFFF otrzyma
+wszystkie komunikaty o niezerowym typie.
+
+Przyk³ad mapowania typów komunikatów na logi:
+
+\code
+Logger.AddLogMapping(0xFFFFFFFF, Log1);
+Logger.AddLogMapping(1, Log2);
+
+Logger.Log(1, "Komunikat 1");
+Logger.Log(2, "Komunikat 2");
+Logger.Log(3, "Komunikat 3");
+\endcode
+
+W tym przyk³adzie do Log1 trafi¹ wszystkie komunikaty, a do Log2 tylko te,
+których typ ma ustawiony najm³odszy bit, czyli komunikaty 1 i 3.
+
+Nie nale¿y rejestrowaæ logów w loggerze wiêcej ni¿ raz.
+
+
+\section logger_prefiksy Prefiksy
+
+<b>Prefiks</b> to przedrostek dodawany do treœci ka¿dego logowanego komunikatu.
+Jest sk³adany indywidualnie dla ka¿dego loga na podstawie ustawionego dla niego
+<b>formatu prefiksu</b>, który jest dowolnym ³añcuchem, a specjalne wartoœci s¹ w nim
+zastêpowane przez:
+
+- <tt>\%D</tt> - data
+- <tt>\%T</tt> - czas
+- <tt>\%1 ... \%3</tt> - w³asne informacje prefiksu
+- <tt>\%\%</tt> - znak <tt>"\%"</tt>
+
+Format prefiksu mo¿na ustawiæ dla loga metod¹ common::ILog::SetPrefixFormat(). Mo¿na te¿ ustawiæ
+na raz format prefiksu dla wszystkich logów zarejestrowanych w loggerze metod¹
+common::Logger::SetPrefixFormat(). Ustawianie formatu prefiksu jest czêœci¹ procesu
+konfiguracji.
+
+<b>W³asne informacje prefiksu</b> to trzy ³añcuchy, które mo¿na zmieniaæ w czasie
+dzia³ania programu (ich zmiana jest czêœci¹ procesu u¿ywania loggera) i które
+mog¹ byæ do³¹czane do prefiksu. S¹ wspólne dla ca³ego loggera. Do ich zmiany
+s³u¿y metoda common::Logger::SetCustomPrefixInfo(). Mo¿na je wykorzystywaæ np. do wskazania
+numeru bie¿¹cej klatki gry czy innych tym podobnych rzeczy.
+
+<b>Prefiks typu</b> to dodatkowy prefiks do³¹czany za prefiksem g³ównym do treœci
+logowanego komunikatu. Jest ustalonym na sta³e ³añcuchem. Ka¿dy log ma w³asne
+mapowanie masek typów na prefiksy typu. Mo¿na to mapowanie wykonaæ metod¹
+common::ILog::AddTypePrefixMapping(). Metoda common::Logger::AddTypePrefixMapping() loggera dokonuje go
+jednoczeœnie dla wszystkich zarejestrowanych w nim logów. Jest to czêœæ procesu
+konfiguracji.
+
+Przyk³ad:
+
+\code
+Log1->SetPrefixFormat("[%D %T %1] ");
+Log1->AddTypePrefixMapping(1, "(!) ");
+Logger.SetCustomPrefixInfo(0, "Frame:123");
+
+Logger.Log(1, "Komunikat 1");
+Logger.Log(2, "Komunikat 2");
+Logger.Log(3, "Komunikat 3");
+\endcode
+
+Da w efekcie mniej wiêcej takie wyjœcie:
+
+\verbatim
+[2006-08-18 21:52:28 Frame:123] (!) Komunikat 1
+[2006-08-18 21:52:28 Frame:123] Komunikat 2
+[2006-08-18 21:52:28 Frame:123] (!) Komunikat 3
+\endverbatim
+
+W przypadku kiedy typ danego komunikatu pasuje do wielu mapowañ na prefiks,
+wykorzystane zostanie pierwsze z nich. Dlatego mapowania nale¿y dodawaæ
+w kolejnoœci od najbardziej szczegó³owych do najbardziej ogólnych. Na przyk³ad
+jeœli chcemy dodaæ mapowanie które dotyczy "wszystkich pozosta³ych" komunikatów,
+dodajemy je z mask¹ 0xFFFFFFFF na samym koñcu.
+
+
+\section logger_tryby_pracy Tryby pracy
+
+Logger mo¿e pracowaæ w dwóch trybach:
+
+-# BEZ KOLEJKI
+Kiedy podamy podczas tworzenia loggera jako parametr common::CreateLogger() wartoœæ false,
+logger loguje komunikaty natychmiast po ich otrzymaniu.
+-# Z KOLEJK¥
+Kiedy podamy podczas tworzenia loggera jako parametr common::CreateLogger() wartoœæ true,
+logger tworzy osobny w¹tek zajmuj¹cy siê logowaniem. Logowane komunikaty
+trafiaj¹ do specjalnej kolejki, a w¹tek pobiera je i loguje w swoim tempie.
+
+Tryb z kolejk¹ jest szybszy, ale tryb bez kolejki jest bardziej niezawodny
+w wypadku awarii programu. W trybie z kolejk¹ finalizacja loggera mo¿e potrwaæ
+d³u¿sz¹ chwilê, jeœli wymaga poczekania na zalogowanie zalegaj¹cych w kolejce
+komunikatów.
+
+Kolejnoœæ wywo³añ logowania komunikatów i zmiany w³asnych informacji prefiksu
+jest respektowana tak¿e w trybie z kolejk¹.
+
+Loggery plikowe mo¿na otwieraæ w trzech trybach:
+
+- common::FILE_MODE_NORMAL
+- common::FILE_MODE_FLUSH
+- common::FILE_MODE_REOPEN
+
+Tryb z kolejk¹ w po³¹czeniu z common::FILE_MODE_NORMAL jest najszybszy.
+
+Tryb bez kolejki w po³¹czeniu z common::FILE_MODE_REOPEN jest najpewniejszy - daje
+gwarancjê, ¿e nawet w przypadku nag³ego wysypania siê programu wszystko, co by³o
+wczeœniej logowane trafi³o do logów.
+
+
+\section logger_bezpiecznstwo_watkowe Bezpieczeñstwo w¹tkowe
+
+Tworzenie logów, ich konfiguracja, konfiguracja loggera - nie s¹ bezpieczne
+w¹tkowo. Dlatego nale¿y ich dokonywaæ przed rozpoczêciem u¿ywania loggera.
+
+Logowanie i zmiana w³asnych informacji prefiksu s¹ bezpieczne w¹tkowo. Mo¿na
+ich dokonywaæ z wielu w¹tków na raz.
+
+
+\section logger_tworzenie_wlasnych_logow Tworzenie w³asnych logów
+
+Aby utworzyæ w³asny log, nale¿y napisaæ w³asn¹ klasê dziedzicz¹c¹ z intefejsu
+common::ILog. Jej jedynym obowi¹zkiem jest implementacja metody
+common::ILog::OnLog(), która bêdzie mia³a za zadanie zalogowaæ komunikat.
+Otrzymuje ona ju¿ zredagowane do ³añcuchów prefiksy (g³ówny i prefiks typu) oraz
+treœæ. Przekazywany tak¿e typ mo¿e wykorzystaæ do realizacji w³asnego mapowania,
+np. na kolor. Jej obowi¹zkiem jest dostosowanie treœci wszystkich otrzymanych
+³añchów do kodowania znaków i koñców wiersza obowi¹zuj¹cego w miejscu docelowym.
+Wejœciowe kodowanie znaków to Windows-1250/Unicode, a koñców wiersza -
+nieokreœlone.
+
+Klasa ta nie musi byæ bezpieczna w¹tkowo - o bezpieczeñstwo w¹tkowe dba sam
+logger. Metody tej klasy mog¹ byæ wywo³ywane z ró¿nych w¹tków, ale nigdy nie
+bêd¹ wywo³ywane równoczeœnie.
+
+
+*/

@@ -1,0 +1,893 @@
+/** \mainpage CommonLib 9.0
+
+<i>CommonLib Library, version 9.0, December 2009</i>
+
+CommonLib to uniwersalna biblioteka dla C++ zawieraj¹ca ró¿norodne elementy.
+Powsta³a przy okazji pisania silnika graficznego i ró¿nych innych moich
+projektów. Obecna wersja jest pisana od wakacji 2006.
+
+W³aœciwie od dziecka, odk¹d tylko zacz¹³em programowaæ (wtedy to by³ jeszcze
+Turbo Pascal pod DOS) zawsze rozwija³em jak¹œ swoj¹ bibliotekê modu³ów bazowych,
+z którymi potem nigdy siê nie rozstawa³em pisz¹c swoje projekty. Teraz uwa¿am,
+¿e nadal jest to potrzebne - szczególnie w C++, którego biblioteka standardowa -
+w przeciwieñstwie do nowoczesnych jêzyków i œrodowisk programowania takich jak
+Delphi, C# czy Java - jest bardzo uboga, a to co zawiera pozostawia wiele do
+¿yczenia.
+
+
+\section main_zalozenia Cechy i za³o¿enia
+
+- Jest to uniwersalna biblioteka do C++, chocia¿ pisana g³ównie z myœl¹
+  o programowaniu gier.
+- Jest przenoœna na Windows i Linux.
+- U¿ywa tylko biblioteki standardowej C, C++ oraz API systemowego.
+  Opcjonalnie wspó³pracuje tak¿e z DirectX (D3DX), zlib i innymi bibliotekami.
+- Do przechowywania wszelkich ³añcuchów stosuje typ string/wstring z biblioteki
+C++.
+- W systemie Windows mo¿e zostaæ prze³¹czona w tryb pracy w Unicode.
+- Do obs³ugi b³êdów stosowane s¹ wyj¹tki w³asnych klas z modu³u Error. Jedynie
+funkcje wykonuj¹ce proste obliczenia lub konwersje nigdy nie rzucaj¹ wyj¹tków.
+- Nastawiona jest na maksymaln¹ wydajnoœæ, ale nie kosztem kontroli b³êdów.
+Bardzo wa¿na jest te¿ wygoda.
+- Wymaga dobrego kompilatora C++, poniewa¿ u¿ywa zaawansowanych cech jêzyka
+takich jak czêœciowa specjalizacja szablonów. Kompilacja by³a testowana na
+Visual C++ 2005/2008 (Windows) oraz GCC 4 (Linux).
+- Wszystkie elementy zgromadzone s¹ w przestrzeni nazw common.
+- Komentarze w kodzie oraz dokumentacja s¹ w wiêkszoœci po polsku, aczkolwiek
+nowe fragmenty s¹ ju¿ pisane po angielsku. Identyfikatory w kodzie s¹ po
+angielsku. Komunikaty b³êdów i inne ³añcuchy s¹ po angielsku.
+- Nag³ówki s¹ udokumentowane za pomoc¹ Doxygen.
+- Pliki z kodem maj¹ polskie znaki w kodowaniu Windows-1250 z koñcami wiersza w
+formacie Windows <tt>"\r\n"</tt>. Biblioteka posiada funkcje do konwersji
+polskich znaków i koñców wiersza.
+- Polega na rozmiarze, a nawet budowie bitowej typów atomowych takich jak znaki,
+liczby ca³kowite i zmiennoprzecinkowe. Przez to nie nadaje siê do kompilacji na
+platformach z inn¹ endianowoœci¹ czy 64-bitowych.
+
+
+\section main_usage Jak u¿yæ
+
+Biblioteka ma postaæ plików z kodem C++ - CPP i HPP. Mo¿esz z tym kodem zrobiæ
+co chcesz. Najproœciej jest po prostu skopiowaæ te pliki i dodaæ do swojego
+projektu.
+
+Poni¿ej opisana jest jedna z mo¿liwoœci - przygotowanie kodu jako
+biblioteki LIB i jej u¿ycie w projekcie w Visual C++ 2005. Niestety nie jest to
+tak banalne jak rozpakowaæ i od razu zacz¹æ u¿ywaæ. To nie moja wina - takie s¹
+uroki jêzyka C++...
+
+Aby przygotowaæ bibliotekê LIB:
+
+-# Utwórz projekt Visual C++ lub otwórz istniej¹cy, który znajdziesz w pliku Common.sln.
+-# WejdŸ do opcji projektu i zmieñ:
+  -# Configuration Properties / General / Character Set:
+  zale¿nie czy chcesz u¿ywaæ Unicode, ustaw na "Not Set" lub "Use Unicode Character Set"
+  (w obydwu konfiguracjach - Debug i Release).
+  -# Configuration Properties / C/C++ / Code Generation / Runtime Library:
+  zale¿nie jak bêdziesz kompilowa³ kod swoich programów korzystaj¹cych z CommonLib:
+  jeœli chcesz aby nie musia³y u¿ywaæ dodatkowych plików DLL z bibliotek¹ standardow¹ C
+  (których czêœæ u¿ytkowników nie ma), przestaw na "Multithreaded Debug" (konfiguracja Debug) i
+  "Multithreaded" (konfiguracja Release).
+  Jeœli wolisz otrzymywaæ mniejsze pliki EXE, wybierze "Multithreaded Debug DLL"
+  (konfiguracja Debug) i "Multithreaded DLL" (konfiguracja Release).
+  -# Configuration Properties / C/C++ / Preprocessor / Preprocessor Definitions:
+  W obydwu konfiguracjach (w ka¿dej osobno) dopisz wybrane makra odpowiednio do bibliotek,
+  których bêdziesz u¿ywa³ w swoim kodzie:
+  USE_DIRECTX, USE_SDL, USE_OPENGL, USE_FMOD, USE_WINSOCK, USE_DEVIL, USE_AVI_FILE
+  -# Jeœli nie masz zainstalowanej biblioteki zlib, nie chcesz jej u¿ywaæ albo w ogóle
+  nie wiesz co to jest, usuñ z projektu pliki %ZlibUtils.cpp i %ZlibUtils.hpp.
+-# Skompiluj bibliotekê w obydwu konfiguracjach - Debug i Release.
+-# Za³óz na swoim dysku jakiœ katalog, gdzie umieœcisz skompilowan¹ bibliotekê
+  jako gotow¹ do u¿ywania w projektach.
+  Utwórz w nim podkatalog include i skopiuj do niego pliki HPP.
+  Utwórz katalog lib i skopiuj do niego pliki Common.lib (który powsta³ w podkatalogu Release)
+  i Common_d.lib (który powsta³ w katalogu Debug).
+-# Skonfiguruj œcie¿ki do katalogów w Visual C++.
+W tym celu wybierze polecenie z menu Tools / Options.
+Po lewej zaznacz Projects and Solutions / VC++ Directories.
+Do "Include files" dopisz œcie¿kê do podkatalogu includes.
+Do "Library files" dopisz œcie¿kê do podkatalogu lib.
+
+Aby skorzystaæ z tak skompilowanej biblioteki w swoim projekcie:
+
+-# Utwórz lub otwórz istniej¹cy projekt programu w Visual C++.
+-# Do³¹cz wybane nag³ówki biblioeki w postaci takiej jak np. <tt>#include \<Common/%Base.hpp\></tt>.
+Jeœli u¿ywasz jakichkolwiek nag³ówków CommonLib, musisz najpierw w³¹czyæ nag³ówek %Base.hpp.
+-# WejdŸ do opcji projektu i zmieñ:
+  -# Configuration Properties / General / Character Set:
+  Tak jak wy¿ej.
+  -# Configuration Properties / C/C++ / Code Generation / Runtime Library:
+  Tak jak wy¿ej.
+  -# Configuration Properties / C/C++ / Preprocessor / Preprocessor Definitions:
+  Tak jak wy¿ej.
+  -# Configuration Properties / Linker / Input / Additional Dependencies:
+  Dopisz potrzebne biblioteki LIB.
+  Musisz dopisaæ w konfiguracji Debug plik CommonLib_d.lib, a w konfiguracji Release plik CommonLib.lib.
+  Dodatkowo zale¿nie od innych u¿ytych bibliotek, listê plików nale¿y uzupe³niæ o:
+    -# Jeœli u¿ywasz USE_DIRECTX: d3d9.lib d3dx9.lib dxerr9.lib
+    -# Jeœli u¿ywasz modu³u ZlibUtils: zlibd.lib (Debug), zlib.lib (Release)
+
+
+\section main_skladniki Sk³adniki i mo¿liwoœci
+
+
+\subsection main_base Base Module
+
+Module with lots of different, general functionality.
+
+Documentation: \ref Module_Base \n
+Module elements: \ref code_base \n
+Header: Base.hpp
+
+- Podstawy:
+  - W³¹cza m.in.: <cassert>, <string>, <vector>
+  - Typy podstawowe, m.in.: uint1, uint2, uint4, uint8 int1, int2, int4, int8 
+- Miscellaneous small, useful macros and functions.
+- Lots of simple mathematical functions.
+- Operator dos³ownej reinterpretacji bitowej common::absolute_cast
+- Inteligentne wskaŸnki i uchwyty
+  - Parametryzowane polityk¹ zwalniania
+  - Z wy³¹czn¹ w³asnoœci¹ lub ze zliczaniem referencji 
+- Funkcje do operacji na znakach i ³añcuchach, w tym oprócz prostych tak¿e:
+  - Konwersja miêdzy stronami kodowymi: Windows-1250, ISO-8859-2, IBM CP852, UTF-8
+  - Konwersja miêdzy ³añcuchami ANSI i Unicode (tylko Windows)
+  - Dopasowanie do maski ze znakami wieloznacznymi <tt>'*'</tt> i <tt>'?'</tt>
+  - Odleg³oœæ edycyjna ³añcuchów - Levenshtein Distance
+  - Porównywanie ³añcuchów w tzw. porz¹dku naturalnym
+- Funkcje do operacji na œcie¿kach do plików
+  - Dzia³aj¹ce zarówno dla œcie¿ek Windows jak i Linux
+- Konwersje ró¿nych typów do i z ³añcucha znaków, w tym:
+  - W³asne common::IntToStr, common::StrToInt, common::UintToStr, common::StrToUint sprawdzaj¹ce b³êdy sk³adni i zakresu
+  - Uogólniony, rozszerzony mechanizm konwersji zrealizowany za pomoc¹ szablonów common::SthToStr i common::StrToSth
+  - Wygodny mechanizm formu³owania ³añcuchów korzystaj¹cy z powy¿szego, np.: <tt>string s = Format("x=#, y=#") % x % y;</tt>
+- Dok³adny pomiar czasu i czekanie okreœlony czas
+- Podstawowe typy, sta³e, makra i funkcje matematyczne, w tym oprócz prostych tak¿e:
+  - Funkcja wyg³adzaj¹ca metod¹ Critically Damped Smoothing
+  - Funkcje okresowe - sinus, trójk¹ta, prostok¹tna, pi³okszta³tna, PWM 
+- Generator liczb pseudolosowych
+  - Bardzo szybki, deterministyczny
+  - Losowanie liczb ró¿nych typów
+  - Generowanie losowych danych binarnych
+  - Losowanie liczb o rozk³adzie normalnym (Gaussa) 
+- Generator unikatowych identyfikatorów
+- Parser parametrów przekazanych z wiersza poleceñ
+  - Szybki i prosty w u¿yciu
+  - Wsparcie zarówno dla main (<tt>int argc, char **argv</tt>), jak i WinMain (<tt>char *CmdLine</tt>)
+  - Obs³uguje opcje krótkie (jednoznakowe) i d³ugie (wieloznakowe), w formatach:
+    - Linuksa: <tt>-a -b -c -abc --d³uga -lARG -l ARG -l=ARG</tt>
+    - Windowsa: <tt>/a /b /c /d³uga /lARG /l ARG /l=ARG</tt>
+- Klasa bazowa dla wzorca projektowego Singleton
+- common::CommonGUID class that represents 128-bit, globally unique identifier compliant with RFC 4122.
+- Functions for endianess conversion/swap.
+
+\subsection main_bstrstring BstrString Module
+
+Object-oriented wrapper for Unicode string of type BSTR.
+
+Documentation: \ref Module_BstrString \n
+Module elements: \ref code_bstrstring \n
+Header: BstrString.hpp
+
+
+\subsection main_datetime DateTime Module
+
+Support for date and time.
+
+Documentation: \ref Module_DateTime \n
+Module elements: \ref code_datetime \n
+Header: DateTime.hpp
+
+- Available types:
+  - common::WEEKDAY - day of week.
+  - common::MONTH - month of year.
+  - common::NAME_FORM - way of generating day of week and month names.
+  - common::DATESPAN - represents a period as number of years, months, weeks and days.
+  - common::TIMESPAN - represents a period as number of milliseconds.
+  - common::TMSTRUCT - represents a point in time as day, month, year, hour, minute, second, millisecond and day of week.
+  - common::DATETIME - represents a point in time as number of milliseconds since 1 Jan 1970.
+  - common::GameTime (Windows only) - represents very precise point in time or time period.
+- Precise retrieval of current time.
+- Conversion between date/time and string with arbitrary formats.
+- Conversions between different date and time formats, including these from standard C library.
+
+\subsection main_error Error Module
+
+Klasy wyj¹tków do obs³ugi b³êdów
+
+Documentation: \ref Module_Error \n
+Module elements: \ref code_error \n
+Header: Error.hpp
+
+- Ujednolicony mechanizm obs³ugi b³êdów w programie z u¿yciem wyj¹tków C++
+- Wyj¹tek przechowuje stos komunikatów
+- Makra u³atwiaj¹ce obs³ugê b³êdów
+- Wsparcie dla b³êdów zg³aszanych przez: errno, Win32API, SDL, OpenGL, DirectX, FMOD, WinSock, DevIL, AVIFile 
+
+\subsection main_files Files Module
+
+Code for dealing with files and file system.
+
+Documentation: \ref Module_Files \n
+Module elements: \ref code_files \n
+Header: Files.hpp
+
+- common::FileStream - klasa strumienia do zapisywania i odczytywania treœci pliku
+- common::DirLister - klasa do listowania zawartoœci katalogu
+- Funkcje do operacji na systemie plików, w tym:
+  - Zapisywanie i odczytywanie ca³ych plików
+  - Sprawdzanie, czy plik albo katalog istnieje
+  - Odczytywanie i zapisywanie daty modyfikacji, utworzenia i ostatniego dostêpu
+  - Tworzenie, usuwanie, zmiana nazwy i przenoszenie plików i katalogów
+- Zapisywanie i odczytywanie plików i strumieni tekstowych w ró¿nym kodowaniu,
+w tym Unicode (tylko Windows).
+
+\subsection main_freelist FreeList Module
+
+Very fast memory allocator.
+
+Documentation: \ref Module_FreeList \n
+Module elements: \ref code_freelist \n
+Header: FreeList.hpp
+
+Szablony klas common::FreeList oraz common::DynamicFreeList. Obiekty tych klas
+to napisane we w³asnym zakresie alokatory przeznaczone do alokowania du¿ych
+iloœci zmiennych jednego wybranego typu, które dzia³aj¹ znacz¹co szybciej ni¿
+standardowe operatory new i delete.
+
+\subsection main_logger Logger Module
+
+A code for logging messages.
+
+Documentation: \ref Module_Logger \n
+Module elements: \ref code_logger \n
+Header: Logger.hpp
+
+- Bezpieczny w¹tkowo.
+- Opcjonalnie logowaine odbywa siê w osobnym w¹tku.
+- Uogólnienie logów: Log to abstrakcyjny obiekt, którym mo¿e byæ plik, konsola i
+dowolne inne miejsce. Mo¿na pisaæ w³asne logi.
+- Rozdzielenie komunikatów od logów: Zapisywane komunikaty trafiaj¹ do
+centralnego loggera, a stamt¹d dopiero ka¿dy jest mapowany na zero, jeden lub
+wiêcej logów.
+- Uogólniony podzia³ komunikatów: Komuniaty s¹ opisywane przez maskê bitow¹,
+która mo¿e oznaczaæ kategoriê, priorytet lub cokolwiek i któr¹ mo¿na wykorzystaæ
+do mapowania na logi docelowe, na prefiksy, kolory i dowolne inne rzeczy
+zale¿nie od loga.
+
+\subsection main_math Math Module
+
+Mathematical structures and functions, especially for 2D and 3D geometry.
+
+Documentation: \ref Module_Math \n
+Module elements: \ref code_math \n
+Header: Math.hpp
+
+- Support for geometrical objects:
+  - Integer 2D point: common::POINT_.
+  - Integer 2D rectangle: common::RECTI.
+  - Arbitrary 2D line: common::LINE2D.
+  - 2D, 3D, 4D float vectors - common::VEC2, common::VEC3, common::VEC4.
+  - 4x4 matrix: common::MATRIX.
+  - 2D affine transform: common::AFFINE2D.
+  - Quaternion: common::QUATERNION.
+  - Arbitrary 3D plane: common::PLANE.
+  - 3D axis-aligned box: common::BOX.
+  - Color stored as single 32-bit number (common::COLOR) or a vector of 4 floats (common::COLORF).
+  - Ray/line in 3D, sphere, 2D/3D triangle
+  - Frustum (a 3D shape %common in game development), stored in 3 different ways:
+    common::FRUSTUM_PLANES, common::FRUSTUM_POINTS, common::FRUSTUM_RADAR.
+- Functions for collision detection between many different 2D and 3D shapes.
+- Arrys of random numbers with the "Progressive Poisson Disc Distribution".
+- Functions supporting calculations on Catmull-Rom and quadratic/cubic Bezier curves.
+
+\subsection main_objlist ObjList Module
+
+Macros for creating doubly-linked list of objects.
+
+Documentation: \ref Module_ObjList \n
+Module elements: \ref code_objlist \n
+Header: ObjList.hpp
+
+\subsection main_profiler Profiler Module
+
+Classes for measuring time and performance.
+
+Documentation: \ref Module_Profiler \n
+Module elements: \ref code_profiler \n
+Header: Profiler.hpp
+
+
+\subsection main_stream Stream Module
+
+Stream class hierarchy.
+
+Documentation: \ref Module_Stream \n
+Module elements: \ref code_stream \n
+Header: Stream.hpp
+
+- common::Stream - klasa bazowa strumieni
+- common::SeekableStream - klasa bazowa strumieni z obs³ug¹ d³ugoœci i kursora
+- common::CharWriter - klasa przyspieszaj¹ca zapisywanie do strumienia po znaku
+- common::CharReader - klasa przyspieszaj¹ca odczytywanie ze strumienia po znaku
+- common::MemoryStream - strumieñ do bloku pamiêci o sta³ym rozmiarze
+- common::VectorStream - strumieñ do samorozszerzaj¹cego siê bloku pamiêci
+- common::StringStream - strumieñ do ³añcucha typu string
+- common::OverlayStream - klasa bazowa nak³adek na strumienie
+- common::CounterOverlayStream - nak³adka zliczaj¹ca zapisywane i odczytywane dane
+- common::LimitOverlayStream - nak³adka ograniczaj¹ca iloœæ zapisywanych i odczytywanych danych
+- common::MultiWriterStream - strumieñ zapisuj¹cy na raz do wielu strumieni
+- common::Hash_Calc - strumieñ licz¹cy hash
+- common::CRC32_Calc - strumieñ licz¹cy sumê kontroln¹ CRC32
+- common::MD5_Calc - strumieñ licz¹cy sumê kontroln¹ MD5
+- common::XorCoder - strumieñ szyfruj¹cy i deszyfruj¹cy dane operacj¹ XOR
+- common::BinEncoder, common::BinDecoder - strumieñ koduj¹cy, dekoduj¹cy dane binarne jako ci¹g zer i jedynek. Szczyt bezu¿ytecznoœci :) Ka¿dy bajt zamienia na 8 znaków.
+- common::HexEncoder, common::HexDecoder - strumieñ koduj¹cy, dekoduj¹cy dane binarne jako ci¹g liczb szesnastkowych. Ka¿dy bajt zamienia na 2 znaki.
+- common::Base64Encoder, common::Base64Decoder - strumieñ koduj¹cy, dekoduj¹cy dane binarne w formacie Base64. Ka¿de 3 bajty zamienia na 4 znaki.
+- common::RingBuffer - bufor ko³owy.
+- common::NullStream - dummy stream that does nothing.
+- common::BufferingStream - overlay stream that buffers data.
+
+\subsection main_threads Threads Module
+
+Portable library for multithreading and synchronization.
+
+Documentation: \ref Module_Threads \n
+Module elements: \ref code_threads \n
+Header: Threads.hpp
+
+- common::Thread - a thread class.
+- Synchronization objects:
+  - common::Mutex - mutex
+    - Helper class: common::MutexLock and macro MUTEX_LOCK
+  - common::RWLock - read-write mutex
+    - Helper classes: common::ReadLock, common::WriteLock
+  - common::Semaphore - counting semaphore
+  - common::Cond - conditional variable
+  - common::Barrier - barrier
+  - common::Event - event (auto-reset or manual-reset)
+
+\subsection main_tokenizer Tokenizer Module
+
+Parser and writer for a syntax based on tokens, simiar to C/C++.
+
+Documentation: \ref Module_Tokenizer \n
+Module elements: \ref code_tokenizer \n
+Header: Tokenizer.hpp
+
+\subsection main_tokdoc TokDoc Module
+
+Persistent DOM model for a format based on Tokenizer.
+
+Documentation: \ref Module_TokDoc \n
+Module elements: \ref code_tokdoc \n
+Header: TokDoc.hpp
+
+\subsection main_zlibutils ZlibUtils Module
+
+A convenient wrapper for zlib compression library.
+
+Documentation: \ref Module_ZlibUtils \n
+Module elements: \ref code_zlibutils \n
+Header: ZlibUtils.hpp
+
+- common::ZlibCompressionStream - strumieñ kompresji danych do formatu zlib
+- common::GzipCompressionStream - strumieñ kompresji danych do formatu gzip
+- common::ZlibDecompressionStream - strumieñ dekompresji danych z formatu zlib
+- common::GzipDecompressionStream - strumieñ dekompresji danych z formatu gzip
+- common::GzipFileStream - strumieñ zapisu i odczytu pliku w formacie gzip (.gz) 
+
+
+
+\section main_d3dx_integration D3DX Integration
+
+If you use DirectX 9.0c with D3DX, you can integrate CommonLib with it to
+make math data structures compatible.
+Without D3DX integration, Math module defines its own structures:
+VEC2, VEC3, VEC4, PLANE, MATRIX, QUATERNION.
+Their interface is very similar to structures from D3DX and their data layout is identical.
+
+To integrate CommonLib with D3DX, define macro USE_DIRECTX for the whole project.
+When defined, it makes Math to define types mentioned above as typedefs to
+types D3DXVECTOR2, D3DXVECTOR3, D3DXVECTOR3, D3DXPLANE, D3DXMATRIX, D3DXQUATERNION
+from D3DX instead of defining its own structures.
+It makes all math functions compatible with DirectX interface.
+Thanks to that you can mix DirectX type names with CommonLib type names freely,
+as well as use CommonLib math functions next to D3DX functions. For example,
+these two code samples do exactly the same thing:
+
+\code
+D3DXVECTOR3 dxVec = D3DXVECTOR3(1.f, 2.f, 3.f);
+common::Normalize(&dxVec);
+
+common::VEC3 commonLibVec = common::VEC3(1.f, 2.f, 3.f);
+D3DXVec3Normalize(&commonLibVec, &commonLibVec);
+\endcode
+
+
+\section main_unicode Obs³uga Unicode
+
+Od wersji 8.0 biblioteka posiada w systemie Windows mo¿liwoœæ pracy ze znakami i
+³añcuchami Unicode. Aby prze³¹czyæ CommonLib w tryb pracy z Unicode, nale¿y
+podj¹æ te same kroki, co podczas prze³¹czania do tego trybu WinAPI i DirectX.
+Trzeba w tym celu zdefiniowaæ dla ca³ego projektu makra preprocesora UNICODE i
+_UNICODE. W przypadki Visual C++ mo¿na przestawiæ w opcjach projektu, na
+zak³adce Configuration Properties / General, opcjê Character Set na Use Unicode
+Character Set - wówczas to makro zostanie dodane automatycznie.
+
+Przy starannym stosowaniu siê do poni¿szych zaleceñ mo¿na pisaæ kod programu
+korzystaj¹cy z WinAPI, DirectX i CommonLib tak, aby kompilowa³ siê i dzia³a³
+zarówno ze znakami Unicode, jak i zwyk³ymi ANSI, bez jakichkolwiek zmian w
+kodzie (wystarczy zmiana opisanego wy¿ej ustawienia).
+
+Modu³ definiuje typ znakowy common::tchar jako alias do char lub wchar_t oraz
+typ ³añcuchowy common::tstring jako alias do std::string lub std::wstring,
+zale¿nie od ustawienia. Prawie wszystkie klasy i funkcje CommonLib korzystaj¹ z
+tych typów, tak ¿e automatycznie prze³¹czaj¹ siê na u¿ywanie znaków i ³añcuchów
+Unicode zale¿nie od tego ustawienia.
+
+£añcuch znaków ANSI zapisuje siê w kodzie C++, jak wiadomo, w taki sposób:
+<tt>"ABC"</tt>. £añcuch znaków Unicode zapisuje siê tak: <tt>L"ABC"</tt>. Modu³
+Base definiuje makro, którym nale¿y obejmowaæ wszystkie ³añcuchy w kodzie, jeœli
+chcemy, aby zosta³y zamienione na odpowiedni¹ postaæ (ANSI lub Unicode) zale¿nie
+od ustawienia. Przyk³ad: <tt>_T("ABC")</tt>.
+
+Jeœli piszemy kod, który ma dzia³aæ zarówno ze znakami ANSI jak i Unicode, jako
+makro oznaczaj¹ce nazwê bie¿¹cego pliku Ÿród³owego (podawane do konstruktora
+klas wyj¹tków modu³u Error) u¿ywaæ nale¿y zdefiniowanego w module Base makra
+__TFILE__. Podobnie, makro przechowuj¹ce sygnatujê bie¿¹cej funkcji to
+__TFUNCSIG__.
+
+Do konwersji miêdzy standardami kodowania znaków u¿yj funkcji
+common::ConvertUnicodeToChars i common::ConvertCharsToUnicode. Dzia³aj¹ one
+tylko w Windows. S¹ niezale¿ne od ustawienia _UNICODE. Pozwalaj¹ zamieniaæ
+³añæuchy miêdzy kodowaniem UTF-16 (Unicode), UTF-8 i ANSI (np. Windows-1250 w
+przypadku jêzyka polskiego).
+
+Jeœli piszesz kod, który ma siê kompilowaæ bez zmian zarówno w ANSI jak i
+Unicode, przydatne bêd¹ funkcje konwertuj¹ce ³añæuchy miêdzy kodowaniem ASNI
+(typ string) lub Unicode (typ wstring), a tym u¿ywanym zale¿nie od ustawienia
+(typ common::tstring). Te funkcje to: common::TstringToString,
+common::StringToTstring, common::TstringToWstring, common::WstringToTstring. Jak
+mo¿na siê domyœliæ, po³owa z nich (która, to zale¿y od ustawienia) nic nie robi,
+tylko zwraca podany ³añcuch.
+
+Do zapisywania i odczytywania plików tekstowych w ró¿nym kodowaniu s³u¿¹ funkcje
+modu³u Files: common::SaveUnicodeToFile, common::SaveUnicodeToStream,
+common::LoadUnicodeFromFile, common::LoadUnicodeFromStream. W razie potrzeby
+automatycznie konwertuj¹ kodowanie znaków. Obs³uguj¹ kodowanie ANSI, UTF-16 LE i
+UTF-8. Funkcje zapisuj¹ce mog¹ do³¹czaæ nag³ówek BOM. Funkcje odczytuj¹ce, na
+podstawie nag³ówka i analizy treœci, mog¹ automatycznie rozpoznaæ kodowanie.
+
+
+\section main_faq Mini FAQ
+
+<i>Sk¹d taka nazwa?</i>
+
+W moim g³ównym kodzie, z którego biblioteka siê wywodzi, mam w Visual C++ w
+Solution szereg projektów. Jednym z nich jest silnik graficzny, innym pomocnicze
+narzêdzie konsolowe czy program testuj¹cy. Kod wspólny dla wszystkich projektów
+zgromadzi³em w katalogu, który nazwa³em Common i tak ju¿ zosta³o.
+
+<i>Sk¹d taka wersja?</i>
+
+Faktycznie nie by³o CommonLib 4 czy 5, a wersja 6.1 by³a tak ró¿na od 6.0, ¿e
+powinna siê nazywaæ 7.0. Jednak chcia³em zrównaæ numeracjê biblioteki z
+numeracj¹ mojego g³ównego projektu - silnika graficznego, na potrzeby którego
+napisa³em t¹ bibliotekê.
+
+Nowe wydanie - CommonLib 8.0 - nie oznacza ¿e zacz¹³em pisaæ od nowa swój
+silnik graficzny. Oznacza raczej, ¿e biblioteka przesz³a wielkie zmiany po tym,
+jak silnik w wersji 7 zosta³ uznany za skoñczony.
+
+
+\section main_whatsnew Co nowego?
+
+\subsection main_whatsnew_9_0 Version 9.0 (December 2009)
+
+I've used CommonLib with all my C++ home projects in recent year, so many new
+ideas about changes and new features came to my mind. This version is just the
+implementation of some of them (these simpler and smaller ones :)
+I have also much more experience in programming because of my work in game
+development industry and then digital television industry.
+
+This is a big release.
+Some completely new modules appeared.
+WARNING 1: This version is not fully compatible with the previous one, as some of elements have been deleted or significantly changed.
+WARNING 2: This version is tested only with Microsoft Visual C++ 2008
+compiler and does not ensure compatiblity with Linux!
+
+- General:
+  - I've started to write new comments and documentation in English not in Polish.
+  - Deleted global objects: common::g_Timer, common::g_Unique, common::g_Config, common::g_Profiler.
+    Make your own in your main header (like StdAfx.h) if you need one.
+  - Completely new modules: BstrString, ObjList, TokDoc.
+  - Deleted whole modules: Dator, Config.
+    You are encouraged to read about new TokDoc module and use it instead of Config.
+  - Some errors have been corrected, including these dealing with common::BOX_ZERO,
+    common::FileStream::SetSize, common::ExcludeTrailingPathDelimiter.
+  - Some other small changes, corrections and improvements have been made that are not listed here.
+- Base Module
+  - Added macros for C-style string and memory operations to make them more
+    portable between Linux and Windows, as under Windows there are more "secure"
+    versions ending with _s and they also may use Unicode:
+    common_memzero,
+    common_sprintf,
+    common_memcpy,
+    common_memmove,
+    common_strcat,
+    common_strncat,
+    common_strchr,
+    common_strrchr,
+    common_strcmp,
+    common_strncmp,
+    common_stricmp,
+    common_strnicmp,
+    common_strcoll,
+    common_strcpy,
+    common_strncpy,
+    common_strlen,
+    common_strspn,
+    common_strcspn,
+    common_strpbrk,
+    common_strstr,
+    common_strxfrm.
+  - Deleted memory functions:
+    common::ZeroMem, common::CopyMem, common::CmpMem, common::FillMem.
+    You should now use:
+    common_memzero, common_memcpy and standard memcmp, memset.
+  - Added functions with operations on C-style strings:
+    common::StrIsEmpty,
+    common::ClearStr,
+    common::strnistr,
+    common::StrBegins,
+    common::StrEnds,
+    common::StrErase,
+    common::StrInsert,
+    common::Trim,
+    common::StrReplace.
+  - Added class common::CommonGUID.
+  - Deleted class common::TimeMeasurer and global object common::g_Timer.
+    You should use new common::GameTime class from DateTime module instead.
+  - Added function for conversion between ANSI and Unicode string using C-style
+    strings:
+    common::UnicodeToChars_CalcBufLen,
+    common::CharsToUnicode_CalcBufLen,
+    common::ConvertUnicodeToChars,
+    common::ConvertCharsToUnicode.
+  - Added functions for converting endianess:
+    common::SwapEndian16,
+    common::SwapEndian32,
+    common::SwapEndian64,
+    common::SwapEndian16_Array,
+    common::SwapEndian32_Array,
+    common::SwapEndian64_Array,
+    common::SwapEndian16_Data,
+    common::SwapEndian32_Data,
+    common::SwapEndian64_Data,
+    common::SwapEndian (overloaded for basic types).
+  - Added function common::saturate equivalent to minmax<float>(0.f, x, 1.f),
+    overloaded for types: float, double (Base module) and VEC2, VEC3, VEC4, COLORF (Math module).
+  - Added macros REF_COUNTED_FIELDS, REF_COUNTED_METHODS, REF_COUNTED_CTOR
+    to help with making your class reference counted and exposing methods AddRef and Release.
+  - Added common::RoundInterpolator template class that interpolates between
+    some key values of any type according to 0..1 parameter with end connected to begin.
+  - Added version of void common::Lerp(float *out, float x, float y, float t) to make it compatible
+    with other overloaded versions while dealing with atomic float type.
+  - Added function common::WangMix that hashes a 32-bit uint value to another 32-bit uint value.
+  - Added support for DEC3 concept - storing and retrieving for values encoded in single 32-bit unsigned number
+    as 3 x 10-bit and 1 x 2-bit number.
+    Functions: common::MakeDEC3, common::GetXFromDEC3, common::GetYFromDEC3, common::GetZFromDEC3, common::GetWFromDEC3.
+  - Added function template common::UniversalCmp that converts ability to compare some values with operator<
+    (which is %common in C++ ideology) to comparing with result of type int that is less, greater or equal to zero
+    (which I believe is better).
+  - Added functions common::CalcLinearFactors, common::CalcQuadraticFactors that
+    can calculate coefficients of linear/quadratic equation passing through given points.
+  - Added other functions:
+    common::MakePathInPlace,
+    common::AlignUp,
+    common::AlignDown,
+    common::Sort2,
+    common::Sort3,
+    common::StrBeginsI,
+    common::StrEndsI,
+    common::EvalQuadraticBezierCurve,
+    common::round_div.
+  - Deleted common::SubStrEqual and common::SubStrEqualI.
+    Added common::SubStrCmp and common::SubStrCmpI instead.
+  - Renamed common::StrLessCi to common::StrLessI, common::StrGreaterCi to common::StrGreaterI.
+  - Renamed common::DupeString to common::DuplicateString.
+  - Deleted function common::StrEqualI.
+    You can use common::StrCmpI(...) == 0.
+  - Change in common::frac function - it now uses floor function, which makes it
+    compatible with frac intrinsic function in HLSL/GLSL.
+  - Deleted pragmas for compiler warnings disabling.
+    Code is now using "safe" C standard library functions like sprintf_s when compiled using Visual C++,
+    so warning C4996 is not generated.
+  - Added method common::scoped_ptr::is_null and common::shared_ptr::is_null.
+  - Optimization: common::smart_ptr smart pointer no longer allocates and
+    keeps reference counter when contains NULL pointer. Interface and behavior
+    stays untouched.
+- Math Module
+  - Added common::AFFINE2D structure that represents a 2D affine transform with 2x3 matrix,
+    as well as lots of helper functions.
+  - Breaking changes in structures common::RECTI, common::RECTF and common::BOX.
+    Rectangles now just like box have members Min and Max instead of left, top, right, bottom.
+    Also lots of new methods, some new constants and more.
+  - Added new group of elements to deal with curve calculations:
+    common::EvalCatmullRomCurve,
+    common::EvalCatmullRomCurveDiff,
+    common::EvalCubicBezierCurve,
+    common::EvalCubicBezierCurveDiff,
+    common::SplitCubicBezierCurve,
+    common::CubicBezierCurveIntegral,
+    common::CalcCubicBezierCurveLength,
+    common::GetCubicBezierCurveArcLengthParam,
+    common::IntersectCubicBezierCurve2DWithX.
+  - Added functions to calculate Manhattan and max norms:
+    common::ManhattanDistance,
+    common::MaxDistance,
+    common::ManhattanLength,
+    common::MaxLength,
+    common::PointToRectManhattanDistance,
+    common::PointToBoxManhattanDistance,
+    common::RectToRectManhattanDistance,
+    common::BoxToBoxManhattanDistance,
+    common::PointToRectMaxDistance,
+    common::PointToBoxMaxDistance,
+    common::RectToRectMaxDistance,
+    common::BoxToBoxMaxDistance.
+  - Added function common::Refract which works just like reflect intrinsic function from HLSL/GLSL.
+  - Added some functions for calculating collisions with cone (not tested yet!):
+    common::RayToCone, common::PointInCone, common::SegmentIntersectsOrIsContainedInCone.
+  - Added Lerp function versions overloaded for RECTF and BOX types.
+  - Added functions common::OriginCircleBoundingPoints, common::OriginSphereBoundingPoints
+    that find the smallest circle/sphere with center at origin (0,0,0) encosing given set of 2D/3D points.
+  - Added function common::SafeNormalize, which returns false if tried to normalize zero vector.
+  - Added functions common::ColorfToVec4, common::Vec4ToColorf to convert between (x,y,z,w) vector and (R,G,B,A) color.
+  - Added functions common::Mul3x3, common::Mul4x3 for efficient multiplication of matrices that we know
+    about containing only linear/affine transform, instead of performing default, full 4x4 multiplication.
+  - Added other functions:
+    common::CalcBillboardOrientation,
+    common::Abs for vectors,
+    common::PointInCircle,
+    common::CircleToRect,
+    common::ClosestPointInTriangle,
+    common::PointToRectDistanceSq,
+    common::RectToRectDistanceSq,
+    common::BoxToBoxDistanceSq,
+    common::GetBoxPlane,
+    common::GetRectLine,
+    common::GetLineNormal (analogy to common::GetPlaneNormal).
+  - Changes in overloaded functions common::Mul, common::Div.
+- Error Module
+  - Added macros ALL_EXCEPTIONS_TRY, ALL_EXCEPTIONS_CATCH to help with catching
+    any types of exceptions, converting and rethrowing them as common::Error exceptions.
+    They provide separate catch clauses for common::Error, std::exception and other (...) exception types.
+- Threads Module
+  - Added Read-Write Lock - classes common::RWLock, common::ReadLock, common::WriteLock (not tested yet!).
+  - Changed common::MutexLock constructor so it now requires reference instead of pointer to common::Mutex.
+  - Added common::Thread class members (only for Windows):
+    common::Thread::GetNativeHandle,
+    common::Thread::GetNativeId,
+    common::Thread::SetThreadName,
+    common::Thread::SetThreadNameById,
+    common::Thread::SetMainThreadName.
+- Profiler Module
+  - Added "flat" profiler: classes common::FlatProfiler, common::FlatProfilerSampler.
+  - Changed Profiler so it now works with type GameTime instead of using TimeMeasurer and storing time as double.
+- DateTime Module
+  - Added common::GameTime structure that encapsulates very precise, signed time or time period
+    using system Query Performance Counter internally.
+    Also added helper functions: common::GetCurrentGameTime, common::MillisecondsToGameTime, common::SecondsToGameTime.
+  - Added parameter for common::TIMESPAN::ToString_Nice method to include milliseconds in formatted string.
+- Stream Module
+  - Added new stream class: common::BufferingStream.
+  - Added common::NullStream class - a dummy stream that does nothing.
+    Writing to it just skips written data and reading always indicates it's at the end of data (like the stream is empty).
+  - Modified: common::Stream::CopyFromToEnd and common::CopyToEnd now return number of bytes processed instead of void.
+- Files Module
+  - Modified common::FileStream class by adding Windows-only method GetNativeHandle that returns
+    native system handle to opened file, of type HANDLE.
+- Tokenizer Module
+  - Added class common::TokenWriter to easily write token documents.
+    Moved Escape static method from Tokenizer class to TokenWriter class.
+- ZlibUtils Module
+  - Modified common::ZlibCompressionStream, common::ZlibDecompressionStream, common::GzipCompressionStream, common::GzipDecompressionStream classes
+    by adding WindowBits constructor parameter, because setting it to desired value can be important sometimes.
+- FreeList Module
+  - Free lists now do not ensure that all allocated blocks have been freed before their destruction.
+    Thanks to that you can write more efficient code by not freeing separate elements at all, only whole free lists.
+
+
+\subsection main_whatsnew_8_1 Wersja 8.1 (10 listopada 2008)
+
+Przez ostatnie miesi¹ce biblioteka by³a rozwijana czêœciowo samodzielnie, a
+czêœciowo przy okazji ró¿nych programów. Najwiêkszym zmianom uleg³ modu³
+matematyczny, do którego dodane zosta³o wiele nowych funkcji do kolizji,
+napisanych g³ównie dziêki lekturze ksi¹¿ki "Real-Time Collision Detection",
+Christer Ericson. Wersja 8.1 nie jest w pe³ni kompletna (wiele nowych
+mo¿liwoœci jest w planach), ale stanowi zebranie tego, co zosta³o dotychczas
+dodane. Poprawieniu lub przepisaniu na bardziej optymaln¹ wersjê uleg³o wiele
+procedur. Poni¿sza lista zawiera tylko spis zmian w zewnêtrznym interfejsie
+biblioteki.
+
+- Modu³ Base
+  - Dodane makro __TFUNCTION__, które przechowuje sam¹ nazwê bie¿¹cej funkcji
+  (nie pe³n¹ sygnaturê, jak __TFUNCSIG__).
+  - Dodane makro ASSERT_INT3 (kompilowane zawsze) oraz ASSERT_INT3_DEBUG
+  (kompilowane tylko w konfiguracji Debug), które u¿ywa przerwania int 3. Bez
+  debuggera to powoduje wysyp programu, z debuggerem przerywa program tak jak
+  postawiony w kodzie Breakpoint. [Tylko Windows]
+  - Dodane makro STATIC_ASSERT - asercja sprawdzana w czasie kompilacji. Jeœli
+  niespe³niona, kompilator zg³asza b³¹d.
+  - Dodane makro _countof, które zwraca na etapie kompilacji liczbê elementów
+  statycznej tablicy. W Windows jest dostêpne standardowo, dziêki zdefiniowaniu
+  mo¿na go teraz u¿ywaæ tak¿e w Linuksie.
+  - Dodane funkcje matematyczno-bitowe: common::sign, common::MergeBits,
+  common::CountBitsSet, common::CalcParity, common::SwapBitSequences,
+  common::log10u, common::sincos, common::EaseCurve, common::EaseCurve2,
+  common::smoothstep, common::CalcMeanAndVariance, common::next_pow2 (zamiast common::greater_power_of_2).
+  - Ulepszony generator liczb pseudolosowych.
+  common::RandomGenerator::RandUint ma teraz now¹, lepsz¹ implementacjê.
+  Stara, dzia³aj¹ca szybciej, nosi nazwê common::RandomGenerator::RandUint_Fast.
+  - Nowy, lepszy ale wolniejszy generator liczb pseudolosowych: common::MersenneTwister.
+- Modu³ Error
+  - Poprawki w common::DevILError. Dodane makro ERR_GUARD_DEVIL.
+- Modu³ Math
+  - Dodane funkcje: common::ScalarTripleProduct,
+  common::TriangleIsCW,
+  common::BOX::CalcHalfSize
+  - Zmiany nazw funkcji:
+  common::OverlapRect na common::RectToRect,
+  common::OverlapBox na common::BoxToBox,
+  common::RecalculatePlaneD na common::RecalcPlaneD,
+  common::CalculateBarycentric na common::CalcBarycentric,
+  common::IntersectLines na common::SegmentToSegment.
+  - Dodane struktury common::OBB, common::RECT3D.
+  - Dodane funkcje common::ColorToR5G6B5, common::R5G6B5ToColor.
+  - Dodane funkcje: common::TransformNormalByTranspose,
+  common::Untransform, common::UntransformNormal.
+  - Dodane funkcje: common::MatrixSetTranslation, common::MatrixGetTranslation.
+  - Dodana nowa wersja funkcji common::Transpose.
+  - Dodana struktura common::MATRIX33.
+  - Dodane sta³e zwi¹zane z uk³adem wspó³rzêdnych znanym jako "Half-Life 2 Basis":
+  common::HL2_TO_TANGENT_MATRIX, common::TANGENT_TO_HL2_MATRIX,
+  common::HL2_BASIS_VECTORS.
+  - Dodane funkcje:
+  common::ClosestPointInRect,
+  common::Orient2D, common::Orient3D, common::PointInTriangle,
+  common::IsQuadConvex, common::ClosestPointSegmentSegment,
+  common::PointToLineDistanceSq, common::PointToSegmentDistanceSq,
+  common::ClosestPointOnSegment, common::ClosestPointOnRay,
+  common::ClosestPointInObb, common::ClosestPointInRect3d,
+  common::ClosestPointInTriangle, common::ClosestPointInTetrahedron,
+  common::PointToBoxDistanceSq (zamiast common::PointToBoxDistance),
+  common::PointToObbDistanceSq, common::RayToQuad,
+  common::RayToCylinder, common::PointInConvexPolyhedron,
+  common::RayToConvexPolyhedron, common::SphereToObb,
+  common::SphereToTriangle, common::ClassifyBoxToPlane,
+  common::ClassifyObbToPlane, common::CapsuleToPlane,
+  common::SphereToCapsule, common::CapsuleToCapsule,
+  common::PointInConvexPolygon, common::RayToConvexPolygon,
+  common::ClosestPoint, common::FurthestPoint,
+  common::FurthestPointForDir, common::RectBoundingPoints,
+  common::BoxBoundingPoints, common::CircleBoundingPoints,
+  common::CalcCentroid, common::CalcCovarianceMatrix,
+  common::CalcEigenvaluesAndEigenvectors, klasa common::RayToTriangleCalc.
+
+
+\subsection main_whatsnew_8_0 Wersja 8.0 (29 marca 2008)
+
+Biblioteka przesz³a wielkie zmiany.
+Logicznie wiêkszoœæ kodu jest nadal kompatybilna wstecz,
+ale tekstowo zmiany s¹ tak du¿e, ¿e praktycznie nie ma sensu robiæ Diff.
+Ogólne, du¿e nowoœci:
+
+- W systemie Windows biblioteka mo¿e byæ teraz prze³¹czona w tryb wsparcia dla
+Unicode (patrz \ref main_unicode).
+- Komentarze w nag³ówkach zosta³y zamienione na format Doxygen, co umo¿liwi³o
+automatyczne wygenerowanie niniejszej dokumentacji.
+- Modu³ Math: Kiedy zdefiniowane jest makro USE_DIRECTX, typy matematyczne s¹
+aliasami do typów z D3DX, wiêc nie jest juŸ potrzebna ¿adna konwersja. (VEC2 to
+D3DXVECTOR2, VEC3 to D3DXVECTOR3, VEC4 to D3DXVECTOR4, MATRIX to D3DXMATRIX,
+QUATERNION to D3DXQUATERNION, PLANE to D3DXPLANE.) W przeciwnym wypadku modu³
+definiuje w³asne struktury o takiej samej budowie bitowej i zbli¿onej
+funkcjonalnoœci.
+- Wszystkie (prawie) ³añcuchy w kodzie, w tym g³ównie komunikaty b³êdów,
+s¹ teraz w jêzyku angielskim.
+
+Inne zmiany:
+
+- Modu³ Base
+  - Dodana sta³a common::EMPTY_STRING - pusty ³añcuch, na wypadek gdyby by³
+  potrzebny wskaŸnik lub referencja do takiego.
+  - Dodany szablon funkcji common::InsertionSort - sortowanie przez wstawianie.
+  Dzia³a jak algorytm STL.
+  - Poprawione konwersje miêdzy liczb¹ zmiennoprzecinkow¹ i ³añcuchem (funkcje
+  common::StrToFloat, common::FloatToStr, common::StrToDouble,
+  common::DoubleToStr). W Windows dzia³aj¹ teraz niezale¿nie od ustawionego
+  "locale". Jako separatora dziesiêtnego u¿ywaj¹ zawsze kropki nawet po
+  przestawieniu "locale" na polski.
+- Modu³ Math
+  - Poprawione b³êdy obliczeniowe w funkcjach:
+  common::Slerp,
+  common::LookAtRH,
+  common::PerspectiveFovRH,
+  common::PerspectiveRH,
+  common::PerspectiveOffCenterRH.
+  - Zmienione sta³e typu POSITIVE_X, WHITE itp. Nie s¹ ju¿ jak dawniej
+  statycznymi polami klas (VEC3::POSITIVE_X, COLORF::WHITE), ale globalnymi
+  sta³ymi (common::VEC3_POSITIVE_X, common::COLORF_WHITE).
+  - Zmienione typy matematyczne. Zosta³y upodobnione do tych z D3DX. Usuniête
+  zosta³y operator[] i metoda GetArray. Dodany zosta³ konstruktor (const float
+  *Arr), operator float* i operator const float*.
+  - Z typów matematycznych usuniête zosta³y dodatkowe metody nieobecne w ich
+  odpowiednikach z D3DX i przeniesione jako funkcje globalne. Na przyk³ad metoda
+  PLANE::GetNormal() sta³a siê funkcj¹ common::GetPlaneNormal().
+  - Dodana funkcja common::Rotation2D generuj¹ca macierz obrotu 2D.
+- Modu³ Stream
+  - Dodane do struktury common::MD5_SUM operatory porównania: \< \> \<= \>=
+- Modu³ ZlibUtils
+  - Poprawiony b³¹d - strumienie dekompresji niepotrzebne rzuca³y asercj¹ mimo
+  ¿e wszystko by³o OK.
+- Inne drobne poprawki...
+
+\subsection main_whatsnew_7_0 Wersja 7.0 (3 listopada 2007)
+
+Biblioteka by³a przez ostatnie miesi¹ce uzupe³niana i poprawiana na bie¿¹co wraz
+z rozwojem silnika graficznego 3D, na potrzeby którego powsta³a.
+
+- Modu³ Base
+  - Dodane nowe funkcje do obs³ugi surowej pamiêci: common::CompareMem i
+    common::FillMem.
+  - Dodana funkcja do rozwi¹zywania równania kwadratowego:
+    common::QuadraticEquation.
+  - Dodane funkcje generuj¹ce szum: common::PerlinNoise1, common::PerlinNoise2,
+    common::PerlinNoise3 i common::BrownianNoise1, common::BrownianNoise2,
+    common::BrownianNoise3.
+  - Zmiana w common::RandomGenerator: metody common::RandomGenerator::RandUint i
+    common::RandomGenerator::RandInt losuj¹ teraz liczby z wy³¹czeniem górnej
+    granicy (max).
+- Modu³ Error
+  - Dodane makra dla wygody: ERR_GUARD_BOOL, ERR_GUARD_DIRECTX,
+    ERR_GUARD_BOOL_D, ERR_GUARD_DIRECTX_D
+  - Poprawiony b³¹d w funkcji common::MustStrToSth. 
+- Modu³ Math
+  - Dodana funkcja common::PerpedicularVectors - oblicza dwa dowolne wektory prostopad³e do danego.
+  - Dodana funkcja common::ColorDistance - zwraca "odleg³oœæ" dwóch kolorów.
+  - Dodana funkcja common::CapsuleVolume licz¹ca objêtoœæ kapsu³y.
+  - Dodane funkcje common::SphereInBox i common::BoxInSphere.
+  - Dodane funkcje do kolizji trójk¹ta z prostpad³oœcianem: common::TriangleInBox, common::TriangleToBox.
+  - Dodane funkcje do kolizji z p³askim wielok¹tem w 3D: common::PointInPolygon, common::RayToPolygon.
+  - Dodane funkcje do kolizji poruszaj¹cych siê obiektów: common::SweptSphereToSphere, common::SweptBoxToBox.
+  - Dodane funkcje do losowania punktów z wnêtrza bry³:common:: RandomPointInUnitSphere, common::RandomPointInUnitCircle, common::RandomPointInCapsule.
+  - Ulepszona funkcja common::RayToTriangle - teraz mo¿na wybraæ czy ma byæ Backface Culling.
+  - Poprawione b³êdy w funkcjach: common::LinesIntersection, common::RotationYawPitchRoll, common::RotationYawPitchRollInv, common::Normalize (do kwaterninów), common::Log (do kwaternionów), common::ClosestPointOnLineSegment, common::RayToSphere. 
+- Modu³ Stream
+  - Dodana nowa klasa strumienia: common::RingBuffer - bufor ko³owy. 
+- Modu³ Tokenizer
+  - Dodane metody do klasy common::Tokenizer czyni¹ce parsowanie jeszcze wygodniejszym: common::Tokenizer::QueryToken, common::Tokenizer::QueryEOF, common::Tokenizer::QueryEOL, common::Tokenizer::QuerySymbol, common::Tokenizer::QueryIdentifier, common::Tokenizer::QueryKeyword, common::Tokenizer::AssertToken, common::Tokenizer::AssertIdentifier.
+  - Poprawiony b³¹d tokenizacji liczb.
+  - Poprawione metody GetUint*, GetInt*, MustGetUint*, MustGetInt*, GetFloat, GetDouble - w przypadku b³êdu zamiast wykonywaæ assert rzucaj¹ wyj¹tek b³êdu tokenizacji. 
+
+\subsection main_whatsnew_6_1 Wersja 6.1 (29 czerwca 2007)
+
+Od wersji 6.0 biblioteka zmieni³a siê w³aœciwie nie do poznania. Dlatego nie ma
+sensu wypisywaæ zmian. Szczególnie, ¿e pewnie nikt z niej wczeœniej nie
+korzysta³ :P
+
+
+\section main_license Licencja
+
+Biblioteka dostêpna jest na licencji GNU LGPL, co znaczy m.in., ¿e masz dostêp
+do jej kodu Ÿród³owego oraz ¿e mo¿esz u¿ywaæ jej za darmo w dowolnych swoich
+programach, tak¿e zamkniêtych.
+
+
+\section Autor
+
+Adam Sawicki \n
+E-mail: sawickiap@poczta.onet.pl \n
+Homepage: http://regedit.gamedev.pl
+
+*/

@@ -1,0 +1,384 @@
+/** \page Module_Math Modu³ Math
+
+Nag³ówek: Math.hpp \n
+Elementy modu³u: \ref code_math
+
+
+\section math_wstep Wstêp
+
+To jest zaanwasowana biblioteka matematyczna. Definiuje typu takie jak wektor
+czy macierz. Elementy matematyczne nie wymagaj¹ce tych typów, a jedynie
+operuj¹ce na zwyk³ych liczbach, znajdziesz w module Base. Math to najwiêkszy z
+modu³ów CommonLib. Zawarte w nim elementy przeznaczone s¹ g³ównie do
+programowania gier. Math dubluje wiêkszoœæ funkcjonalnoœci biblioteki D3DX z
+DirectX w zakresie matematyki, a tak¿e implementuje du¿o innych funkcji wy¿szego
+poziomu, jak kolizje miêdzy ró¿nymi obiektami geometrycznymi.
+
+
+\section math_zalozenia Za³o¿enia
+
+- Nastawiona na maksymaln¹ wydajnoœæ.
+- Jako liczby zmiennoprzecinkowe u¿ywa typu float.
+- Przenoœna na Windows i Linux (jak ca³y CommonLib).
+- W systemie Windows integruje siê z DirectX (D3DX) u¿ywaj¹c jego typów,
+ale go nie wymaga - w przypadku jego braku definiuje w³asne.
+- Korzysta tylko z modu³u Base.
+- Nie u¿ywa wyj¹tków modu³u Error.
+- Mo¿liwoœci:
+Nie wszystko to co ma D3DX, ale du¿a czêœæ z tego. Wszystko, co czêsto u¿ywane,
+wa¿ne i potrzebne. Dodatkowo zaawansowane obliczenia typu kolizje miêdzy ró¿nego
+rodzaju obiektami.
+- Nastawiona bardziej nia wspó³pracê z DirectX ni¿ OpenGL - uk³ad wspó³rzêdnych
+lewoskrêtny, macierze w porz¹dku wierszowym, kolory w formacie A8R8G8B8 itp.
+- Stosowanym uk³adem wspó³rzêdnych 2D jest uk³ad: X w prawo, Y w górê.
+Stosowanym uk³adem wspó³rzêdnych 3D jest uk³ad lewoskrêtny, jak w DirectX:
+X w prawo, Y w górê, Z w g³¹b. W takich te¿ uk³adach wyra¿one s¹ wszelkie
+kierunki CW (w kierunku ruchu wskazówek zegara) i CCW (przeciwnie do ruchu
+wskazówek zegara).
+- W funkcjach generuj¹cych czy licz¹cych coœ wszelkie struktury bardziej z³o¿one
+ni¿ pojedyncza liczba zwracane s¹ przez pierwszy parametr wskaŸnikowy, a nie
+przez zwrócenie wartoœci.
+- Ka¿dy kolor reprezentowany jest przez sk³adowe ARGB, kana³ alfa jest tak samo
+wa¿ny i nie jest nigdzie pomijany ani domyœlnie inicjalizowany. Domyœlny format
+koloru to A8R8G8B8 (kompatybilny z uint4).
+- DECYZJA: Jak zrobiæ operacje, np.:
+  1. <tt>dot3(v1, v2)</tt>
+  2. <tt>VEC3::dot(v1, v2)</tt>
+  3. <tt>v1.dot3(v2)</tt>
+  DECYZJA: 1
+  BO:
+  - Ta opcja jest najkrótsza
+  - Zapis 3 jest brzydki i nienaturalny, bo niesymetrynczy
+  - Zapis 2 jest d³u¿szy i niczego nie polepsza, bo nawet kiedy bêdzie konflikt
+  w przestrzeni globalnej to funkcja siê prze³aduje albo siê j¹ inaczej nazwie.
+- DECYZJA: Jak zrobiæ inicjalizacjê struktur, np.:
+  1. <tt>PLANE plane1(v1, v2, v3);</tt>
+  2. <tt>PLANE plane1; CreatePlane(&plane1, v1, v2, v3);</tt>
+  3. <tt>PLANE plane1; plane1.Fill(v1, v2, v3);</tt>
+  DECYZJA: 2, konstruktor tylko do bezpoœredniej inicjalizacji pól bez konwersji.
+  BO:
+  - Opcja 1 sama nie wystarczy, czasem chce siê zmieniæ, wtedy trzebaby dodaæ
+    2 lub 3.
+  - Jest zgodna z konwencj¹ funkcji wype³niaj¹cych, konwertuj¹cych itp.
+    Rozró¿nienie miêdzy inicjalizacj¹ a konwersj¹ jest p³ynne.
+- Nie ma kolizji odcinka z obiektami.
+Dlaczego? Bo mo¿na skorzystaæ z kolizji promienia i sprawdziæ czy otrzymane t
+nie przekracza d³ugoœci odcinka (0..1 czy te¿ 0..D³ugoœæ).
+
+
+\section math_skladniki Sk³adniki
+
+Podstaw¹ modu³u matematycznego s¹ ró¿ne obiekty geometryczne, z których
+wiêkszoœæ posiada swoj¹ reprezentacjê jako osobne struktury. Dla ka¿dej z tych
+struktur zdefiniowany jest szereg prze³adowanych operatorów, metod oraz funkcji
+globalnych, które nie s¹ tutaj szczegó³owo opisane. Ka¿dy z nich daje siê
+równie¿ skonwertowaæ do/z ³añcucha znaków za pomoc¹ ujednoliconego mechanizmu
+SthToStr i StrToSth.
+
+- <b>Punkt 2D</b> opisany liczbami ca³kowitymi reprezentuje struktura
+common::POINT_. Odpowiada ona typowi POINT z WinAPI i z³o¿ona jest z pól <tt>int
+x, y</tt>.
+- <b>Punkt lub wektor 2-, 3- i 4-wymiarowy</b> opisany liczbami
+zmiennoprzecinkowymi reprezentuj¹ struktury odpowiednio common::VEC2,
+common::VEC3 i common::VEC4. Posiadaj¹ one pola <tt>float x, y</tt> oraz
+dodatkowo <tt>z</tt> i <tt>w</tt>. Jeœli zdefiniowane jest makro USE_DIRECTX, s¹
+to aliasy do typów z D3DX: D3DXVECTOR2, D3DXVECTOR3 i D3DXVECTOR4. Jeœli nie,
+modu³ dostarcza w³asnej implementacji o zbli¿onej funkcjonalnoœci. Zdefiniowane
+jest wiele funkcji do operacji na tych wektorach, w tym iloczyn skalarny i
+wektorowy, obliczanie d³ugoœci i odleg³oœci, normalizacja, interpolacja
+liniowak, rzutowanie, ortogonalizacja i inne.
+- <b>Trójk¹t w przestrzeni 3D</b> nie posiada jawnej reprezentacji w postaci
+w³asnej struktury. Do jego opisania u¿ywane s¹ trzy punkty typu common::VEC3.
+Zbiór funkcji wspieraj¹cych trójk¹ty obejmuje m.in. operacje na wspó³rzêdnych
+barycentrycznych.
+- <b>Promieñ</b> (ang. Ray, inaczej pó³prosta w przestrzeni 3D) równie¿ nie
+posiada swojej reprezentacji jako osobnej struktury. Do jego opisania u¿ywane s¹
+dwie zmienne typu common::VEC3 - punkt pocz¹tkowy oraz wektor kierunku (nazywane
+w kodzie RayOrig od "Origin" i RayDir od "Direction").
+- <b>Prostok¹t 2D</b> zbudowany z liczb ca³kowitych reprezentuje struktura
+common::RECTI. Posiada ona pola <tt>int left, top, right, bottom</tt>. Odpowiada
+strukturze RECT z WinAPI.
+- <b>Prostok¹t 2D</b> zbudowany z liczb zmiennoprzecinkowych reprezentuje
+struktura common::RECTF. Posiada ona pola <tt>float left, top, right,
+bottom</tt>. Istniej¹ funkcje testuj¹ce czy punkt lub inny prostok¹t zawiera siê
+w danym prostok¹cie, jak równie¿ licz¹ce sumê i czêœæ wspóln¹ dwóch prostok¹tów.
+- <b>AABB</b> (ang. Axis-Aligned Bounding Box, czyli prostopad³oœcian
+o krawêdziach równoleg³ych do osi uk³adu wspó³rzêdnych) posiada reprezentacjê
+w postaci struktury common::BOX wyposa¿onej w pola opisuj¹ce jego dwa
+wierzcho³ki - o najmniejszych i o najwiêkszych wspó³rzêdnych  - <tt>VEC3
+p1, p2</tt>.
+- <b>Kolor</b> wraz z czwartym kana³em - Alfa oznaczaj¹cym przezroczystoœæ -
+posiada dwie reprezentacje. Struktura common::COLOR zbudowana jest z pojedynczej
+liczby ca³kowitej 4-bajtowej, której poszczególne bajty przechowuj¹ wartoœci
+czterech kana³ów w zakresie 0..255. Struktura common::COLORF posiada pola
+<tt>float R, G, B, A</tt> reprezentuj¹ce poszczególne sk³adowe jako liczby
+zmiennoprzecinkowe w zakresie 0.0..1.0. Funkcje operuj¹ce na kolorach obejmuj¹
+m.in. interpolacjê i konwersjê do/z przestrzeni kolorystycznej HSB.
+- <b>P³aszczyzna w 3D</b> opisywana jest równaniem <tt>A x + B y + C z + D =
+0</tt>. Jej wspó³czynniki <tt>float a, b, c, d</tt> potrafi przechowywaæ
+struktura common::PLANE. Jeœli zdefiniowane jest makro USE_DIRECTX, jest on
+aliasem do typu D3DXPLANE. W przeciwnym razie modu³ dostarcza w³asnej struktury
+o podobnych mo¿liwoœciach. Tworzenie p³aszczyzny polega zazwyczaj na podaniu
+wektora normalnego i przyk³adowego punktu który do niej nale¿y b¹dŸ podaniu
+trzech nale¿¹cych do niej punktów.
+- <b>Prosta 2D</b> (na p³aszczyŸnie) opisywana jest równaniem <tt>A x + B y + C
+= 0</tt>. Do reprezentacji jej wspó³czynników <tt>float a, b, c</tt>
+zdefiniowana zosta³a struktura common::LINE2D.
+- <b>Macierz 4x4</b> opisuje struktura common::MATRIX. Jeœli zdefiniowane jest
+makro USE_DIRECTX, ten typ jest aliasem do D3DXMATRIX. Jeœli nie, modu³
+dostarcza w³asnej implementacji o podobnej funkcjonalnoœci. U¿ywana jest w
+geometrii obliczeniowej do reprezentowania szerokiej klasy przekszta³ceñ w
+przestrzeni 3D. Jej minor 3x3 potrafi reprezentowaæ przekszta³cenia liniowe -
+dowoln¹ rotacjê, skalowanie, œcinanie, odbicie oraz dowolne z³o¿enie tych
+przekszta³ceñ w okreœlonej kolejnoœci. Macierz 4x3 potrafi reprezentowaæ
+przekszta³cenia afiniczne - te wymienione powy¿ej oraz translacjê. W macierzy
+4x4, dziêki wykorzystaniu wspó³rzêdnych jednorodnych (polegaj¹cych na zapisaniu
+punktów i wektorów 3D za pomoc¹ 4 sk³adowych), dodatkowo reprezentowane mo¿e byæ
+rzutowanie perspektywiczne, co wyczerpuje wiêkszoœæ przeksza³ceñ stosowanych w
+grafice 3D (niemo¿liwe do opisania tak¹ mcierz¹ pozostaj¹ np. przekszta³cenia
+sferyczne i paraboloidalne). Liczne funkcje zwi¹zane z t¹ struktur¹ s³u¿¹ przede
+wszystkim do tworzenia macierzy reprezentuj¹cych poszczególne rodzaje
+przekszta³ceñ.
+- <b>Kwaternion</b> to rozszerzenie liczb zespolonych na wartoœæ posiadaj¹c¹ 4
+sk³adowe - <tt>float x, y, z, w</tt>. Nie powinien byæ mylony z punktem we
+wspó³rzêdnych jednorodnych, gdy¿ zachowuje siê zupe³nie inaczej. Dlatego
+reprezentowania kwaternionów utworzona zosta³a osobna struktura -
+common::QUATERNION. Jeœli zdefiniowane jest makro USE_DIRECTX, ten typ jest
+aliasem do D3DXQUATERNION. Jeœli nie, modu³ dostarcza w³asnej implementacji o
+podobnej funkcjonalnoœci. Kwaternion wykorzystywany jest w grafice 3D do
+opisywania dowolnej rotacji lub orientacji i jest w tym zastosowaniu lepszy ni¿
+k¹ty Eulera czy macierz, poniewa¿ nie posiada zjawiska "Gimbal Lock" oraz daje
+siê ³atwo interpolowaæ (SLERP - ang. Spherical Linear Interpolation). Kwaternion
+powstaje przez podanie wektora osi obrotu i k¹ta obrotu wokó³ tej osi. Mo¿liwe
+jest jednak dowolne przechodzenie miêdzy opisem rotacji przez k¹ty Eulera,
+macierz rotacji lub kwaternion. Do wszystkich tych przekszta³ceñ dostarczone s¹
+odpowiednie funkcje.
+- <b>Frustum</b> to œciêty ostros³up o podstawie prostok¹ta. Nie posiada
+eleganckiego polskiego t³umaczenia (w œrodowisku internetowym zaproponowany
+zosta³ termin "œciêtos³up"). Kszta³t ten posiada znaczenie w grafice 3D,
+poniewa¿ opisuje obszar widoczny w kamerze stosuj¹cej rzutowanie
+perspektywiczne. St¹d bardzo istotna jest mo¿liwoœæ stwierdzenia, czy obiekt (a
+raczej jego uproszczona bry³a otaczaj¹ca) przecina to pole widzenia, a tym samym
+czy wymaga narysowania na ekranie. Modu³ dostarcza trzech ró¿nych reprezentacji
+frustuma, miêdzy którymi mo¿na przechodziæ. Struktura common::FRUSTUM_PLANES
+opisuje frustum jako 6 p³aszczyzn. Struktura common::FRUSTUM_POINTS} opisuje go
+jako 8 punktów. Struktura common::FRUSTUM_RADAR natomiast to tzw.
+reprezentacja radarowa.
+- <b>Sfera</b> lub kula w 3D nie posiada dedykowanej struktury. Opisywana jest
+jako punkt - pozycja œrodka oraz wartoœæ skalarna oznaczaj¹ca promieñ:
+<tt>VEC3 SphereCenter; float SphereRadius;</tt>.
+
+
+\section math_math_cast math_cast
+
+To tak naprawdê szablon funkcji, który w ogólnym przypadku nie dzia³a (rzuca
+assertion failed), ale ma zdefiniowane specjalizacje. S³u¿y do konwersji miêdzy
+typami tego modu³u math a typami innymi matematycznymi, np. z Win32API. Ma
+zwykle zerowy narzut, bo dokonuje reinterpretacji, a nie ¿adnej konwersji. U¿ywa
+siê go intuicyjnie, tak samo jak normalnego rzutowania, np.:
+
+\code
+common::POINT_ Pt(1, 2);
+POINT WinPt = common::math_cast<POINT>(Pt);
+\endcode
+
+Zdefiniowane s¹ nastêpuj¹ce konwersje:
+
+- miêdzy common::POINT_ a POINT z Win32API
+- miêdzy common::RECTI a RECT z Win32API
+- miêdzy common::COLOR a uint4
+- miêdzy common::COLOR a unsigned long == DWORD == D3DCOLOR z DirectX
+- miêdzy common::COLORF a D3DXCOLOR z D3DX
+
+
+\section math_collisions_desc Kolizje
+
+Zbiór kilkudziesiêciu funkcji oznaczonych jako licz¹ce kolizje pozwala
+stwierdzaæ o zachodzeniu na siebie bry³ ró¿nego rodzaju. Praktycznie ka¿da z
+tych funkcji zawiera w swojej implementacji pewien sprytny algorytm pochodz¹cy z
+jakiejœ ksi¹¿ki lub publikacji internetowej, a skompletowanie biblioteki tych
+funkcji kosztowa³o wiele czasu i pracy. Wiele z nich zostalo opracowanych na
+podstawie Fletcher Dunn, Ian Parberry, "3D Math Primer for Graphics and Game
+Development", Wordware Publishing, 2002. Dok³adne informacje o Ÿród³ach
+poszczególnych algorytmów znaleŸæ mo¿na w komentarzach w kodzie.
+
+Przyk³adowo, funkcja common::SweptBoxToBox sprawdza kolizjê poruszaj¹cego siê
+prostopad³oœcianu z innym prostopad³oœcianem. Wykorzystuje w tym celu sumê
+Minkowskiego. Funkcja common::TriangleToBox sprawdza, czy trójk¹t w przestrzeni
+3D przecina prostopad³oœcian. Wykorzystuje w tym celu twierdzenie o
+p³aszczyznach rozdzielaj¹cych (ang. Separating Axis Theorem).
+
+Punkt:
+- Punkt
+  - Czy nachodz¹ na siebie - common::VecEqual
+- Promieñ, prosta, odcinek
+  - Odleg³oœæ punktu od prostej - common::PointToLineDistance
+  - Czy punkt le¿y na prostej - common::PointOnLine
+  - Rzut punktu na prost¹ - common::ClosestPointOnLine
+  - Wartoœæ parametru t punktu le¿¹cego na prostej - common::PointToLine
+  - Punkt nale¿y od odcinka - common::PointInLineSegment
+  - Najbli¿szy punkt na odcinku - common::ClosestPointOnLineSegment
+- Prostopad³oœcian
+  - Czy punkt nale¿y do prostopad³oœcianu - common::PointInBox
+  - Odleg³oœæ punktu od prostopad³oœcianu - common::PointToBoxDistance
+  - Najbli¿szy punkt z prostopad³oœcianu - common::ClosestPointInBox
+- Sfera
+  - Czy punkt nale¿y do sfery - common::PointInSphere
+  - Odleg³oœæ punktu od sfery - common::PointToSphereDistance
+  - Najbli¿szy punkt ze sfery - common::ClosestPointOnSphere
+- P³aszczyzna
+  - Czy punkt nale¿y do p³aszczyzny - common::PointOnPlane
+  - Odleg³oœæ punktu od p³aszczyzny - abs( common::DotCoord )
+  - Najbli¿szy punkt z p³aszczyzny (rzut) - common::ClosestPointOnPlane
+  - Po której stronie p³aszczyzny le¿y punkt - common::DotCoord
+- Trójk¹t
+  - Czy punkt nale¿y do trójk¹ta - common::PointOnTriangle
+  - Najbli¿szy punkt z trójk¹ta - (BRAK)
+  - Wspó³rzêdne barycentryczne punktu w trójk¹cie - common::CalculateBarycentric
+- Frustum
+  - Czy punkt nale¿y do frustuma FRUSTUM_PLANES - common::PointInFrustum
+  - Najbli¿szy punkt z frustuma - (BRAK)
+- Wielok¹t
+  - Punkt w wielok¹cie 2D - common::PointInPolygon
+
+Promieñ, prosta, odcinek:
+- Promieñ, prosta, odcinek:
+  - Parametry T najbli¿szych sobie punktów na prostych - common::ClosestPointsOnLines
+  - Przecinanie dwóch odcinków - common::IntersectLines
+- Prostopad³oœcian
+  - Kolizja promienia z prostopad³oœcianem - common::RayToBox
+- Sfera
+  - Kolizja promienia ze sfer¹ - common::RayToSphere
+- P³aszczyzna
+  - Kolizja promienia z p³aszczyzn¹ - common::RayToPlane
+- Trójk¹t
+  - Kolizja promienia z trójk¹tem - common::RayToTriangle
+- Frustum
+  - Kolizja promienia z frustumem - common::RayToFrustum
+- Wielok¹t
+  - Kolizja promienia z wielok¹tem 3D - common::RayToPolygon
+
+Prostopad³oœcian AABB:
+- Prostopad³oœcian:
+  - Kolizja dwóch prostopad³oœcianów - common::OverlapBox
+  - Kolizja dwóch prostopad³oœcianów w ruchu - common::SweptBoxToBox
+  - Suma prostopad³oœcianów - common::Union
+  - Czêœæ wspólna prostopad³oœcianów - common::Intersection
+- Sfera:
+  - Kolizja prostopad³oœcianu ze sfer¹ - common::SphereToBox
+  - Sfera w prostopad³oœcianie - common::SphereInBox
+  - Prostopad³oœcian w sferze - common::BoxInSphere
+- P³aszczyzna:
+  - Kolizja prostopad³oœcianu z p³aszczyzn¹ - common::PlaneToBox
+  - Klasyfikacja prostopad³oœcianu do p³aszczyzny - common::ClassifyBoxToPlane
+- Trójk¹t:
+  - Czy trójk¹t jest wewn¹trz prostopad³oœcianu - common::TriangleInBox
+  - Czy trójkat nachodzi na prostopad³oœcian - common::TriangleToBox
+- Frustum:
+  - Czy AABB jest wewn¹trz frustuma - common::BoxInFrustum
+  - Kolizja AABB z frustumem - common::BoxToFrustum_Fast, common::BoxToFrustum
+
+Sfera:
+- Sfera:
+  - Kolizja sfery ze sfer¹ - common::SphereToSphere
+  - Kolizja sfery ze sfer¹ w ruchu - common::SweptSphereToSphere
+- P³aszczyzna:
+  - Kolizja sfery z p³aszczyzn¹ - common::SphereToPlane
+  - Kolizja sfery z p³aszczyzn¹ w ruchu - common::SweptSphereToPlane
+  - Klasyfikacja sfery do p³aszczyzny - common::ClassifySphereToPlane
+- Trójk¹t: (BRAK)
+- Frustum:
+  - Sfera zawiera siê we frustumie - common::SphereInFrustum
+  - Kolizja sfery z frustumem - common::SphereToFrustum_Fast, common::SphereToFrustum
+  - Kolizja sfery z frustumem w ruchu - common::SweptSphereToFrustum
+
+P³aszczyzna:
+- P³aszczyzna:
+  - Kolizja dwóch p³aszczyzn - common::Intersect2Planes
+  - Kolizja trzech p³aszczyzn - common::Intersect3Planes
+- Trójk¹t:
+  - Czy p³aszczyzna koliduje z trójk¹tem - common::PlaneToTriangle
+  - Klasyfikacja trójk¹ta do p³aszczyzny - common::ClassifyPlaneToTriangle
+- Frustum:
+  - Czy p³aszczyzna koliduje z frustumem (klasyfikacja) - common::ClassifyFrustumToPlane
+
+Trójk¹t:
+- Trójk¹t:
+  - Kolizja dwóch trójk¹tów: common::TriangleToTriangle
+- Frustum:
+  - Trójk¹t wewn¹trz frustuma: common::TriangleInFrustum
+  - Kolizja trójk¹ta z frustumem: common::TriangleToFrustum
+
+Frustum:
+- Frustum:
+  - Kolizja dwóch frustumów: common::FrustumToFrustum
+
+
+Kolizjê odcinka z dowolnym obiektem mo¿na zrobiæ tak: Dany jest odcinek
+o pocz¹tku w punkcie SegOrig, kierunku SegDir i parametrze koñca SegEndT oraz
+obiekt Coœ, z którym testujemy kolizjê. U¿yjemy funkcji dla prostej i
+niezale¿nie czy w przypadku kolizji z ty³u punktu RayOrig (zwrócone T ujemne)
+zwróci miejsce kolizji bli¿sze czy dalsze, odcinek koliduje z obiektem, kiedy:
+
+\verbatim
+float T;
+if (PointInCoœ(SegOrig, Coœ))
+  return true;
+if (!LineToCoœ(SegOrig, SegDir, Coœ, &T))
+  return false;
+if (T < 0 || T > SegEndT)
+  return false;
+return true;
+\endverbatim
+
+
+\section math_poisson_disc_desc PoissonDisc
+
+Dysk Poissona (ang. Poisson Disc) to takie rozmieszczenie punktów na
+p³aszczyŸnie lub w przestrzeni, w którym pozycje tych punktów s¹ losowe, ale
+¿adna para punktów nie jest od siebie odleg³a o mniej ni¿ okreœlona sta³a
+granica. Taki rozk³ad punktów wykorzystywany bywa w ró¿nych zastosowaniach, np.
+podczas próbkowania przy œledzeniu promieni (Supersampling). Ma tê zaletê ponad
+regularn¹ siatk¹ punktów, ¿e ich losowe rozmieszczenie zapobiega zjawisku
+aliasingu, natomiast jego zaleta w porównaniu z rozmieszczeniem zupe³nie losowym
+polega na nieskupianiu siê punktów w miejscach o wiêkszej lub mniejszej
+gêstoœci.
+
+Problem z zastosowaniem dysku Poissona polega na du¿ej z³o¿onoœci obliczeniowej
+generowania zbioru takich punktów. Dlatego dobrze jest przygotowaæ wczeœniej
+tablicê wype³nion¹ przyk³adowymi punktami o tym rozk³adzie. Problemem jest
+jednak dostosowanie ich liczby do wymagañ konkretnego zastosowania.
+
+Aby temu zaradziæ, postanowi³em wygenerowaæ zbiór punktów dysku Poissona wg
+nastêpuj¹cego algorytmu: Losowane s¹ punkty odleg³e od siebie nie mniej, ni¿ o
+pewn¹ du¿¹ wartoœæ. Po wielu nieudanych próbach dodania nastêpnego takiego
+punktu wartoœæ ta jest zmniejszana pozwalaj¹c na obecnoœæ punktów nieco bli¿ej
+siebie po³o¿onych. Proces jest powtarzany a¿ do wygenerowania po¿adanej liczby
+punktów.
+
+Takie podejœcie pozwala otrzymaæ tablicê punktów, z których mo¿na wzi¹æ N
+pierwszych elementów i zawsze stanowiæ one bêd¹ poprawny dysk Poissona
+o wartoœci granicznej odleg³oœci tym wiêkszej, im mniejsze jest N. Dziêki temu
+te same tablice punktów zastosowne mog¹ byæ w ró¿nych sytuacjach. Napisa³em
+specjalny program generuj¹cy takie tablice za pomoc¹ kosztownych czasowo
+obliczeñ, a nastêpnie zapisa³em je bezpoœrednio w kodzie jako zbiory 100 1-, 2-
+i 3-wymiarowych punktów w zmiennych odpowiednio:
+common::POISSON_DISC_1D, common::POISSON_DISC_2D
+i common::POISSON_DISC_3D. Proponujê nazwê dla takiego rozwi¹zania:
+"progresywny dysk Poissona" (ang. Progressive Poisson Disc).
+
+
+\section math_niema Czego nie ma
+
+- Macierzy innych ni¿ 4x4, np. 3x3, 4x3 itp.
+- Pe³nego wsparcia dla geometrii 2D (s¹ wektory, prostok¹ty i proste w 2D, ale
+brakuje kolizji miêdzy nimi).
+- Wiêkszoœci kolizji obiektów typu Swept - poruszaj¹cych siê (dynamicznych).
+- Nastêpuj¹cych obiektów geometrycznych:
+  - Oriented Bounding Box (OBB)
+  - Dowolny wieloœcian wypuk³y opisany p³aszczyznami lub wierzcho³kami
+  - Siatka trójk¹tów
+- Zaawansowanych algorytmów geometrycznych, takich jak triangulacja czy
+  Constructive Solid Geometry (CSG).
+
+*/

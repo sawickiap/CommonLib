@@ -1,0 +1,458 @@
+/** \page Module_Base Modu³ Base
+
+
+Nag³ówek: Base.hpp \n
+Elementy modu³u: \ref code_base
+
+\section base_wstep Wstêp
+
+Ten modu³ to modu³ bazowy. Plik Base.hpp w³¹czaj¹ wszystkie pozosta³e pliki
+biblioteki i u¿ytkownik równie¿ jest spodziewany aby to robiæ przed w³¹czaniem
+wszelkich innych nag³ówków biblioteki, poniewa¿ korzystaj¹ one ze zdefiniowanych
+w Base.hpp typów i innych elementów, a same go nie w³¹czaj¹.
+
+Nie u¿ywa Error ani ¿adnego innego modu³u. To inne jego u¿ywaj¹. ¯adne z jego
+funkcji nie zg³aszaj¹ b³êdów przez wyj¹tki.
+
+
+\section base_skladniki Sk³adniki
+
+- Podstawy:
+  - W³¹cza: \n
+    \<cassert\>, \<string\>, \<vector\> \n
+	W Windows dodatkowo: \<tchar.h\>, \<wchar.h\>
+  - Definiuje: \n
+    using std::string;
+  - Typy ca³kowitoliczbowe: \n
+    uint1, uint2, uint4, uint8 \n
+    int1, int2, int4, int8
+- Ró¿ne drobne, u¿yteczne makra i funkcje
+- Operator dos³ownej reinterpretacji bitowej common::absolute_cast
+- Inteligentne wskaŸnki i uchwyty
+  - Parametryzowane polityk¹ zwalniania
+  - Z wy³¹czn¹ w³asnoœci¹ lub ze zliczaniem referencji
+- Funkcje do operacji na znakach i ³añcuchach, w tym oprócz prostych tak¿e:
+  - Konwersja miêdzy stronami kodowymi: \n
+    Windows-1250, ISO-8859-2, IBM CP852, UTF-8
+  - Dopasowanie do maski ze znakami wieloznacznymi <tt>'*'</tt> i <tt>'?'</tt>
+  - Odleg³oœæ edycyjna ³añcuchów - Levenshtein Distance
+  - Porównywanie ³añcuchów w tzw. porz¹dku naturalnym
+- Funkcje do operacji na œcie¿kach do plików
+  - Dzia³aj¹ce zarówno dla œcie¿ek Windows jak i Linux
+- Konwersje ró¿nych typów do i z ³añcucha znaków, w tym:
+  - W³asne common::IntToStr, common::StrToInt, common::UintToStr,
+    common::StrToUint sprawdzaj¹ce b³êdy sk³adni i zakresu
+  - Uogólniony, rozszerzony mechanizm konwersji zrealizowany za pomoc¹ szablonów
+    SthToStr i StrToSth
+  - Wygodny mechanizm formu³owania ³añcuchów korzystaj¹cy z powy¿szego, np.: \n
+    <tt>string s = common::Format("x=#, y=#") % x % y;</tt>
+- Dok³adny pomiar czasu i czekanie okreœlony czas
+- Podstawowe typy, sta³e, makra i funkcje matematyczne, w tym oprócz prostych
+  tak¿e:
+  - Funkcja wyg³adzaj¹ca metod¹ Critically Damped Smoothing
+  - Funkcje okresowe - sinus, trójk¹ta, prostok¹tna, pi³okszta³tna, PWM
+- Generator liczb pseudolosowych
+  - Bardzo szybki, deterministyczny
+  - Losowanie liczb ró¿nych typów
+  - Generowanie losowych danych binarnych
+  - Losowanie liczb o rozk³adzie normalnym (Gaussa)
+- Generator unikatowych identyfikatorów
+- Parser parametrów przekazanych z wiersza poleceñ
+  - Szybki i prosty w u¿yciu
+  - Wsparcie zarówno dla main (int argc, char **argv), jak i WinMain (char
+    *CmdLine)
+  - Obs³uguje opcje krótkie (jednoznakowe) i d³ugie (wieloznakowe), w formatach:
+    - Linuksa:  <tt>-a -b -c -abc --d³uga -lARG -l ARG -l=ARG</tt>
+    - Windowsa: <tt>/a /b /c      /d³uga  /lARG /l ARG /l=ARG</tt>
+- Klasa bazowa dla wzorca projektowego Singleton
+
+
+\section base_absolute_cast absolute_cast
+
+To brakuj¹cy w C++ operator dos³ownej reinterpretacji bitowej miêdzy wartoœciami
+dowolnego typu. Ma sens tylko w przypadku typów o takim samym rozmiarze w sensie
+liczby zajmowanych bajtów. Jest to sprytnie napisana funkcja szablonona, której
+mo¿na u¿ywaæ niczym wbudowanych operatorów rzutowania C++ takich jak static_cast
+czy reinterpret_cast. Jej wynalazc¹ jest Karol Kuczmarski "Xion". Przyk³ad:
+
+\code
+float F = 10.5f;
+uint4 I1 = static_cast<uint4>(F);
+uint4 I2 = absolute_cast<uint4>(F);
+\endcode
+
+I1 bêdzie wynosi³o 10 - nast¹pi³a konwersja wartoœci liczbowej.
+I2 bêdzie wynosi³o 1093140480 - nast¹pi³a dos³owna reinterpretacja bitów.
+
+Wiêcej informacji na temat problemu konwersji miêdzy typami w C++ znajdziesz w
+moim artykule "Rzutowanie typów w C++", Adam Sawicki, Czerwiec 2006,
+http://regedit.gamedev.pl/produkcje/artykuly/rzutowanie_typow_w_cpp.php5
+
+
+\section base_konwersje Konwersje
+
+Modu³ Base oferuje konwersje miêdzy ró¿nymi typami a ³añcuchami w obydwie
+strony, tak¿e z dodatkowymi opcjami. S³u¿¹ do tego funkcje takie jak np.:
+common::IntToStr, common::StrToInt, common::FloatToStr, common::StrToFloat,
+common::BoolToStr, common::StrToBool itd.
+
+Uogólnion¹ wersj¹ tych konwersji s¹ szablony funkcji SthToStr i
+StrToSth. Obs³uguj¹ one nastêpuj¹ce typy:
+
+- SthToStr i StrToSth: \n
+  bool, char, int2, int4, int8, uint1, uint2, uint4, uint8, float, double,
+  string, std::vector<T>
+- Tylko SthToStr: \n
+  char*, const char*, void*, const void*
+
+Próba u¿ycia tych funkcji dla nieobs³ugiwanego typu zakoñczy siê Assertion
+Failed. Mo¿na sprawdziæ, czy dany typ jest obs³ugiwany u¿ywaj¹c:
+
+\code
+bool B1 = StrToSth_obj<SOME_TYPE>::IsSupported();
+bool B2 = SthToStr_obj<SOME_TYPE>::IsSupported();
+\endcode
+
+Mo¿na pisaæ konwersje do i z w³asnych typów. Szablon takiej konwersji jest
+nastêpuj¹cy. Nale¿y zamieniæ T na konkretny typ i wpisaæ konwersjê w miejscu
+<tt>//</tt>. Kod ten nale¿y wpisaæ poza jak¹kolwiek przestrzeni¹ nazw.
+
+\code
+template <>
+struct SthToStr_obj<T>
+{
+  void operator () (string *Str, const T &Sth)
+  {
+    //
+  }
+  static inline bool IsSupported() { return true; }
+};
+
+template <>
+struct StrToSth_obj<T>
+{
+  bool operator () (T *Sth, const string &Str)
+  {
+    //
+  }
+  static inline bool IsSupported() { return true; }
+};
+\endcode
+
+Jeœli StrToSth siê nie uda, wartoœæ parametru wyjœciowego jest niezdefiniowana.
+
+Modu³ Error rozszerza ten mechanizm o szablon funkcji MustStrToSth, który w
+przypadku niepowodzenia rzuca wyj¹tek.
+
+Klasa common::Format (wraz z prze³adowanym dla niej operatorem %) robi za
+sprintf dla ³añcuchów string. Nie jest super szybka, ale jest wygodna w u¿yciu.
+Obs³uguje wszystkie te typy, co SthToStr. Sposób u¿ycia (jeœli jakiœtam
+OutputLine oczekuje const string&):
+
+\code
+OutputLine( Format("B³¹d w pliku # w wierszu #") % "plik.txt" % 123 );
+\endcode
+
+Jeœli potrzeba zapisaæ do strumienia lub z innych przyczyn operator string() nie
+dzia³a, u¿ywamy metody str:
+
+\code
+std::cout << ( Format("B³¹d w pliku # w wierszu #") % "plik.txt" % 123 ).str();
+\endcode
+
+Jeœli chcemy niestandardowe formatowanie podczas konwersji z jakiegoœ typu na
+³añcuch, konwertujemy we w³asnym zakresie:
+
+\code
+OutputLine( Format("B³¹d w pliku # w wierszu #") % "plik.txt" % IntToStr2R(123, 5) );
+\endcode
+
+Jeœli potrzebujemy znaku <tt>'#'</tt> i chcemy jako specjalny u¿yæ innego znaku:
+
+\code
+OutputLine( Format("B³¹d # % w pliku %", '%') % 123 % "plik.txt" );
+\endcode
+
+
+\section base_smartptr Inteligentne wskaŸniki
+
+Modu³ zawiera w³asn¹, elastyczn¹ i doœæ potê¿n¹, acz prost¹ implementacjê
+inteligentnych wskaŸników.
+
+
+\subsection base_smartptr_1 Sposób u¿ycia
+
+S¹ cztery rodzaje wskaŸników:
+
+- Przechowuj¹ce wskaŸnik typu T* - do wskaŸników:
+  - common::scoped_ptr \n
+    Zwyk³y posiadaj¹cy w³asnoœæ, zwalnia w destruktorze, niekopiowalny.
+  - common::shared_ptr \n
+    Zliczaj¹cy referencje.
+- Przechowuj¹ce bezpoœrednio wartoœæ typu T - do uchwytów:
+  - common::scoped_handle \n
+    Zwyk³y posiadaj¹cy w³asnoœæ, zwalnia w destruktorze, niekopiowalny.
+  - common::shared_handle \n
+    Zliczaj¹cy referencje.
+
+S¹ trzy polityki zwalniania dla wskaŸników:
+
+- common::DeletePolicy (domyœlna) \n
+  Wywo³uje: <tt>delete x;</tt>
+- common::DeleteArrayPolicy - do tablic \n
+  Wywo³uje: <tt>delete [] x;</tt>
+- common::ReleasePolicy - do zasobów takich jak obiekty COM \n
+  Wywo³uje: <tt>x->Release();</tt>
+
+Oraz dwie dla uchwytów [tylko Windows]:
+
+- common::CloseHandlePolicy - wywo³uje <tt>CloseHandle(x);</tt>
+- common::DeleteObjectPolicy - wywo³uje <tt>DeleteObject(x);</tt>
+
+Mo¿na te¿ pisaæ w³asne polityki zwalniania. Przyk³ady:
+- dla wskaŸników: \n
+  <tt>class ReleasePolicy { public: template \<typename T\> static void Destroy(T *p) { if (p) p->Release(); } };</tt>
+- dla uchwytów: \n
+  <tt>class DeleteObjectPolicy { public: template \<typename T\> static void Destroy(T p) { if (p != NULL) DeleteObject(p); } };</tt>
+
+Przyk³ady klas wskaŸników:
+
+- WskaŸnik z w³asnoœci¹, sam kasuje, niekopiowalny:
+  <tt>scoped_ptr<Klasa> p1;</tt>
+- WskaŸnik ze zliczaniem referencji:
+  <tt>shared_ptr<Klasa> p2;</tt>
+- WskaŸnik do tablicy (usuwany delete[]), niekopiowalny:
+  <tt>scoped_ptr<Klasa, DeleteArrayPolicy> p3;</tt>
+- WskaŸnik do obiektu COM ze zliczaniem referencji:
+  <tt>shared_ptr<IDirect3DTexture9, ReleasePolicy> p4;</tt>
+- Uchwyt do otwartego pliku Windows API:
+  <tt>typedef scoped_handle<HANDLE, CloseHandlePolicy> close_handle;
+  close_handle plik(NULL);</tt>
+
+Sposób u¿ycia common::scoped_ptr:
+
+\verbatim
+- Konstruktor domyœlny ustawia wskaŸnik pusty (NULL)
+    scoped_ptr<Klasa> p1;
+- Konstruktor inicjalizuj¹cy (tylko explicit):
+    scoped_ptr<Klasa> p1(NULL);
+    scoped_ptr<Klasa> p2(new Klasa());
+- Wyzerowanie wskaŸnika (jeœli trzeba, sam zwolni obiekt):
+    p1.reset();
+    p1.reset(NULL);
+- Ustawienie wskaŸnika na nowy obiekt (jeœli trzeba, sam zwolni stary):
+    p1.reset(new Klasa());
+- Odwo³anie siê pod wskaŸnik:
+    Klasa obj2 = *p1;
+    p1->MetodaKlasy();
+- Otrzymanie prawdziwego wskaŸnika:
+    Klasa *RealPtr = p1.get();
+- Porównywanie wskaŸników:
+    if (p1 == NULL) { }
+    if (RealPtr == p1) { }
+- Zamiana:
+    p1.swap(p2);
+    swap(p1, p2);
+- Odwo³anie siê do elementu tablicy wskazywanej przez wskaŸnik:
+    scoped_ptr<int, DeleteArrayPolicy> tablica(new int[1024]);
+    tablica[0] = 1;
+\endverbatim
+
+Sposób u¿ycia shared_ptr:
+
+\verbatim
+- Wspiera to samo co scoped_ptr plus dodatkowo...
+- Skopiowanie wskaŸnika do drugiego:
+  Dzia³a tak¿e dla klas sparametryzowanych typem klasy nieidentycznym, ale
+  daj¹cym siê skonwertowaæ.
+    shared_ptr<Klasa> p1;
+    shared_ptr<Klasa> p2 = p1;
+    p2 = p1;
+    p2.reset(p1);
+- Porównanie dwóch wskaŸników:
+    if (p1 == p2) { }
+\endverbatim
+
+Sposób u¿ycia common::scoped_handle i common::shared_handle:
+Jak odpowiednio common::scoped_ptr lub common::shared_ptr, ale:
+
+- Nie posiada operatorów: <tt>* -\> []</tt> \n
+  Trzeba pobieraæ jego wartoœæ za pomoc¹ metody get.
+- Nie posiada bezparametrowego konstruktora ani operatora przypisania, ¿eby nie
+  oczekiwaæ po typie wskaŸnika ¿e posiada domyœln¹ wartoœæ zerow¹ oznaczaj¹c¹
+  wartoœæ pust¹. Dlatego trzeba pisaæ na przyk³ad tak: \n
+  <tt>scoped_handle<HANDLE, CloseHandlePolicy> p1(NULL);
+  p1.reset(NULL);</tt>
+
+
+\subsection base_smartptr_2 Szczegó³y
+
+Inteligetne wskaŸniki s¹ potrzebne, zw³aszcza do unikania wycieków pamiêci kiedy
+u¿ywamy wyj¹tków. Do napisania w³asnych zmotywowa³a mnie chêæ uwolnienia siê od
+biblioteki Boost. Pisanie takich wskaŸników nie jest trudne, ale wi¹¿e siê z
+podjêciem szeregu trudnych decyzji projektowych. Podj¹³em nastêpuj¹ce:
+
+- Ró¿ne sposoby zwalniania: parametryzacja szablonu specjalnym Policy
+- Rodzaje w³asnoœci:
+  - niekopiowalny common::scoped_ptr
+  - zliczaj¹cy referencje common::shared_ptr
+- Implementacja zliczania referencji: wskaŸnik przechowuje:
+  - wskaŸnik do danych
+  - wskaŸnik do alokowanego na stercie licznika
+- Nie-explicit konstruktor oraz operator pobieraj¹cy T* : NIE
+- Operator <tt>*</tt> i <tt>-\></tt> zamiast samej metody get: TAK
+- Funkcje takie jak get czy reset: jako metody, nie funkcje globalne
+- Przeci¹¿ony operator <tt>[]</tt> do indeksowania tablic: po namyœle jednak TAK
+- Arytmetyka wskaŸników: NIE
+- Konwersje z wskaŸników do innych typów: TAK
+- Operatory <tt>== !=</tt> : TAK
+- Operatory <tt>\< \> \<= \>=</tt> : NIE
+- Operator <tt>\&</tt> : NIE
+- Kontrola niezerowoœci wskaŸnika przy <tt>*</tt> i <tt>-\></tt> : TAK, assert
+- WskaŸnik do sta³ej, sta³y wskaŸnik: OLAÆ, nic z tym nie robiê
+- Bezpieczeñstwo w¹tkowe: OLAÆ, nic z tym nie robiê
+- Mo¿liwoœæ przechowywania czegoœ innego ni¿ normalnego wskaŸnika <tt>T*</tt> :
+  TAK, ale jako osobne klasy, bez uogólniania tego z u¿yciem Policy
+- Zapobieganie UB-kowi przy destrukcji niezdefiniowanej klasy: TAK, sztuczka
+  z Boost checked_delete.hpp
+
+
+\section base_singleton Singleton
+
+Szablon klasy common::Singleton to klasa bazowa do implementacji wzorca
+projektowego singletonu, czyli klasy, której g³ówny (najczêœciej jedyny) obiekt
+jest tworzony automatycznie podczas pierwszego u¿ycia.
+
+Deklarujemy tak:
+
+\code
+class MyClass : public common::Singleton<MyClass>
+{
+  int MyMethod(int x);
+};
+\endcode
+
+U¿ywamy tak:
+
+\code
+int i = MyClass::GetInstance().MyMethod(123);
+\endcode
+
+Obiekt powstanie przy pierwszym u¿yciu i, jeœli kiedykolwiek powsta³, zostanie
+na koñcu programu automatycznie usuniêty (wywo³a siê destruktor).
+
+
+\section base_cmdlineparser Parser wiersza poleceñ
+
+Klasa common::CmdLineParser oferuje parsowanie parametrów przekazanych do
+programu z wiersza poleceñ. Jest trochê podobna do funkcji getopt z Linuksa.
+
+\subsection base_cmdlineparser_1 Cechy
+
+- Przenoœna, jak ca³y CommonLib, a w przeciwieñstwie do linuksowej getopt.
+- Obs³uguje zarówno wiersz poleceñ z <tt>main(int argc, char **argv)</tt>, jak i
+  z <tt>WinMain(HINSTANCE, HINSTANCE, char *CmdLine, int)</tt>.
+- Obs³uguje opcje krótkie (jednoznakowe) i d³ugie (wieloznakowe), w formatach: \n
+  > Linuksa:  <tt>-a -b -c -abc --d³uga -lARG -l ARG -l=ARG</tt> \n
+  > Windowsa: <tt>/a /b /c      /d³uga  /lARG /l ARG /l=ARG</tt> \n
+- Prosta w u¿yciu.
+- Nie jest maksymalnie szybka.
+
+\subsection base_cmdlineparser_2 Sposób u¿ycia
+
+-# Utworzyæ obiekt klasy common::CmdLineParser \n
+   Jako parametry do odpowiedniego konstruktora podaæ argumenty wiersza poleceñ
+   otrzymane w funkcji main lub WinMain. W czasie parsowania nie mog¹ siê
+   zmieniaæ.
+-# Zarejestrowaæ dopuszczalne opcje metod¹ common::CmdLineParser::RegisterOpt.
+   Ka¿da opcja ma:
+   - Identyfikator liczbowy - powinien byæ wiêkszy od 0.
+   - Treœæ - jednoznakow¹ (opcja krótka) lub wieloznakow¹ (opcja d³uga)
+   - Flagê, czy oczekuje parametru (dodatkowego ³añcucha za opcj¹)
+-# Pobieraæ kolejne informacje metod¹ common::CmdLineParser::ReadNext a¿ do
+   otrzymania common::CmdLineParser::RESULT_END lub
+   common::CmdLineParser::RESULT_ERROR.
+
+\subsection base_cmdlineparser_3 Sk³adnia
+
+U¿ycie parsera polega na pobieraniu kolejnych informacji. Mo¿liwe wartoœci:
+
+- common::CmdLineParser::RESULT_END - informacji nie pobrano, koniec wiersza
+  poleceñ
+- common::CmdLineParser::RESULT_ERROR - informacji nie pobrano, b³¹d sk³adni
+- common::CmdLineParser::RESULT_PARAMETER - pobrano go³y parametr bez opcji
+  Mo¿esz odczytaæ treœæ parametru metod¹ common::CmdLineParser::GetParameter().
+- common::CmdLineParser::RESULT_OPT - pobrano krótk¹ lub d³ug¹ opcjê
+  Mo¿esz odczytaæ identyfikator opcji metod¹ common::CmdLineParser::GetOptId().
+  Jeœli opcja przyjmuje parametr, mo¿esz odczytaæ treœæ parametru metod¹
+  common::CmdLineParser::GetParameter().
+
+Na przyk³ad jeœli <tt>'a'</tt>, <tt>'b'</tt> i <tt>'c'</tt> to opcje krótkie, z
+których <tt>'c'</tt> oczekuje parametru, dopuszczalne s¹ m.in. takie
+konstrukcje:
+
+\verbatim
+-a -b -c parametr
+-abc parametr
+-a -b -c=parametr
+-ab -c"parametr ze spacj¹"
+"-abcparametr ze spacj¹"
+/a /b /c parametr
+/a /b /c="parametr ze spacj¹"
+/a /b "/cparametr ze spacj¹"
+\endverbatim
+
+Jeœli natomiast <tt>"AA"</tt> i <tt>"BBB"</tt> to opcje d³ugie, z czego ta druga
+oczekuje parametru, dopuszczalne s¹ m.in. takie konstrukcje:
+
+\verbatim
+--AA --BB parametr
+--AA --BB=parametr
+/AA /BB="parametr ze spacj¹"
+--AA /BB "parametr ze spacj¹"
+\endverbatim
+
+Kolejnoœæ opcji nie jest w ¿aden sposób kontrolowania, podobnie jak ich obecnoœæ
+czy powtarzanie siê wiele razy. To le¿y ju¿ w gestii u¿ytkownika - parser tylko
+odczytuje i zwraca kolejne napotkane informacje.
+
+\subsection base_cmdlineparser_4 Przyk³ad
+
+Obs³ugiwana sk³adnia jest skomplikowana i oparta na dog³êbnych badaniach
+zachowania wiersza poleceñ Windowsa i Linuksa. Niektóre mo¿liwoœci przedstawia
+ten przyk³ad. Jeœli zarejestrowane s¹ opcje:
+
+\verbatim
+RegisterOpt(1, 'a', false);
+RegisterOpt(2, 'b', false);
+RegisterOpt(3, 'c', true);
+RegisterOpt(11, "AA", false);
+RegisterOpt(12, "BBB", true);
+\endverbatim
+
+Wiersz poleceñ wygl¹da tak:
+
+\verbatim
+-a -b -c param -abc="param" "-cparam" /AA --AA "/BBB"=param DUPA --BBB "param"
+\endverbatim
+
+Wówczas wynikiem kolejnych wywo³añ ReadNext jest:
+
+\verbatim
+Result=RESULT_OPT,       Id=1,  Param=""
+Result=RESULT_OPT,       Id=2,  Param=""
+Result=RESULT_OPT,       Id=3,  Param="param"
+Result=RESULT_OPT,       Id=1,  Param=""
+Result=RESULT_OPT,       Id=2,  Param=""
+Result=RESULT_OPT,       Id=3,  Param="param"
+Result=RESULT_OPT,       Id=3,  Param="param"
+Result=RESULT_OPT,       Id=11, Param=""
+Result=RESULT_OPT,       Id=11, Param=""
+Result=RESULT_OPT,       Id=12, Param="param"
+Result=RESULT_PARAMETER, Id=0,  Param="DUPA"
+Result=RESULT_OPT,       Id=12, Param="param"
+Result=RESULT_END,       Id=0,  Param=""
+\endverbatim
+
+
+*/
