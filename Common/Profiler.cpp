@@ -1,12 +1,12 @@
 /** \file
-\brief Przyrz¹d do pomiarów czasu i wydajnoœci
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\brief Time and performance measurement facility
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_Profiler \n
-Elementy modu³u: \ref code_profiler
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_Profiler \n
+Module components: \ref code_profiler
 */
 #include "Base.hpp"
 #include "Profiler.hpp"

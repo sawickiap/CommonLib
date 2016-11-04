@@ -1,12 +1,12 @@
 /** \file
-\brief Hierarchia klas strumieni
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\brief Stream class hierarchy
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Część biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Zażółć gęślą jaźń \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_Stream \n
-Elementy modułu: \ref code_stream
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_Stream \n
+Module components: \ref code_stream
 */
 #include "Base.hpp"
 #ifdef WIN32

@@ -86,7 +86,7 @@ I2 bêdzie wynosi³o 1093140480 - nast¹pi³a dos³owna reinterpretacja bitów.
 
 Wiêcej informacji na temat problemu konwersji miêdzy typami w C++ znajdziesz w
 moim artykule "Rzutowanie typów w C++", Adam Sawicki, Czerwiec 2006,
-http://regedit.gamedev.pl/produkcje/artykuly/rzutowanie_typow_w_cpp.php5
+http://www.asawicki.info/productions/artykuly/rzutowanie_typow_w_cpp.php5
 
 
 \section base_konwersje Konwersje

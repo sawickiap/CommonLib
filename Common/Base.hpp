@@ -1,12 +1,12 @@
 /** \file
 \brief Foundation module
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_Base \n
-Elementy modu³u: \ref code_base
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_Base \n
+Module components: \ref code_base
 */
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once
@@ -15,40 +15,42 @@ Elementy modu³u: \ref code_base
 #define COMMON_BASE_H_
 
 /** \addtogroup code_base Base Module
-Dokumentacja: \ref Module_Base \n
-Nag³ówek: Base.hpp */
+Documentation: \ref Module_Base \n
+Header: Base.hpp */
 //@{
 
-// G³ówne includy
+// Main includes
 #include <cassert>
 #include <string>
 #include <vector>
 
-// Niechciane includy :(
+// Unwanted includes :(
 #include <algorithm>
 #include <limits>
 #include <cmath>
 
 #ifdef WIN32
-	/// To jest na wypadek w³¹czania gdzieœ ni¿ej przez u¿ytkownika <windows.h>
+	/// This is in case the user includes <Windows.h> somewhere below.
 	#define NOMINMAX
 #endif
 
-// String chcê mieæ jak typ wbudowany
+// I want to have string like a built-in type.
 using std::string;
 using std::wstring;
 
-// Niezale¿nie od systemu, sygnatura bie¿¹cej funkcji bêdzie w makrze __FUNCSIG__ - konwersja z konwencji GCC na Visual C++.
-/* Makro __FUNCTION__ z sam¹ nazw¹ funkcji jest takie samo w Visual C++ jak i w GCC, wiêc go nie ruszam. */
+// Regardless of compiler used, signaature of current function will be in
+// __FUNCSIG__ macro - conversion from GCC convention to Visual C++ convention.
+// __FUNCTION__ macro with function name only is the same in Visual C++ and GCC,
+// so I don't touch it.
 #ifndef WIN32
 	#define __FUNCSIG__ __PRETTY_FUNCTION__
 #endif
 
-// Sprawy zwi¹zane z Unicode
+// Things regarding Unicode
 #ifdef WIN32
 	#include <tchar.h>
 	#include <wchar.h>
-	/// Typ znakowy, zale¿nie od makra _UNICODE zdefiniowany jako char lub wchar_t.
+	/// Character type, depending on _UNICODE macro, is defined as char or wchar_t.
 	typedef TCHAR tchar;
 #else
 	#define _T(x) (x)
@@ -56,11 +58,11 @@ using std::wstring;
 #endif
 
 #ifdef _UNICODE
-	/// Typ ³añcuchowy, zale¿nie od makra _UNICODE zdefiniowany jako std::string lub std::wstring.
+	/// String type, depending on _UNICODE macro, is defined as std::string or std::wstring.
 	typedef std::wstring tstring;
-	/// Konwertuje znak na liczbê naturaln¹.
+	/// Converts character to natural number.
 	#define TCHAR_TO_INT(c) ( (int)(c) )
-	/// Konwertuje liczbê 0..255 na znak.
+	/// Converts 0..255 number to character.
 	#define INT_TO_TCHAR(i) ( (wchar_t)(i) )
 #else
 	typedef std::string tstring;
@@ -68,33 +70,33 @@ using std::wstring;
 	#define INT_TO_TCHAR(i) ( (char)(uint8)(i) )
 #endif
 
-/// Nazwa bie¿¹cego pliku Ÿród³owego jako ³añcuch, zale¿nie od makra _UNICODE jest w Unikodzie
+/// Name of current source file as string, in Unicode if _UNICODE macro is defined.
 #define __TFILE__ _T(__FILE__)
-/// Pe³na sygnatura bie¿¹cej funkcji w kodzie, zale¿nie od makra _UNICODE jest w Unikodzie
+/// Full signature of current function in code, in Unicode if _UNICODE macro is defined.
 #define __TFUNCSIG__ _T(__FUNCSIG__)
-/// Sama nazwa bie¿¹cej funkcji w kodzie, zale¿nie od makra _UNICODE jest w Unikodzie
+/// Name of current function only, in Unicode if _UNICODE macro is defined.
 #define __TFUNCTION__ _T(__FUNCTION__)
 
-/** \addtogroup base_main_types Postawowe typy danych */
+/** \addtogroup base_main_types Fundamental data types */
 //@{
 #ifdef WIN32
-	/// Liczba 32-bitowa bez znaku
+	/// Unsigned 32-bit numer
 	typedef unsigned __int32 uint;
-	/// Liczba 8-bitowa ze znakiem
+	/// Signed 8-bit number
 	typedef __int8 int8;
-	/// Liczba 8-bitowa bez znaku
+	/// Unsigned 8-bit number
 	typedef unsigned __int8 uint8;
-	/// Liczba 16-bitowa ze znakiem
+	/// Signed 16-bit number
 	typedef __int16 int16;
-	/// Liczba 16-bitowa bez znaku
+	/// Unsigned 16-bit number
 	typedef unsigned __int16 uint16;
-	/// Liczba 32-bitowa ze znakiem
+	/// Signed 32-bit number
 	typedef __int32 int32;
-	/// Liczba 32-bitowa bez znaku
+	/// Unsigned 32-bit number
 	typedef unsigned __int32 uint32;
-	/// Liczba 64-bitowa ze znakiem
+	/// Signed 64-bit number
 	typedef __int64 int64;
-	/// Liczba 64-bitowa bez znaku
+	/// Unsigned 64-bit number
 	typedef unsigned __int64 uint64;
 #else
 	typedef unsigned int uint;
@@ -170,20 +172,20 @@ automatically deals with this. GNU compiler requires using special syntax:
 
 #endif
 
-/// Wektor ³añcuchów
+/// String vector
 typedef std::vector<tstring> STRING_VECTOR;
 
-/// Jeœli wskaŸnik niezerowy, zwalnia go i zeruje
+/// If pointer is not null, frees and zeroes it
 #define SAFE_DELETE(x) { delete (x); (x) = 0; }
-/// Jeœli wskaŸnik niezerowy, zwalnia go jako tablicê i zeruje
+/// If pointer is not null, frees it as and array and zeroes it
 #define SAFE_DELARR(x) { delete [] (x); (x) = 0; }
-/// Jeœli wskaŸnik niezerowy, wywo³uje mu Release() i zeruje
+/// If pointer is not null, calls Release() and zeroes it
 #define SAFE_RELEASE(x) { if (x) { (x)->Release(); (x) = 0; } }
 
 #ifdef WIN32
-	/// Asercja, która ZAWSZE przerywa program kiedy jest niespe³niona (w debuggerze - robi breakpoint, bez debuggera - wywala program).
+	/// Assert that ALWAYS breaks the program when false (in debugger - hits a breakpoint, without debugger - crashes the program).
 	#define	ASSERT_INT3(x) if ((x) == 0) { __asm { int 3 } }
-	/// Asercja, która w kompilacji Debug przerywa program kiedy jest niespe³niona (w debuggerze - robi breakpoint, bez debuggera - wywala program).
+	/// Assert that in Debug configuration breaks the program when false (in debugger - hits a breakpoint, without debugger - crashes the program).
 	#ifdef _DEBUG
 		#define	ASSERT_INT3_DEBUG(x) if ((x) == 0) { __asm { int 3 } }
 	#else
@@ -191,26 +193,25 @@ typedef std::vector<tstring> STRING_VECTOR;
 	#endif
 #endif
 
-/// Do robienia alignacji co do jednego bajtu dla struktur, czyli bez wype³niaczy
-/** Autor: agent_J. */
+/// For making structures aligned to one byte - without paddings
 #ifdef _MSC_VER
 	#define PACKED __declspec(align(1))
 #else
 	#define PACKED __attribute__((packed))
 #endif
 
-/// Makro do umieszczania w klasach, ¿eby klasa nie mia³a konstruktora kopiuj¹cego ani operatora przypisania.
-/* U¿ywaæ na pocz¹tku definicji klasy.
-Na podstawie biblioteki wxWidgets. */
+/// Macro to be placed in classes so a class has no copy constructor and assignment operator.
+/* Use at the beginning of class definition.
+Based on wxWidgets library. */
 #define DECLARE_NO_COPY_CLASS(ClassName)        \
 	private:                                    \
 		ClassName(const ClassName&);            \
 		ClassName& operator=(const ClassName&);
 
-/// Asercja w czasie kompilacji
+/// Compiler-time assertion.
 #define STATIC_ASSERT(x) { const char temp[ (((x) == 0) ? 0 : 1) ] = {'\0'}; }
 
-/// Uniwersalny, brakuj¹cy w C++ operator dos³ownego rzutowania (reintepretacji bitowej)
+/// Operator of literal cast (bitwise reinterpretation) - missing in C++.
 template <typename destT, typename srcT>
 destT &absolute_cast(srcT &v)
 {
@@ -239,7 +240,7 @@ const destT &absolute_cast(const srcT &v)
 //@}
 // code_base
 
-/// G³ówna przestrzeñ nazw biblioteki CommonLib
+/// Main namespace of CommonLib library
 namespace common
 {
 
@@ -247,19 +248,19 @@ namespace common
 //@{
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-/** \addtogroup base_general Ogólne */
+/** \addtogroup base_general General */
 //@{
 
 #ifndef _countof
 	/// \internal
 	template <typename _CountofType, size_t _SizeOfArray>
 	char (*__countof_helper(_CountofType (&_Array)[_SizeOfArray]))[_SizeOfArray];
-	/// Makro do pobierania w czasie kompilacji liczby elementów statycznej tablicy.
-	/** Skopiowane z stdlib.h z Visual C++. */
+	/// Macro for fetching number of elements of a static array in compile time.
+	/** Copied from stdlib.h in Visual C++. */
 	#define _countof(_Array) sizeof(*__countof_helper(_Array))
 #endif
 
-/// Orientacja, czyli u³o¿enie - pionowa lub pozioma
+/// Orientation - vertical or horizontal
 enum ORIENTATION
 {
 	O_NONE,
@@ -267,7 +268,7 @@ enum ORIENTATION
 	O_HORIZ,
 };
 
-/// Alokuje now¹ tablicê dynamiczn¹ 2D
+/// Allocates new dynamic 2D array
 template <typename T>
 T **new_2d(size_t cx, size_t cy)
 {
@@ -277,7 +278,7 @@ T **new_2d(size_t cx, size_t cy)
 	return a;
 }
 
-/// Zwalnia tablicê dynamiczn¹ 2D
+/// Frees dynamic 2D array
 template <typename T>
 void delete_2d(T **a, size_t cx)
 {
@@ -286,10 +287,10 @@ void delete_2d(T **a, size_t cx)
 	delete[] a;
 }
 
-/// Kopiuje string do char* ³¹cznie ze znakami '\\0' (czego nie zapewnia strcpy)
+/// Copies string to char* including '\0' characters (which is not ensured in strcpy)
 /**
-- Na koñcu do³¹cza '\\0'.
-- Oczywiœcie dest musi byæ dostatecznie pojemne. */
+- Includes '\0' at the end.
+- Of course necessary capacity must be ensured. */
 inline void strcpy0(tchar* dest, const tstring &src)
 {
 	for (size_t i = 0; i < src.length(); i++)
@@ -297,9 +298,9 @@ inline void strcpy0(tchar* dest, const tstring &src)
 	dest[src.length()] = '\0';
 }
 
-/// Wzorzec projektowy Singleton - klasa bazowa
+/// Singleton design pattern - base class
 /**
-Sposób u¿ycia:
+Usage:
 \code
 class MyClass : public common::Singleton<MyClass>
 {
@@ -315,7 +316,7 @@ template <typename T>
 class Singleton
 {
 public:
-	/// Pobiera jedyn¹ instancjê tej klasy. Tworzy j¹ przy pierwszym pobraniu.
+	/// Returns the single instance of this class. Creates it on first call.
 	static T & GetInstance()
 	{
 		static T Instance;
@@ -323,7 +324,7 @@ public:
 	}
 };
 
-/// Algorytm jak te z STL - sortowanie przez wstawianie.
+/// Algorithm like these from STL - insertion sort.
 template<class Iterator>
 void InsertionSort(Iterator b, Iterator e)
 {
@@ -342,7 +343,7 @@ void InsertionSort(Iterator b, Iterator e)
 	}
 }
 
-/// Algorytm jak te z STL - sortowanie przez wstawianie, z w³asnym komparatorem.
+/// Algorithm like these from STL - insertion sort, with custom comparator.
 template<class Iterator, typename Compare>
 void InsertionSort(Iterator b, Iterator e, Compare Comp)
 {
@@ -377,10 +378,10 @@ IterT FirstNotLessIndex(IterT beg, IterT end, const KeyT &key, CmpT cmp)
 	return beg+down;
 }
 
-/// An STL-compatible algorithm that performs binary search in sorted container using random-access iterators and return iterator to found element.
+/// An STL-compatible algorithm that performs binary search in sorted container using random-access iterators. Returns iterator to found element.
 /** If key element not found, returns end. \n
 This function is useful because standard std::binary_search returns bool and not iterator (what a nonsense!). \n
-cmp must be a functor in for of: int cmp(const KeyT &key, const ValT &val), where ValT i the type of *beg and *end.
+cmp must be a functor in form of: int cmp(const KeyT &key, const ValT &val), where ValT is the type of *beg and *end.
 */
 template <typename IterT, typename KeyT, typename CmpT>
 IterT BinarySearch(IterT beg, IterT end, const KeyT &key, CmpT cmp)
@@ -433,9 +434,9 @@ inline void SwapEndian(int64   &v) { SwapEndian64(&v); }
 inline void SwapEndian(float  &v) { SwapEndian32(&v); }
 inline void SwapEndian(double &v) { SwapEndian64(&v); }
 
-/// Zatrzymuje bie¿¹cy w¹tek na podan¹ liczbê milisekund
-/** Dzia³a z jak¹œtam dok³adnoœci¹ - mo¿e nie super, ale na pewno wiêksz¹ ni¿
-ca³a sekunda. */
+/// Stops current thread for given number of milliseconds
+/** Works with some accuracy - maybe not great, but surely better than whole
+second. */
 void Wait(uint32 Miliseconds);
 
 template <typename T>
@@ -449,10 +450,10 @@ inline int UniversalCmp(const T &a, const T &b)
 //@}
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-/** \addtogroup base_smartptr Inteligentne wskaŸniki */
+/** \addtogroup base_smartptr Smart pointers */
 //@{
 
-/// Polityka zwalaniania inteligentnych wskaŸników, która robi: <tt>delete p;</tt>
+/// Policy of deleting smart pointers which does: <tt>delete p;</tt>
 class DeletePolicy
 {
 public:
@@ -465,7 +466,7 @@ public:
 		delete p;
 	}
 };
-/// Polityka zwalaniania inteligentnych wskaŸników, która robi: <tt>delete [] p;</tt>
+/// Policy of deleting smart pointers which does: <tt>delete [] p;</tt>
 class DeleteArrayPolicy
 {
 public:
@@ -478,7 +479,7 @@ public:
 		delete [] p;
 	}
 };
-/// Polityka zwalaniania inteligentnych wskaŸników, która robi: <tt>p->Release();</tt>
+/// Policy of deleting smart pointers which does: <tt>p->Release();</tt>
 class ReleasePolicy
 {
 public:
@@ -489,10 +490,10 @@ public:
 	}
 };
 
-/// Inteligentny wskaŸnik z wy³¹cznym prawem w³asnoœci.
+/// Smart pointers with exclusive ownership.
 /**
-- Niekopiowalny.
-- W destruktorze zwalnia. */
+- Noncopyable.
+- Frees in destructor. */
 template <typename T, typename PolicyT = DeletePolicy>
 class scoped_ptr
 {
@@ -526,10 +527,10 @@ public:
 	bool is_null() const { return m_Ptr == NULL; }
 };
 
-/// Inteligentny wskaŸnik ze zliczaniem referencji
+/// Smart pointer with reference counting
 /**
-- Kopiowalny.
-- Zwalnia, kiedy zwolniony zostanie ostatni wskazuj¹cy na obiekt common::shared_ptr. */
+- Copyable.
+- Frees when last common::shared_ptr object pointing to it is destroyed. */
 template <typename T, typename PolicyT = DeletePolicy>
 class shared_ptr
 {
@@ -571,13 +572,13 @@ public:
 };
 
 #ifdef WIN32
-	/// Polityka zwalniania uchwytu - robi: <tt>CloseHandle(p);</tt>
+	/// Handle closing policy which does: <tt>CloseHandle(p);</tt>
 	class CloseHandlePolicy  { public: template <typename T> static void Destroy(T p) { if (p != NULL) CloseHandle(p); } };
-	/// Polityka zwalniania uchwytu - robi: <tt>DeleteObject(p);</tt>
+	/// Handle closing policy which does: <tt>DeleteObject(p);</tt>
 	class DeleteObjectPolicy { public: template <typename T> static void Destroy(T p) { if (p != NULL) DeleteObject(p); } };
 #endif
 
-/// Inteligentny uchwyt - wy³¹czna w³asnoœæ
+/// Smart handle - exclusive ownership
 template <typename T, typename PolicyT>
 class scoped_handle
 {
@@ -605,7 +606,7 @@ public:
 	void reset(T p) { scoped_handle<T, PolicyT>(p).swap(*this); }
 };
 
-/// Inteligentny uchwyt ze zliczaniem referencji
+/// Smart handle with reference counting
 template <typename T, typename PolicyT>
 class shared_handle
 {
@@ -649,14 +650,14 @@ template <typename T, typename PolicyT> void swap(shared_handle<T, PolicyT> &a, 
 
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-/** \addtogroup base_math Podstawowa matematyka
-Sztuczki z bitami opracowane na podstawie:
+/** \addtogroup base_math Basic math
+Bit tricks implemented based on:
 Bit Twiddling Hacks, Sean Eron Anderson, http://www-graphics.stanford.edu/~seander/bithacks.html
 */
 //@{
 
-/** \addtogroup base_minmax Maksymalne i minimalne wartoœci
-Maksymalne i minimalne wartoœci liczb ró¿nych typów. */
+/** \addtogroup base_minmax Minimum and maximum values
+Minimum and maximum values of various types. */
 //@{
 const int8 MININT8 = std::numeric_limits<int8>::min();
 const int8 MAXINT8 = std::numeric_limits<int8>::max();
@@ -674,13 +675,13 @@ const float MINFLOAT = std::numeric_limits<float>::min();
 const float MAXFLOAT = std::numeric_limits<float>::max();
 //@}
 
-/// Liczba zmiennoprzecinkowa bliska zeru
-/** O dziwo to makro zamienione na funkcjê inline dzia³a wolniej - nigdy nie ufaj
-optymalizacji kompilatora! */
+/// Close to zero floating point number
+/** Suprisingly this macro converted to function works slower - never trust
+compiler optimiations! */
 #define FLOAT_ALMOST_ZERO(F) ((absolute_cast<uint32>(F) & 0x7f800000L) == 0)
 
-/** \addtogroup base_math_consts Sta³e matematyczne
-Bo sta³e z cmath/math.h nie chc¹ dzia³aæ mimo zdefiniowania wczeœniej USE_MATH_CONSTANTS :P */
+/** \addtogroup base_math_consts Math constants
+Because constants from cmath/math.h don't work despite defining USE_MATH_CONSTANTS :P */
 //@{
 const float E         = 2.71828182845904523536f;  ///< e
 const float LOG2E     = 1.44269504088896340736f;  ///< log2(e)
@@ -699,17 +700,17 @@ const float SQRT3     = 1.7320508075688772935274463415059f; ///< sqrt(3)
 const float SQRT1_2   = 0.707106781186547524401f; ///< 1/sqrt(2)
 //@}
 
-// Windows - potrzebuje float.h
+// Windows - requires float.h
 #ifdef WIN32
-	/// Zwraca true, jeœli liczba jest niezwyczajna (INF lub NaN)
+	/// Returns true if number is not INF or NaN
 	bool is_finite(float x);
-	/// Zwraca true, jeœli liczba jest niezwyczajna (INF lub NaN)
+	/// Returns true if number is not INF or NaN
 	bool is_finite(double x);
-	/// Zwraca true, jeœli liczba jest NaN
+	/// Returns true,if number is NaN
 	bool is_nan(float x);
-	/// Zwraca true, jeœli liczba jest NaN
+	/// Returns true,if number is NaN
 	bool is_nan(double x);
-// Linux - potrzebuje math.h
+// Linux - requires math.h
 #else
 	inline bool is_finite(float x)  { return (finitef(x) != 0); }
 	inline bool is_finite(double x) { return (finite(x)  != 0); }
@@ -717,9 +718,9 @@ const float SQRT1_2   = 0.707106781186547524401f; ///< 1/sqrt(2)
 	inline bool is_nan(double x) { return (isnan(x)  != 0); }
 #endif
 
-/// Dodaje dwie liczby z ograniczeniem zakresu zamiast zawiniêcia przy przepe³nieniu
-/** Jako T u¿ywaæ uint8, uint16, uint32, uint64
-(Autor: Tarlandil) */
+/// Adds two numbers with limit (saturation) instead of wrap-around on overflow
+/** As T use types: uint8, uint16, uint32, uint64
+(Author: Tarlandil) */
 template <typename T>
 T safe_add(T a, T b)
 {
@@ -728,9 +729,9 @@ T safe_add(T a, T b)
 	else return R;
 }
 
-/// Odejmuje dwie liczby z ograniczeniem zakresu zamiast zawiniêcia przy przepe³nieniu
-/** Jako T u¿ywaæ uint8, uint16, uint32, uint64
-(Autor: Tarlandil) */
+/// Subtracts two numbers with limit (saturation) instead of wrap-around on overflow
+/** As T use types: uint8, uint16, uint32, uint64
+(Author: Tarlandil) */
 template <typename T>
 T safe_sub(T a, T b)
 {
@@ -738,9 +739,9 @@ T safe_sub(T a, T b)
 	else return a - b;
 }
 
-/// Mno¿y dwie liczby z ograniczeniem zakresu zamiast zawiniêcia przy przepe³nieniu
-/** Jako T u¿ywaæ uint8, uint16, uint32, uint64
-(Autor: Tarlandil) */
+/// Multiplies two numbers with limit (saturation) instead of wrap-around on overflow
+/** As T use types: uint8, uint16, uint32, uint64
+(Author: Tarlandil) */
 template <typename T>
 T safe_mul(T a, T b)
 {
@@ -750,7 +751,7 @@ T safe_mul(T a, T b)
 	else return R;
 }
 
-/// Bezpieczny arcus cosinus, ogranicza zakres wejœciowy do -1...+1 zwracaj¹c w razie przekrocznia skrajne wartoœci wyniku.
+/// Safe arcus cosinus, limits input range to -1...+1 returning boundary values in case of exceeding this range.
 inline float safe_acos(float x)
 {
 	if (x <= -1.0f) return PI;
@@ -758,8 +759,8 @@ inline float safe_acos(float x)
 	return acosf(x);
 }
 
-/// Zaokr¹gla liczbê, zamiast j¹ obcinaæ
-/** Tak matematycznie, czyli do góry lub w dó³ zale¿nie od czêœci u³amkowej. */
+/// Rounds number instead of truncating it.
+/** Mathematical way - rounding up or down depending on fractional part. */
 inline int round(float x)
 {
 	return static_cast<int>(floorf(x+0.5f));
@@ -769,10 +770,10 @@ inline int round(double x)
 	return static_cast<int>(floor(x+0.5));
 }
 
-/// Dzieli 2 liczby ca³kowite zaokr¹glaj¹c wynik w górê
-/** Jako typ stosowaæ int, uint itp.
-Dzia³a tylko dla liczb dodatnich.
-Uwa¿aæ na przekroczenie zakresu liczby (x+y).
+/// Divides two integer numbers rounding the result up
+/** As T use types: int, uint etc.
+Works for positive numbers only.
+Watch out for exceeding range of (x+y) value.
 (Author: Tarlandil) */
 template <typename T>
 inline T ceil_div(T x, T y)
@@ -793,14 +794,14 @@ inline T AlignDown(T val, T align)
 	return (val / align) * align;
 }
 
-/// Dzielenie z zaokr¹gleniem matematycznie do najbli¿szej.
+/// Division with mathematical rounding to nearest number.
 template <typename T>
 inline T round_div(T x, T y)
 {
 	return (x + (y / 2)) / y;
 }
 
-/// Zwraca true, jeœli liczba le¿y w epsilonowym otoczeniu zera
+/// Returns true if number lies within epsilon surrounding of zero
 inline bool around(float x, float epsilon)
 {
 	return (fabsf(x) <= epsilon);
@@ -810,7 +811,7 @@ inline bool around(double x, double epsilon)
 	return (fabs(x) <= epsilon);
 }
 
-/// Zwraca true, jeœli liczba le¿y w epsilonowym otoczeniu drugiej liczby
+/// Returns true if number x lies within epsilon surrounding of numer y
 inline bool around(float x, float y, float epsilon)
 {
 	return (fabsf(x-y) <= epsilon);
@@ -820,9 +821,10 @@ inline bool around(double x, double y, double epsilon)
 	return (fabs(x-y) <= epsilon);
 }
 
-/// Zwraca true, jeœli dwie liczby zmiennoprzecinkowe s¹ praktycznie równe
-/** Te funkcje s¹ fajne bo nie trzeba znaæ epsilona, ale za to jest wiêcej liczenia.
-(Autor: Tarlandil) */
+/// Returns true if two floating-point numbers are almost equal.
+/** These functions are nice because you don't need to pass epsilon, but they
+require more computations.
+(Author: Tarlandil) */
 inline bool float_equal(float x, float y)
 {
 	float epsilon = (fabsf(x)+fabsf(y)) * 1e-4f;
@@ -836,19 +838,20 @@ inline bool double_equal(double x, double y)
 	return (fabs(x-y) <= epsilon);
 }
 
-/// Liczy kwadrat liczby
-/** Jako T stosowaæ dowolny typ który ma operator *.
-Ta funkcja przydaje siê jeœli w nawiasie jest wyra¿enie a nie jedna wartoœæ. */
+/// Calculates square of a number
+/** As T use any type that has operator *.
+This function is useful when you have an expression in parentheses and not just
+a Simple value. */
 template <typename T> inline T sqr(T v) { return v * v; }
 
-/// Zwraca znak podanej liczby ca³kowitej, czyli -1 0 lub 1
-/** Stosowaæ dla typów ca³kowitych ze znakiem, czyli int8, int16, int32, int64. */
+/// Returns sign of given integer number: -1, 0, or 1
+/** Use with signed integer numbers: int8, int16, int32, int64. */
 template <typename T> inline T sign(T v) { return (v > 0) - (v < 0); }
 
-/// £¹czy bity dwóch liczb wg maski, tzn. wybiera z A te bity, które w masce maj¹ 0 i z B te bity, które w masce maj¹ 1.
+/// Merges bits of two numbers according to mask, that is selects these bits from A that have 0 in mask and these bits from B that have 1 in mask.
 template <typename T> inline T MergeBits(T a, T b, T Mask) { return a ^ ((a ^ b) & Mask); }
 
-/// Zwraca liczbê bitów, które s¹ jedynk¹
+/// Returns number of bits that are set to 1.
 template <typename T> inline uint CountBitsSet(T v) { uint c; for (c = 0; v; c++) v &= v - 1; return c; }
 
 // Specialization based on "Bit Twiddling Hacks" by Sean Eron Anderson
@@ -866,55 +869,55 @@ template<> inline uint CountBitsSet<uint>(unsigned v)
 	return c;
 }
 
-/// Oblicza bit parzystoœci liczby
+/// Calculates parity bit of a number
 inline uint CalcParity(uint v) {
 	v ^= v >> 1; v ^= v >> 2; v = (v & 0x11111111U) * 0x11111111U; return (v >> 28) & 1;
 }
-/// Oblicza bit parzystoœci liczby
+/// Calculates parity bit of a number
 inline uint64 CalcParity(uint64 v) {
 	v ^= v >> 1; v ^= v >> 2; v = (v & 0x1111111111111111ULL) * 0x1111111111111111ULL; return (v >> 60) & 1;
 }
 
-/// Zamienia miejscami ci¹g bitów w liczbie
+/// Swaps bit sequence in a number
 template <typename T> inline T SwapBitSequences(T v, uint SrcBit, uint DstBit, uint NumBits)
 {
 	int x = ((v >> SrcBit) ^ (v >> DstBit)) & ((1 << NumBits) - 1);
 	return v ^ ((x << SrcBit) | (x << DstBit));
 }
 
-/// Zwraca true, jeœli podana liczba jest potêg¹ dwójki.
-/** T musi byæ liczb¹ ca³kowit¹ bez znaku - uint8, uint16, uint32, uint64, albo liczb¹ ze znakiem ale na pewno dodatni¹.
-Dla 0 zwraca true. */
+/// Returns true if given number is a power of two.
+/** T must be unsigned integer number - uint8, uint16, uint32, uint64, or signed integer but always nonnegative.
+For 0 returns true. */
 template <typename T> inline bool IsPow2(T x) { return (x & (x-1)) == 0; }
 
-/// Zwraca maskê bitow¹ z ustawionymi na jedynkê n najm³odszymi bitami.
-/** n musi byæ z z zakresu 0..32. */
+/// Returns bit mask with n least significant bits set to 1.
+/** n must be in range 0..32. */
 uint32 GetBitMask(uint32 n);
 
-/// Zwraca logarytm dwójkowy z podanej liczby ca³kowitej bez znaku, tzn numer najstarszego niezerowego bitu.
-/** Innymi s³owy, o ile bitów przesun¹æ w lewo jedynkê ¿eby otrzymaæ najstarsz¹
-jedynkê podanej liczby. Wartoœæ 0 zwraca dla liczb 0 i 1. */
+/// Returns 2-based logarithm of given unsigned integer number, that is the number of the most significant nonzero bit.
+/** In other words, how many bits you need to shift a 1 left to have the most
+significant 1 of the given number. Result 0 is returned for numbers 0 and 1. */
 uint log2u(uint v);
-/// Zwraca logarytm dziesiêtny z podanej liczby ca³kowitej bez znaku, tzn numer najstarszej cyfry dziesiêtnej.
-/** Dla zera niezdefiniowany. */
+/// Returns 10-based logarithm of given unsigned integer number, that is the number of most significant decimal digit.
+/** Undefined for zero. */
 uint log10u(uint v);
 
-/// Zwraca najmniejsz¹ potêgê dwójki wiêksz¹ lub równ¹ podanej liczbie
-/** Dla v == 0 zwraca 0.
-Dla v > 0x80000000 wynik jest niezdefiniowany. */
+/// Returns smallest power of two greater or equal than given number
+/** For v == 0 returns 0.
+For v > 0x80000000 result is undefined. */
 inline uint next_pow2(uint v) {
 	v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v;
 }
 
-/// Przeplata m³odsze 16 bitów a (do parzystych) i m³odsze 16 bitów b (do nieparzystych) do liczby wynikowej
+/// Interleaves lower 16 bits of a (to even) and lower 16 bits of b (to odd) to resulting number
 uint InterleaveBits(uint a, uint b);
-// Rozk³ada najm³odsze 10 bitów wstawiaj¹c przed ka¿dy po dwa zera, tak ¿e:
-// Wejœcie: ----------------------9876543210
-// Wyjœcie: ----9--8--7--6--5--4--3--2--1--0
+// Splits lowest 10 bits inserting two zeros before each one, so:
+// Input:  ----------------------9876543210
+// Output: ----9--8--7--6--5--4--3--2--1--0
 uint Extend10BitsBy2Zeros(uint n);
-// Rozk³ada najm³odsze 16 bitów wstawiaj¹c przed ka¿dy po jedno zero, tak ¿e:
-// Wejœcie: ----------------fedcba9876543210
-// Wyjœcie: -f-e-d-c-b-a-9-8-7-6-5-4-3-2-1-0
+// Splits lowest 16 bits inserting one zero before each one, so:
+// Input:  ----------------fedcba9876543210
+// Output: -f-e-d-c-b-a-9-8-7-6-5-4-3-2-1-0
 uint Extend16BitsBy1Zero(uint n);
 
 /** As T use types: uint8, uint16, uint32, uint64. */
@@ -952,9 +955,9 @@ inline T increment_modulo_3(T x)
 	return ((T)1 << x) & (T)3;
 }
 
-/// Liczy potêge o ca³kowitym wyk³adniku (bardzo szybko!)
-/** T mo¿e byæ dowoln¹ liczb¹ - int, uint32, float itp.
-(Autor: Tarlandil) */
+/// Calculates power with integer exponent (very fast!)
+/** T can be any number - int, uint32, float etc.
+(Author: Tarlandil) */
 template <typename T>
 T powi(T a, uint32 b)
 {
@@ -1026,21 +1029,21 @@ void Sort3(T &v1, T &v2, T &v3)
 	Sort2<T>(v2, v3);
 }
 
-/// Zwraca najwiêksz¹ z podanych 3 liczb
+/// Returns biggest of 3 numbers
 template <typename T>
 inline T max3(const T &a, const T &b, const T &c)
 {
 	return std::max(a, std::max(b, c));
 }
 
-/// Zwraca najmniejsz¹ z podanych 3 liczb
+/// Returns smallers of 3 numbers
 template <typename T>
 inline T min3(const T &a, const T &b, const T &c)
 {
 	return std::min(a, std::min(b, c));
 }
 
-/// Zwraca liczbê x ograniczon¹ do podanego zakresu od a do b
+/// Returns number x limited to given range from a to b
 template <typename T>
 inline T minmax(const T &a, const T &x, const T &b)
 {
@@ -1050,8 +1053,8 @@ inline T minmax(const T &a, const T &x, const T &b)
 inline float saturate(float x) { return minmax<float>(0.f, x, 1.f); }
 inline double saturate(double x) { return minmax<double>(0., x, 1.); }
 
-/// Zwraca czêœæ ca³kowit¹ liczby wraz ze znakiem
-/** (Autor: Tarlandil) */
+/// Returns integral part of a number including sign
+/** (Author: Tarlandil) */
 inline float trunc(float x)
 {
 	return (x < 0.0f) ? ceilf(x) : floorf(x);
@@ -1061,8 +1064,8 @@ inline double trunc(double x)
 	return (x < 0.0) ? ceil(x) : floor(x);
 }
 
-/// Zwraca czêœæ u³amkow¹ liczby wraz ze znakiem
-/** (Autor: Tarlandil) */
+/// Returns fractional part of a number including sign
+/** (Author: Tarlandil) */
 inline float frac(float x)
 {
 	return x - floorf(x);
@@ -1072,10 +1075,10 @@ inline double frac(double x)
 	return x - floor(x);
 }
 
-/// Oblicza sinus i cosinus za jednym zamachem. Mo¿e byæ szybsze, ni¿ liczenie osobno.
+/// Calculates both sine and cosine of given number. May be faster than calculating them separately.
 void sincos(float angle, float *sine, float *cosine);
 
-/// Interpolacja liniowa 1D (t = 0..1)
+/// 1D linear interpolation (t = 0..1)
 inline float Lerp(float x, float y, float t)
 {
 	return x + t*(y-x);
@@ -1084,20 +1087,20 @@ inline void Lerp(float *out, float x, float y, float t)
 {
 	*out = x + t*(y-x);
 }
-/// Interpolacja liniowa 1D (t jest ograniczane do 0..1)
+/// 1D linear interpolation (t is limited to 0..1)
 inline float SafeLerp(float x, float y, float t)
 {
 	return Lerp(x, y, minmax(0.0f, t, 1.0f));
 }
 
-/// Interpolacja liniowa 2D
-/** tx tyczy siê pierwszego indeksu, ty drugiego. */
+/// 2D linear interpolation
+/** tx is for first index, ty is for second index. */
 inline float Lerp2D(float x11, float x21, float x12, float x22, float tx, float ty)
 {
 	return Lerp(Lerp(x11, x21, tx), Lerp(x12, x22, tx), ty);
 }
 
-/// Normalizuje k¹t do przedzia³u < 0..2PI )
+/// Normalizes angle to range < 0..2PI )
 inline float NormalizeAngle(float angle)
 {
 	angle /= PI_X_2;
@@ -1109,7 +1112,7 @@ inline float NormalizeAngle(float angle)
 	return angle * PI_X_2;
 }
 
-/// Normalizuje k¹t do przedzia³u -PI..+PI
+/// Normalizes angle to range -PI..+PI
 inline float NormalizeAngle2(float Angle)
 {
 	Angle += PI;
@@ -1118,21 +1121,22 @@ inline float NormalizeAngle2(float Angle)
 	return Angle;
 }
 
-/// Przelicza k¹t ze stopni na radiany
+/// Converts angle from degrees to radians
 inline float DegToRad(float Angle)
 {
 	// Angle * PI / 180
 	return Angle * 0.017453292519943295769222222222222f;
 }
-/// Przelicza k¹t z radianów na stopnie
+/// Converts angle from radians to degrees
 inline float RadToDeg(float Angle)
 {
 	// Angle * 180 / PI
 	return Angle * 57.295779513082320876846364344191f;
 }
 
-/// Oblicza ró¿nicê k¹tów A-B, gdzie A, B nale¿¹ do: 0..2*PI
-/** Uwzglêdnia przekrêcanie siê k¹tów, znajduje wiêc najkrótsz¹ drogê miêdzy nimi. */
+/// Calculates difference of angles A-B, where A, B are in range: 0..2*PI
+/** Takes angle wrap-around into account, so it finds shortest path between
+them. */
 inline float AngleDiff(float A, float B)
 {
 	float R1 = B - A;
@@ -1151,13 +1155,14 @@ inline float AngleDiff(float A, float B)
 		return R3;
 }
 
-/// Krzywa wyg³adzona 0..1 -> 0..1: e(x) = 3*x^2 - 2*x^3
+/// Smoothed curve 0..1 -> 0..1: e(x) = 3*x^2 - 2*x^3
 inline float EaseCurve(float x)
 {
 	return x * x * (3.0f - 2.0f * x);
 }
-// Krzywa wyg³adzona 0..1 -> 0..1: e(x) = 6*t^5 - 15*t^4 + 10*t^3
-/** Lepsza od EaseCurve, bo ma zerow¹ drug¹ pochodn¹ dla x=0 i x=1. */
+/// Smoothed curve 0..1 -> 0..1: e(x) = 6*t^5 - 15*t^4 + 10*t^3
+/** Better than EaseCurve because it has zero second derivative for x=0 and x=1.
+*/
 inline float EaseCurve2(float x)
 {
 	return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f);
@@ -1185,19 +1190,19 @@ inline float smoothstep2(float min, float max, float x)
 
 bool is_prime(unsigned n);
 
-/// Funkcja wyg³adzaj¹ca - Critically Damped Smoothing
-/** To jest wyliczane wg równania ró¿niczkowego na jak¹œtam sprê¿ynê, dok³adnie
-analitycznie, wiêc TimeDelta mo¿e byæ dowolnie du¿e.
-\param[in,out] InOutPos  Pozycja przed i po przeliczeniu tego kroku
-\param[in,out] InOutVel  Prêdkoœæ przed i po przeliczeniu tego kroku
-\param Dest              Pozycja docelowa
-\param SmoothTime        Wspó³czynnik "bezw³adnoœci" w jednostkach czasu
-\param TimeDelta         Czas kroku (np. czas od poprzedniej klatki)
-\param MaxSpeed          Maksymalna dopuszczalna prêdkoœæ (maksymalna odleg³oœæ na jak¹ pozycja mo¿e nie nad¹¿aæ?) */
+/// Smoothing curve - Critically Damped Smoothing
+/** This is calculated based on a differential equation for some spring,
+precisely and analitically so TimeDelta can be any big you want.
+\param[in,out] InOutPos  Position before and after calculating this step
+\param[in,out] InOutVel  Velocity before and after calculating this step
+\param Dest              Target position
+\param SmoothTime        "Inertia" coefficient, expressed in units of time
+\param TimeDelta         Time of a step (eg. time from last frame)
+\param MaxSpeed          Maximum allowed speed (maximum distance that the position may not keep up?) */
 void SmoothCD(float *InOutPos, float Dest, float *InOutVel, float SmoothTime, float TimeDelta);
 void SmoothCD(float *InOutPos, float Dest, float *InOutVel, float SmoothTime, float TimeDelta, float MaxSpeed);
 
-/// Zwraca liczbê z przedzia³u 0..1, zale¿nie od wartoœci x wzglêdem brzegów trapezu a, b, c, d.
+/// Returns number in range 0..1 depending on value x relative to corners of a trapeze a, b, c, d.
 /**
 \verbatim
     x < a => 0
@@ -1220,32 +1225,32 @@ inline float Trapezoidal(float x, float a, float b, float c, float d)
 	else
 		return 0.f;
 }
-/// Jak Trapezoidal(), ale zamiast 0..1 zwraca liczbê z przedzia³u min..max.
+/// Like Trapezoidal(), but returns number in range min..max instead of 0..1.
 inline float Trapezoidal(float x, float a, float b, float c, float d, float min, float max)
 {
 	return Trapezoidal(x, a, b, c, d) * (max-min) + min;
 }
 
-/// Równanie kwadratowe a*x^2 + b*x + c = 0
-/** Musi byæ: a != 0.
-- Brak pierwiastków - zwraca 0, x1 i x2 niezdefiniowane.
-- Jeden pierwiastek - zwraca 1, x1 = x2 = jedyne rozwi¹zanie.
-- Dwa pierwistki - zwraca 2, x1 to pierwszy pierwiastek, x2 to drugi */
+/// Quadratic equation a*x^2 + b*x + c = 0
+/** Must be: a != 0.
+- No roots - returns 0, x1 and x2 are undefined.
+- One root - returns 1, x1 = x2 = this only solution.
+- Two roots - returns 2, x1 is first root and x2 is the second. */
 int QuadraticEquation(float a, float b, float c, float *Out_x1, float *Out_x2);
 
-/// Oblicza œredni¹ i opcjonalnie wariancjê ze zbioru liczb typu float.
-/** sqrt(Variance) to ochylenie standardowe.
-\param Variance Mo¿na podaæ NULL, jeœli nas nie interesuje. */
+/// Calculates average and optionally variance from a set of floating-point numbers.
+/** sqrt(Variance) is the standard deviation.
+\param Variance Can pass NULL if not needed. */
 void CalcMeanAndVariance(const float Numbers[], size_t NumberCount, float *OutMean, float *OutVariance = NULL, bool VarianceBiased = true);
 void CalcMeanAndVariance(const void *NumberData, size_t NumberCount, int NumberStride, float *OutMean, float *OutVariance = NULL, bool VarianceBiased = true);
 
-/// MurmurHash 2.0 - podobno bardzo dobra funkcja hashuj¹ca. Dowolne dane binarne. Niestety nie inkrementacyjna.
+/// MurmurHash 2.0 - declared as very fast hash function. Unfortunately not incremental.
 uint MurmurHash(const void *Data, uint DataLen, uint Seed);
 
-/// Bardzo szybka funkcja hashuj¹ca dane.
+/// Very fast function for hashing data.
 /**
-Autor: Paul Hsieh, http://www.azillionmonkeys.com/qed/hash.html
-Niestety nie inkrementacyjna.
+Author: Paul Hsieh, http://www.azillionmonkeys.com/qed/hash.html
+Unfortunately not incremental.
 */
 uint SuperFastHash(const void *DataBytes, size_t DataLen);
 
@@ -1265,13 +1270,13 @@ inline uint WangMix(uint key)
 	return key;
 }
 
-/// Interpoluje dan¹ wielkoœæ miêdzy wartoœciami kluczowymi dla parametru w zakresie 0..1 z zawiniêciem.
+/// Interpolates given quantity between key values for parameter in range 0..1 with wrap-around.
 /**
-- Dzia³a dla typów T, dla których zdefiniowana jest funkcja interpoluj¹ca (t = 0..1):
+- Works with types T that have interpolation function defined for t = 0..1 in form of:
   void Lerp(T *Out, const T &v1, const T &v2, float t);
-- Jako parametr t, zarówno w Items jak i do metody Calc, podawaæ liczbê z zakresu 0..1.
-- Wartoœci Items mo¿na swobodnie zmieniaæ.
-- Dla pustej tablicy Items zwraca zawsze T().
+- As parameter t, in Items as well as for Calc method, pass number in range 0..1.
+- Values in Items can be changed freely.
+- For empty Items array always returns T().
 */
 template <typename T>
 class RoundInterpolator
@@ -1306,22 +1311,22 @@ void RoundInterpolator<T>::Calc(T *Out, float t) const
 		return;
 	}
 
-	// ZnajdŸ index poprzedniego i nastêpnego Item
+	// Find index of previous and next Item
 
-	// Na pocz¹tek weŸ zapamiêtany indeks i sprawdŸ czy jest poprawny, jeœli nie to wróæ do zerowego.
+	// For the start take saved index and check if it's correct, if not return to zero.
 	uint Index = m_LastUsedIndex;
-	// - Indeks poza zakresem
+	// - Index out of range
 	if (Index >= Items.size())
 		Index = 0;
-	// - Z³y czas po lewej
+	// - Bad time on the left
 	if (Items[Index].t > t)
 		Index = 0;
 
-	// PrzechodŸ dalej
+	// Proceed further
 	while (Index < Items.size()-1 && Items[Index+1].t < t)
 		Index++;
 
-	// Zapamiêtaj indeks
+	// Save the index
 	m_LastUsedIndex = Index;
 
 	if (Index < Items.size()-1)
@@ -1336,13 +1341,14 @@ void RoundInterpolator<T>::Calc(T *Out, float t) const
 	}
 }
 
-/** \addtogroup base_perlin_noise Szum Perlina
-Deterministyczne, pseudolosowe funkcje 1, 2, 3 zmiennych generuj¹ce szum perlina
-oraz czêsto mylony z nim Fractional Brownian Motion (fBm). Szum perlina to
-ci¹g³a funkcja pseudolosowa o amplitudzie -1..1 i czêstotliwoœci 1.
-W funkcjach BrownianNoise:
-- i - liczba oktaw
-- Persistence - utrzymanie amplitudy w kolejnych oktawach; zalecane 0..1*/
+/** \addtogroup base_perlin_noise Perlin noise
+Deterministic, pseudorandom function of 1, 2, 3 variables generating Perlin
+noise and often confused with it Fractional Brownian Motion (fBm). Perlin noise
+is a continuous pseudorandom function with amplitude -1..1 and frequency 1.
+In BrownianNoise functions:
+- i - number of octaves
+- Persistence - persistence of amplitude in subsequent octaves; recommended 0..1
+*/
 //@{
 float PerlinNoise1(float x);
 float PerlinNoise2(float x, float y);
@@ -1353,9 +1359,9 @@ float BrownianNoise3(float x, float y, float z, uint i, float Persistence);
 //@}
 
 /** \addtogroup base_math DEC3
-Format, który w liczbie 32-bitowej uint koduje 4 komponenty uint jako W2Z10Y10X10.
-Komponenty x, y, z musz¹ byæ w zakresie 10 bitów (0..0x03FF, tzn. 0..1023),
-a komponent w w zakresie 2 bitów (0..0x03, tzn. 0..3).
+Format which encodes 4 components in 32-bit number as W2Z10Y10X10.
+Components x, y, z must be in range of 10 bits (0..0x03FF, means 0..1023),
+while component w in range of 2 bits (0..0x03, means 0..3).
 */
 //@{
 
@@ -1414,59 +1420,59 @@ bool CalcQuadraticFactors(
 
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-/** \addtogroup base_strings £añcuchy */
+/** \addtogroup base_strings Strings */
 //@{
 
-/// Rodzaje znaków koñca wiersza
+/// Types of end-of-line characters
 enum EOLMODE
 {
-	EOL_NONE, ///< Podczas konwersji pozostawienie bez zmian
-	EOL_CRLF, ///< 13 i 10 (Windows)
-	EOL_LF,   ///< 10      (Unix)
-	EOL_CR	  ///< 13      (Mac)
+	EOL_NONE, ///< Leave as-is during conversion
+	EOL_CRLF, ///< 13 and 10 (Windows)
+	EOL_LF,   ///< 10 (Unix)
+	EOL_CR	  ///< 13 (Mac)
 };
 
-/// £añcuch pusty - do wykorzystania aby mo¿na by³o pobieraæ do niego referencje itp.
+/// Empty string - to be used so you can take a reference to it etc.
 extern const tstring EMPTY_STRING;
-/// Standardowy ³añcuch koñca wiersza zale¿ny od systemu
+/// Standard end-of-line string depending on system
 extern const tchar * const EOL;
 
-/// Strona kodowa polskich znakow
+/// Codepage for Polish diacritic characters
 enum CHARSET
 {
-	CHARSET_NONE = 0, ///< Brak polskich liter
-	CHARSET_WINDOWS,  ///< Strona kodowa Windows-1250 (u¿ywana w GUI Windows)
-	CHARSET_ISO,      ///< Strona kodowa ISO-8859-2 (Latin-2) (u¿ywana w Linuksie)
-	CHARSET_IBM,      ///< Strona kodowa IBM (CP852) (u¿ywana na konsoli Windows)
-	CHARSET_UTF8,     ///< Strona kodowa UTF-8
+	CHARSET_NONE = 0, ///< No Polish diacritics
+	CHARSET_WINDOWS,  ///< Windows-1250 codepage (used in Windows GUI)
+	CHARSET_ISO,      ///< ISO-8859-2 (Latin-2) codepage (used in Linuksie)
+	CHARSET_IBM,      ///< IBM (CP852) codepage (used in Windows console)
+	CHARSET_UTF8,     ///< UTF-8 codepage
 };
 
-/// Zwraca true, jesli znak jest alfanumeryczny (litera lub cyfra) wg ustawieñ systemu
+/// Returns true if character is alphanumeric (letter or digit) according to system settings
 bool CharIsAlphaNumeric(tchar ch);
-/// Zwraca true, jesli znak jest litera
+/// Returns true if character is a letter
 bool CharIsAlpha(tchar ch);
-/// Zwraca true, jesli znak jest cyfr¹ dziesietn¹
+/// Returns true if character is a decimal digit
 inline bool CharIsDigit(tchar ch) { return (ch >= _T('0') && ch <= _T('9')); }
-/// Zwraca true, jeœli znak jest cyfr¹ szesnastkow¹
-/** - Akceptuje ma³e i du¿e litery. */
+/// Returns true if character is a hexadecimal digit
+/** Accepts lower and upper letters. */
 inline bool CharIsHexDigit(tchar ch) { return (ch >= _T('0') && ch <= _T('9')) || (ch >= _T('A') && ch <= _T('F')) || (ch >= _T('a') && ch <= _T('f')); }
-/// Zwraca true, jesli znak jest mala litera
+/// Returns true if character is a lower letter
 bool CharIsLower(tchar ch);
-/// Zwraca true, jesli znak jest duza litera
+/// Returns true if character is an upper letter
 bool CharIsUpper(tchar ch);
-/// Zwraca true, jesli podany znak jest odstepem, czyli bialym znakiem wg systemu
-/** Dwie wersje tej funkcji - ANSI i Unicode - s¹ potrzebne dla Stream - HexDecoder. */
+/// Returns true if character is a whitespace according to the system
+/** Two versions of this function - ANSI and Unicode - are needed for Stream - HexDecoder. */
 bool CharIsWhitespace(char ch);
 #ifdef WIN32
 bool CharIsWhitespace(wchar_t ch);
 #endif
-/// Zwraca true, jesli podany znak jest odstepem, czyli bialym znakiem
-/** Czyli jednym ze znakow:
-- <tt>0x09 (9)  "\\t"</tt> - tabulacja
-- <tt>0x0A (10) "\\n"</tt> - znak konca wiersza
-- <tt>0x0D (13) "\\r"</tt> - znak konca wiersza
-- <tt>          "\\v"</tt> - tabulacja pionowa
-- <tt>0x20 (32) " "</tt>  - spacja */
+/// Returns true if character is a whitespace
+/** Which means one of characters:
+- <tt>0x09 (9)  "\\t"</tt> - tab
+- <tt>0x0A (10) "\\n"</tt> - end-of-line character
+- <tt>0x0D (13) "\\r"</tt> - end-of-line character
+- <tt>          "\\v"</tt> - vertical space
+- <tt>0x20 (32) " "</tt>  - space */
 inline bool CharIsWhitespace_f(tchar ch)
 {
 	return (ch == _T(' ') || ch == _T('\n') || ch == _T('\r') || ch == _T('\t') || ch == _T('\v'));

@@ -1,11 +1,11 @@
 /** \file
-\brief Bardzo szybki alokator pamiêci
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\brief Very fast memory allocator
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref FreeList
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref FreeList
 */
 //#include "Base.hpp"
 //#include "FreeList.hpp"

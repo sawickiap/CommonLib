@@ -1,12 +1,12 @@
 /** \file
-\brief Obs³uga plików i systemu plików
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\brief Files and file system handling
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_Files \n
-Elementy modu³u: \ref code_files
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_Files \n
+Module components: \ref code_files
 */
 #include "Base.hpp"
 

@@ -1,11 +1,12 @@
 /** \file
 \brief Persistent DOM model for a format based on Tokenizer.
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Part of CommonLib library\n
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
 License: GNU LGPL. \n
 Documentation: \ref Module_TokDoc \n
-Module elements: \ref code_tokdoc
+Module components: \ref code_tokdoc
 */
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once

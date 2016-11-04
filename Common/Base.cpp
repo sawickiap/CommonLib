@@ -1,12 +1,12 @@
 /** \file
 \brief Foundation module
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_Base \n
-Elementy modu³u: \ref code_base
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_Base \n
+Module components: \ref code_base
 */
 #include "Base.hpp"
 #include <cstdio> // dla sprintf, sscanf

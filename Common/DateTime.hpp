@@ -1,12 +1,12 @@
 /** \file
-\brief Data i czas
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\brief Date and time
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_DateTime \n
-Elementy modu³u: \ref code_datetime
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_DateTime \n
+Module components: \ref code_datetime
 */
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once

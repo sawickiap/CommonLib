@@ -1,12 +1,12 @@
 /** \file
-\brief Biblioteka do wielow¹tkowoœci i synchronizacji
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\brief Multithreading and synchronization library
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_Threads \n
-Elementy modu³u: \ref code_threads
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_Threads \n
+Module components: \ref code_threads
 */
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once

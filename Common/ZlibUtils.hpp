@@ -1,12 +1,12 @@
 /** \file
-\brief Modu³ wspmagaj¹cy biblioteki zlib.
-\author Adam Sawicki - sawickiap@poczta.onet.pl - http://regedit.gamedev.pl/ \n
+\brief Auxiliary module for zlib library
+\author Adam Sawicki - sawickiap@poczta.onet.pl - http://asawicki.info/ \n
 
-Czêœæ biblioteki CommonLib \n
-Kodowanie Windows-1250, koniec wiersza CR+LF, test: Za¿ó³æ gêœl¹ jaŸñ \n
-Licencja: GNU LGPL. \n
-Dokumentacja: \ref Module_ZlibUtils\n
-Elementy modu³u: \ref code_zlibutils
+Part of CommonLib library. \n
+Encoding UTF-8, end of line CR+LF \n
+License: GNU LGPL. \n
+Documentation: \ref Module_ZlibUtils\n
+Module components: \ref code_zlibutils
 */
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once
