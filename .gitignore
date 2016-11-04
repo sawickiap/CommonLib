@@ -4,3 +4,4 @@ ConsoleTest/x64/*
 DirectXTest/Debug/*
 DirectXTest/Release/*
 DirectXTest/x64/*
+.vs/*
