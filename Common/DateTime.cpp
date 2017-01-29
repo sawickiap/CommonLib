@@ -971,7 +971,8 @@ bool StrToDate(TMSTRUCT *Out, const tstring &s, const tstring &Format)
 				ParseNumber(&Tmp, s, &si);
 				uint MonthNumber;
 				if (StrToUint(&MonthNumber, Tmp) != 0) return false;
-				Month = (MONTH)MonthNumber;
+                if(MonthNumber < 1 || MonthNumber > 12) return false;
+				Month = (MONTH)(MonthNumber - 1);
 			}
 			break;
 
