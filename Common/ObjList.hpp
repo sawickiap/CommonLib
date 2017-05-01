@@ -50,13 +50,13 @@ Header: ObjList.hpp */
 /// Declares list class static fields. Use in list class definition in chosen section (private recommended).
 #define OBJLIST_LIST_FIELDS(ListT, ItemT, Name)  \
 	ItemT *m_##Name##_First, *m_##Name##_Last;  \
-	uint m_##Name##_ItemCount;
+	size_t m_##Name##_ItemCount;
 
 /// Declares list class methods. Use in list class definition in chosen section (public recommended).
 #define OBJLIST_LIST_METHODS(ListT, ItemT, Name)  \
 	ItemT * Name##_GetFirst() { return m_##Name##_First; }  \
 	ItemT * Name##_GetLast() { return m_##Name##_Last; }  \
-	uint Name##_GetItemCount() { return m_##Name##_ItemCount; }  \
+	size_t Name##_GetItemCount() { return m_##Name##_ItemCount; }  \
 	bool Name##_IsEmpty() { return m_##Name##_ItemCount == 0; }  \
 	void Name##_InsertBack(ItemT *v);  \
 	void Name##_InsertFront(ItemT *v);  \
@@ -219,13 +219,13 @@ Header: ObjList.hpp */
 /// Declares list class static fields. Use in list class definition in chosen section (private recommended).
 #define STATIC_OBJLIST_LIST_FIELDS(ListT, ItemT, Name)  \
 	static ItemT *m_##Name##_First, *m_##Name##_Last;  \
-	static uint m_##Name##_ItemCount;
+	static size_t m_##Name##_ItemCount;
 
 /// Declares list class static methods. Use in list class definition in chosen section (public recommended).
 #define STATIC_OBJLIST_LIST_METHODS(ListT, ItemT, Name)  \
 	static ItemT * Name##_GetFirst() { return m_##Name##_First; }  \
 	static ItemT * Name##_GetLast() { return m_##Name##_Last; }  \
-	static uint Name##_GetItemCount() { return m_##Name##_ItemCount; }  \
+	static size_t Name##_GetItemCount() { return m_##Name##_ItemCount; }  \
 	static bool Name##_IsEmpty() { return m_##Name##_ItemCount == 0; } \
 	static void Name##_InsertBack(ItemT *v);  \
 	static void Name##_InsertFront(ItemT *v);  \
@@ -238,7 +238,7 @@ Header: ObjList.hpp */
 #define STATIC_OBJLIST_LIST_IMPL(ListT, ItemT, Name) \
 	ItemT * ListT::m_##Name##_First = NULL;  \
 	ItemT * ListT::m_##Name##_Last  = NULL;  \
-	uint ListT::m_##Name##_ItemCount = 0;  \
+	size_t ListT::m_##Name##_ItemCount = 0;  \
 	void ListT::Name##_InsertBack(ItemT *v)  \
 	{  \
 		assert(!v->m_##Name##_IsOnList && v->m_##Name##_Prev == NULL && v->m_##Name##_Next == NULL);  \

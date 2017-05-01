@@ -128,7 +128,7 @@ namespace common
 		return (size_t)GetFileSize(pimpl->m_File, 0);
 	}
 
-	int FileStream::GetPos()
+	int64 FileStream::GetPos()
 	{
 		// Fuj! Ale to nieeleganckie. Szkoda, ¿e nie ma lepszego sposobu.
 		uint32 r = SetFilePointer(pimpl->m_File, 0, 0, FILE_CURRENT);
@@ -137,19 +137,19 @@ namespace common
 		return (int)r;
 	}
 
-	void FileStream::SetPos(int pos)
+	void FileStream::SetPos(int64 pos)
 	{
 		if (SetFilePointer(pimpl->m_File, pos, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 			throw Win32Error(Format(_T("Cannot set position in file stream to # from the beginning.")) % pos, __TFILE__, __LINE__);
 	}
 
-	void FileStream::SetPosFromCurrent(int pos)
+	void FileStream::SetPosFromCurrent(int64 pos)
 	{
 		if (SetFilePointer(pimpl->m_File, pos, 0, FILE_CURRENT) == INVALID_SET_FILE_POINTER)
 			throw Win32Error(Format(_T("Cannot set position in file stream to # from current.")) % pos, __TFILE__, __LINE__);
 	}
 
-	void FileStream::SetPosFromEnd(int pos)
+	void FileStream::SetPosFromEnd(int64 pos)
 	{
 		if (SetFilePointer(pimpl->m_File, pos, 0, FILE_END) == INVALID_SET_FILE_POINTER)
 			throw Win32Error(Format(_T("Cannot set position in file stream to # from the end.")) % pos, __TFILE__, __LINE__);

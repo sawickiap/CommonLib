@@ -10,4 +10,4 @@ Documentation: \ref FreeList
 //#include "Base.hpp"
 //#include "FreeList.hpp"
 
-// Kompletnie pusto.
+// Totally empty.

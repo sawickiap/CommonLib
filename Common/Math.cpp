@@ -915,7 +915,7 @@ const PLANE PLANE_NEGATIVE_Z = PLANE(0.0f, 0.0f, -1.0f, 0.0f);
 void GetBoxPlane(PLANE *out, const BOX &box, uint index)
 {
 	GetPlaneNormal(*out) = VEC3_ZERO;
-	int axis = index>>1;
+	uint axis = index>>1;
 
 	if (index&1)
 	{
@@ -958,7 +958,7 @@ bool PointsCollinear(const VEC2 &p1, const VEC2 &p2, const VEC2 &p3)
 void GetRectLine(LINE2D *out, const RECTF &rect, uint index)
 {
 	GetLineNormal(*out) = VEC2_ZERO;
-	int axis = index>>1;
+	uint axis = index>>1;
 
 	if (index&1)
 	{
@@ -1346,7 +1346,7 @@ bool StrToMatrix(MATRIX *Out, const tstring &Str)
 	if (!Split(Str, Delimiter1, &Parts[3], &Index)) return false;
 	if (Split(Str, Delimiter1, &Dupa, &Index)) return false;
 
-	for (size_t PartI = 0; PartI < 4; PartI++)
+	for (uint PartI = 0; PartI < 4; PartI++)
 	{
 		Index = 0;
 		if (!Split(Parts[PartI], Delimiter2, &Numbers[0], &Index)) return false;
@@ -1557,12 +1557,12 @@ void TransformBox(BOX *Out, const BOX &In, const MATRIX &M)
 	*/
 
 	// For all three axes
-	for (int i = 0; i < 3; i++)
+	for (uint i = 0; i < 3; i++)
 	{
 		// Start by adding in translation
 		Out->Min[i] = Out->Max[i] = ( (VEC3&)M._41 )[i];
 		// Form extent by summing smaller and larger terms respectively
-		for (int j = 0; j < 3; j++)
+		for (uint j = 0; j < 3; j++)
 		{
 			float e = M(j, i) * In.Min[j];
 			float f = M(j, i) * In.Max[j];
@@ -1588,7 +1588,7 @@ void TransformBoxCoord(BOX *Out, const BOX &In, const MATRIX &M)
 	TransformCoord(&Max, Min, M);
 	Out->Min = Out->Max = Max;
 
-	for (size_t i = 1; i < 8; i++)
+	for (uint i = 1; i < 8; i++)
 	{
 		In.GetCorner(&Min, i);
 		TransformCoord(&Max, Min, M);
@@ -2014,6 +2014,15 @@ void Transpose(MATRIX *m)
 	std::swap(m->_34, m->_43);
 }
 
+void Transpose(MATRIX *Out, const MATRIX &m)
+{
+    *Out = MATRIX(
+        m._11, m._21, m._31, m._41,
+        m._12, m._22, m._32, m._42,
+        m._13, m._23, m._33, m._43,
+        m._14, m._24, m._34, m._44);
+}
+
 void Lerp(MATRIX *Out, const MATRIX &m1, const MATRIX &m2, float t)
 {
 	Out->_11 = Lerp(m1._11, m2._11, t);
@@ -2233,14 +2242,14 @@ void RotationMatrixToQuaternion(QUATERNION *Out, const MATRIX &RotationMatrix)
 	}
 	else
 	{
-		static size_t Next[3] = { 1, 2, 0 };
-		size_t i = 0;
+		static uint Next[3] = { 1, 2, 0 };
+		uint i = 0;
 		if (RotationMatrix(1, 1) > RotationMatrix(0, 0))
 			i = 1;
 		if (RotationMatrix(2, 2) > RotationMatrix(i, i))
 			i = 2;
-		size_t j = Next[i];
-		size_t k = Next[j];
+		uint j = Next[i];
+		uint k = Next[j];
 
 		Root = sqrtf(RotationMatrix(i, i) - RotationMatrix(j, j) - RotationMatrix(k, k) + 1.0f);
 		float *apkQuat[3] = { &Out->x, &Out->y, &Out->z };
@@ -2769,7 +2778,7 @@ bool StrToAffine2d(AFFINE2D *Out, const tstring &Str)
 	if (!Split(Str, Delimiter1, &Parts[1], &Index)) return false;
 	if ( Split(Str, Delimiter1, &Dupa,     &Index)) return false;
 
-	for (size_t PartI = 0; PartI < 2; PartI++)
+	for (uint PartI = 0; PartI < 2; PartI++)
 	{
 		Index = 0;
 		if (!Split(Parts[PartI], Delimiter2, &Numbers[0], &Index)) return false;
@@ -2942,7 +2951,7 @@ void FRUSTUM_POINTS::CalcBoundingBox(BOX *Box) const
 {
 	Box->Min = Box->Max = Points[0];
 
-	for (int i = 1; i < 8; i++)
+	for (uint i = 1; i < 8; i++)
 	{
 		Min(&Box->Min, Box->Min, Points[i]);
 		Max(&Box->Max, Box->Max, Points[i]);
@@ -4029,7 +4038,7 @@ float PointToObbDistanceSq(const VEC3 &Point, const OBB &Obb)
 
     VEC3 v = Point - Obb.Center;
     float sqDist = 0.0f;
-    for (int i = 0; i < 3; i++) {
+    for (uint i = 0; i < 3; i++) {
         // Project vector from box center to Point on each axis, getting the distance
         // of Point along that axis, and count any excess distance outside box extents
 		float d = Dot(v, Obb.Axes[i]), excess = 0.0f;
@@ -4479,7 +4488,7 @@ bool RayToFrustum(const VEC3 &RayOrig, const VEC3 &RayDir, const FRUSTUM_PLANES 
 	*t_far = MAXFLOAT;
 	float vn, vd, t;
 
-	for (int i = 0; i < 6; i++)
+	for (uint i = 0; i < 6; i++)
 	{
 		vn = DotCoord(Frustum.Planes[i], RayOrig);
 		vd = DotNormal(Frustum.Planes[i], RayDir);
@@ -4562,12 +4571,12 @@ bool PointInConvexPolyhedron(const VEC3 &Point, const PLANE PolyhedronPlanes[], 
 	return PointInConvexPolyhedron(Point, PolyhedronPlanes, PolyhedronPlaneCount, sizeof(PLANE));
 }
 
-bool PointInConvexPolyhedron(const VEC3 &Point, const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, int PolyhedronPlaneStride)
+bool PointInConvexPolyhedron(const VEC3 &Point, const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, ptrdiff_t PolyhedronPlaneStride)
 {
 	// Na podstawie ksi¹¿ki: Real-Time Collision Detection, Christer Ericson
 
 	const char *PolyhedronPlaneBytes = (const char*)PolyhedronPlanes;
-	for (unsigned Plane_i = 0; Plane_i < PolyhedronPlaneCount; Plane_i++)
+	for (size_t Plane_i = 0; Plane_i < PolyhedronPlaneCount; Plane_i++)
 	{
 		const PLANE &Plane = *(const PLANE*)PolyhedronPlaneBytes;
 		if (DotCoord(Plane, Point) < 0.0f)
@@ -4587,7 +4596,7 @@ bool RayToConvexPolyhedron(
 
 bool RayToConvexPolyhedron(
 	const VEC3 &RayOrig, const VEC3 &RayDir,
-	const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, int PolyhedronPlaneStride,
+	const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, ptrdiff_t PolyhedronPlaneStride,
 	float *OutBegT, float *OutEndT)
 {
 	// Na podstawie ksi¹¿ki: Real-Time Collision Detection, Christer Ericson
@@ -4767,7 +4776,7 @@ bool TriangleInBox(const VEC3 &p1, const VEC3 &p2, const VEC3 &p3, const BOX &Bo
 /// \internal
 int TriangleToBox_planeBoxOverlap(const VEC3 &normal, const VEC3 &vert, const VEC3 &maxbox)	// -NJMP-
 {
-  int q;
+  uint q;
   VEC3 vmin,vmax;
   float v;
   for(q=0;q<=2;q++)
@@ -4936,7 +4945,7 @@ bool BoxToFrustum_Fast(const BOX &Box, const FRUSTUM_PLANES &Frustum)
 	// Na podstawie ksi¹¿ki "3D Game Engine Programming", Stefan Zerbst with Oliver Duvel
 
 	VEC3 vmin;
-	for (int i = 0; i < 6; i++)
+	for (uint i = 0; i < 6; i++)
 	{
 		if (Frustum.Planes[i].a <= 0.0f)
 			vmin.x = Box.Min.x;
@@ -5008,7 +5017,7 @@ bool BoxToFrustum(const BOX &Box, const FRUSTUM_RADAR &Frustum)
 	Corners[0] = Box.Min - Frustum.GetEye();
 	Corners[1] = Box.Max - Frustum.GetEye();
 
-	for (int i = 0; i < 8; i++)
+	for (uint i = 0; i < 8; i++)
 	{
 		IsInRightTest = IsInUpTest = IsInFrontTest = false;
 		P.x = Corners[ i        & 1 ].x;
@@ -5800,7 +5809,7 @@ bool PointInConvexPolygon(const VEC2 &Point, const VEC2 PolygonPoints[], size_t 
 	return PointInConvexPolygon(Point, PolygonPoints, PolygonPointCount, sizeof(VEC2));
 }
 
-bool PointInConvexPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride)
+bool PointInConvexPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride)
 {
 	// Na podstawie ksi¹¿ki: Real-Time Collision Detection, Christer Ericson
 	// Algorytm ma z³o¿onoœæ O(log n) !!!
@@ -5837,7 +5846,7 @@ bool PointInPolygon(const VEC2 &Point, const VEC2 PolygonPoints[], size_t Polygo
 	return PointInPolygon(Point, PolygonPoints, PolygonPointCount, sizeof(VEC2));
 }
 
-bool PointInPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride)
+bool PointInPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride)
 {
 	// Na podstawie:
 	// Point-In-Polygon Algorithm — Determining Whether A Point Is Inside A Complex Polygon. Darel Rex Finley.
@@ -5845,7 +5854,7 @@ bool PointInPolygon(const VEC2 &Point, const void *PolygonPoints, size_t Polygon
 
 	assert(PolygonPointCount >= 3);
 
-	uint i, j = 0;
+	size_t i, j = 0;
 	bool OddNodes = false;
 	const char *PolygonPointData = (const char*)PolygonPoints;
 	for (i = 0; i < PolygonPointCount; i++)
@@ -5879,7 +5888,7 @@ bool RayToConvexPolygon(
 
 bool RayToConvexPolygon(
 	const VEC3 &RayOrig, const VEC3 &RayDir,
-	const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride,
+	const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride,
 	bool BackfaceCulling, float *OutT, VEC3 *OutPoint, const PLANE *PolygonPlane)
 {
 	assert(PolygonPointCount >= 3);
@@ -6002,7 +6011,7 @@ ale jeœli siê nigdzie nie pomyli³em przy zamianie wspó³rzêdnych przy kopiowaniu 
 */
 bool RayToPolygon(
 	const VEC3 &RayOrig, const VEC3 &RayDir,
-	const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride,
+	const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride,
 	bool BackfaceCulling, float *OutT, VEC3 *OutPoint, const PLANE *PolygonPlane)
 {
 	assert(PolygonPointCount >= 3);
@@ -6032,7 +6041,7 @@ bool RayToPolygon(
 	float fnx = fabsf(Plane->a);
 	float fny = fabsf(Plane->b);
 	float fnz = fabsf(Plane->c);
-	uint i, j = 0;
+	size_t i, j = 0;
 	bool OddNodes = false;
 
 	// Najwiêkszy jest X - rzut na p³aszczyznê YZ
@@ -6237,7 +6246,7 @@ bool SweptBoxToBox(const BOX &Box1, const BOX &Box2, const VEC3 &SweepDirBox1, f
 	*OutT2 = FLT_MAX;
 
 	// For each axis, determine times of first and last contact, if any
-	for (int i = 0; i < 3; i++) {
+	for (uint i = 0; i < 3; i++) {
 		if (SweepDirBox1[i] < 0.0f) {
 			if (Box1.Max[i] < Box2.Min[i]) return false; // Nonintersecting and moving apart
 			if (Box2.Max[i] < Box1.Min[i]) *OutT1 = std::max((Box2.Max[i] - Box1.Min[i]) / SweepDirBox1[i], *OutT1);
@@ -6506,7 +6515,7 @@ size_t FurthestPoint(const VEC2 &p, const VEC2 Points[], size_t PointCount, floa
 	return FurthestPoint(p, Points, PointCount, sizeof(VEC2), OutDistance);
 }
 
-size_t FurthestPoint(const VEC2 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance)
+size_t FurthestPoint(const VEC2 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance)
 {
 	assert(PointCount > 0);
 
@@ -6535,7 +6544,7 @@ size_t FurthestPoint(const VEC3 &p, const VEC3 Points[], size_t PointCount, floa
 	return FurthestPoint(p, Points, PointCount, sizeof(VEC3), OutDistance);
 }
 
-size_t FurthestPoint(const VEC3 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance)
+size_t FurthestPoint(const VEC3 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance)
 {
 	assert(PointCount > 0);
 
@@ -6564,7 +6573,7 @@ size_t ClosestPoint(const VEC2 &p, const VEC2 Points[], size_t PointCount, float
 	return ClosestPoint(p, Points, PointCount, sizeof(VEC2), OutDistance);
 }
 
-size_t ClosestPoint(const VEC2 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance)
+size_t ClosestPoint(const VEC2 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance)
 {
 	assert(PointCount > 0);
 
@@ -6593,7 +6602,7 @@ size_t ClosestPoint(const VEC3 &p, const VEC3 Points[], size_t PointCount, float
 	return ClosestPoint(p, Points, PointCount, sizeof(VEC3), OutDistance);
 }
 
-size_t ClosestPoint(const VEC3 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance)
+size_t ClosestPoint(const VEC3 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance)
 {
 	assert(PointCount > 0);
 
@@ -6622,7 +6631,7 @@ size_t FurthestPointForDir(const VEC2 &Dir, const VEC2 Points[], size_t PointCou
 	return FurthestPointForDir(Dir, Points, PointCount, sizeof(VEC2));
 }
 
-size_t FurthestPointForDir(const VEC2 &Dir, const void *Data, size_t PointCount, int Stride)
+size_t FurthestPointForDir(const VEC2 &Dir, const void *Data, size_t PointCount, ptrdiff_t Stride)
 {
 	assert(PointCount > 0);
 	
@@ -6650,7 +6659,7 @@ size_t FurthestPointForDir(const VEC3 &Dir, const VEC3 Points[], size_t PointCou
 	return FurthestPointForDir(Dir, Points, PointCount, sizeof(VEC3));
 }
 
-size_t FurthestPointForDir(const VEC3 &Dir, const void *Data, size_t PointCount, int Stride)
+size_t FurthestPointForDir(const VEC3 &Dir, const void *Data, size_t PointCount, ptrdiff_t Stride)
 {
 	assert(PointCount > 0);
 	
@@ -6678,7 +6687,7 @@ void RectBoundingPoints(RECTF *OutRect, const VEC2 Points[], size_t PointCount)
 	RectBoundingPoints(OutRect, Points, PointCount, sizeof(VEC2));
 }
 
-void RectBoundingPoints(RECTF *OutRect, const void *Data, size_t PointCount, int Stride)
+void RectBoundingPoints(RECTF *OutRect, const void *Data, size_t PointCount, ptrdiff_t Stride)
 {
 	assert(PointCount > 0);
 
@@ -6702,7 +6711,7 @@ void BoxBoundingPoints(BOX *box, const VEC3 points[], size_t PointCount)
 	BoxBoundingPoints(box, points, PointCount, sizeof(VEC3));
 }
 
-void BoxBoundingPoints(BOX *box, const void *Data, size_t PointCount, int Stride)
+void BoxBoundingPoints(BOX *box, const void *Data, size_t PointCount, ptrdiff_t Stride)
 {
 	assert(PointCount > 0);
 
@@ -6748,7 +6757,7 @@ void CircleBoundingPoints(VEC2 *OutSphereCenter, float *OutSphereRadius, const V
 	CircleBoundingPoints(OutSphereCenter, OutSphereRadius, Points, PointCount, sizeof(VEC2));
 }
 
-void CircleBoundingPoints(VEC2 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, int PointStride)
+void CircleBoundingPoints(VEC2 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride)
 {
 	assert(PointCount > 0);
 
@@ -6781,7 +6790,7 @@ void SphereBoundingPoints(VEC3 *OutSphereCenter, float *OutSphereRadius, const V
 	SphereBoundingPoints(OutSphereCenter, OutSphereRadius, Points, PointCount, sizeof(VEC3));
 }
 
-void SphereBoundingPoints(VEC3 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, int PointStride)
+void SphereBoundingPoints(VEC3 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride)
 {
 	assert(PointCount > 0);
 
@@ -6814,7 +6823,7 @@ void OriginCircleBoundingPoints(float *OutRadius, const VEC2 Points[], size_t Po
 	OriginCircleBoundingPoints(OutRadius, Points, PointCount, sizeof(VEC2));
 }
 
-void OriginCircleBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, int PointStride)
+void OriginCircleBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride)
 {
 	assert(PointCount > 0);
 
@@ -6840,7 +6849,7 @@ void OriginSphereBoundingPoints(float *OutRadius, const VEC3 Points[], size_t Po
 	OriginSphereBoundingPoints(OutRadius, Points, PointCount, sizeof(VEC3));
 }
 
-void OriginSphereBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, int PointStride)
+void OriginSphereBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride)
 {
 	assert(PointCount > 0);
 
@@ -6866,7 +6875,7 @@ void CalcCentroid(VEC2 *OutCentroid, const VEC2 Points[], size_t PointCount)
 	CalcCentroid(OutCentroid, Points, PointCount, sizeof(VEC2));
 }
 
-void CalcCentroid(VEC2 *OutCentroid, const void *PointData, size_t PointCount, int PointStride)
+void CalcCentroid(VEC2 *OutCentroid, const void *PointData, size_t PointCount, ptrdiff_t PointStride)
 {
 	assert(PointCount > 0);
 	const char *PointBytes = (const char*)PointData;
@@ -6887,7 +6896,7 @@ void CalcCentroid(VEC3 *OutCentroid, const VEC3 Points[], size_t PointCount)
 	CalcCentroid(OutCentroid, Points, PointCount, sizeof(VEC3));
 }
 
-void CalcCentroid(VEC3 *OutCentroid, const void *PointData, size_t PointCount, int PointStride)
+void CalcCentroid(VEC3 *OutCentroid, const void *PointData, size_t PointCount, ptrdiff_t PointStride)
 {
 	assert(PointCount > 0);
 	const char *PointBytes = (const char*)PointData;
@@ -6908,7 +6917,7 @@ void CalcCovarianceMatrix(MATRIX33 *OutCov, const VEC3 Points[], size_t PointCou
 	CalcCovarianceMatrix(OutCov, Points, PointCount, sizeof(VEC3));
 }
 
-void CalcCovarianceMatrix(MATRIX33 *OutCov, const void *PointData, size_t PointCount, int PointStride)
+void CalcCovarianceMatrix(MATRIX33 *OutCov, const void *PointData, size_t PointCount, ptrdiff_t PointStride)
 {
 	/* Na podstawie ksi¹¿ki:
 	Real-Time Collision Detection, Christer Ericson */
@@ -6988,7 +6997,7 @@ See Golub, Van Load, Matrix Computations, 3rd ed, p428
 */
 void CalcEigenvaluesAndEigenvectors(MATRIX33 *InCovOutEigenvalues, MATRIX33 *OutEigenvectors)
 {
-	int i, j, n, p, q;
+	uint i, j, n, p, q;
 	float prevoff = 0.0f, c, s;
 	MATRIX33 J, J_transpose, b, t;
 

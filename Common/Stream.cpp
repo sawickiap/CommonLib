@@ -93,7 +93,7 @@ void Stream::WriteString1(const char *s)
 	WriteString1(s, strlen(s));
 }
 
-void Stream::WriteString1(const char *s, unsigned NumChars)
+void Stream::WriteString1(const char *s, size_t NumChars)
 {
 	typedef uint8 T;
 	size_t Limit = static_cast<size_t>(std::numeric_limits<T>::max());
@@ -117,7 +117,7 @@ void Stream::WriteString1(const wchar_t *s)
 	WriteString1(s, wcslen(s));
 }
 
-void Stream::WriteString1(const wchar_t *s, unsigned NumChars)
+void Stream::WriteString1(const wchar_t *s, size_t NumChars)
 {
 	typedef uint8 T;
 	size_t Limit = static_cast<size_t>(std::numeric_limits<T>::max());
@@ -142,7 +142,7 @@ void Stream::WriteString2(const char *s)
 	WriteString2(s, strlen(s));
 }
 
-void Stream::WriteString2(const char *s, unsigned NumChars)
+void Stream::WriteString2(const char *s, size_t NumChars)
 {
 	typedef uint16 T;
 	size_t Limit = static_cast<size_t>(std::numeric_limits<T>::max());
@@ -166,7 +166,7 @@ void Stream::WriteString2(const wchar_t *s)
 	WriteString2(s, wcslen(s));
 }
 
-void Stream::WriteString2(const wchar_t *s, unsigned NumChars)
+void Stream::WriteString2(const wchar_t *s, size_t NumChars)
 {
 	typedef uint16 T;
 	size_t Limit = static_cast<size_t>(std::numeric_limits<T>::max());
@@ -191,9 +191,14 @@ void Stream::WriteString4(const char *s)
 	WriteString4(s, strlen(s));
 }
 
-void Stream::WriteString4(const char *s, unsigned NumChars)
+void Stream::WriteString4(const char *s, size_t NumChars)
 {
-	Write(&NumChars, sizeof(NumChars));
+	typedef uint32 T;
+	size_t Limit = static_cast<size_t>(std::numeric_limits<T>::max());
+	if (NumChars > Limit)
+		throw Error(Format(_T("Cannot write Unicode string to stream - longer than # characters.")) % Limit, __TFILE__, __LINE__);
+	T Length = static_cast<T>(NumChars);
+	Write(&Length, sizeof(T));
 	Write(s, NumChars);
 }
 
@@ -210,9 +215,14 @@ void Stream::WriteString4(const wchar_t *s)
 	WriteString4(s, wcslen(s));
 }
 
-void Stream::WriteString4(const wchar_t *s, unsigned NumChars)
+void Stream::WriteString4(const wchar_t *s, size_t NumChars)
 {
-	Write(&NumChars, sizeof(NumChars));
+	typedef uint32 T;
+	size_t Limit = static_cast<size_t>(std::numeric_limits<T>::max());
+	if (NumChars > Limit)
+		throw Error(Format(_T("Cannot write Unicode string to stream - longer than # characters.")) % Limit, __TFILE__, __LINE__);
+	T Length = static_cast<T>(NumChars);
+	Write(&Length, sizeof(T));
 	Write(s, NumChars * sizeof(wchar_t));
 }
 
@@ -261,7 +271,7 @@ size_t Stream::Skip(size_t MaxLength)
 		return 0;
 
 	char Buf[BUFFER_SIZE];
-	uint BlockSize, ReadSize, Sum = 0;
+	size_t BlockSize, ReadSize, Sum = 0;
 	while (MaxLength > 0)
 	{
 		BlockSize = std::min(MaxLength, BUFFER_SIZE);
@@ -470,29 +480,29 @@ size_t Stream::CopyFromToEnd(Stream *s)
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa SeekableStream
 
-size_t SeekableStream::GetSize()
+uint64 SeekableStream::GetSize()
 {
 	throw Error(_T("Stream class doesn't support size retrieval."), __TFILE__, __LINE__);
 }
 
-int SeekableStream::GetPos()
+int64 SeekableStream::GetPos()
 {
 	throw Error(_T("Stream class # doesn't support cursor position retrieval."), __TFILE__, __LINE__);
 }
 
-void SeekableStream::SetPos(int pos)
+void SeekableStream::SetPos(int64 pos)
 {
 	throw Error(_T("Stream class # doesn't support cursor position setting."), __TFILE__, __LINE__);
 }
 
-void SeekableStream::SetPosFromCurrent(int pos)
+void SeekableStream::SetPosFromCurrent(int64 pos)
 {
 	SetPos(GetPos()+pos);
 }
 
-void SeekableStream::SetPosFromEnd(int pos)
+void SeekableStream::SetPosFromEnd(int64 pos)
 {
-	SetPos((int)GetSize()+pos);
+	SetPos((int64)GetSize()+pos);
 }
 
 void SeekableStream::Rewind()
@@ -500,14 +510,14 @@ void SeekableStream::Rewind()
 	SetPos(0);
 }
 
-void SeekableStream::SetSize(size_t Size)
+void SeekableStream::SetSize(uint64 Size)
 {
 	throw Error(_T("Stream class # doesn't support size setting."), __TFILE__, __LINE__);
 }
 
 void SeekableStream::Truncate()
 {
-	SetSize((size_t)GetPos());
+	SetSize((uint64)GetPos());
 }
 
 void SeekableStream::Clear()
@@ -517,16 +527,16 @@ void SeekableStream::Clear()
 
 bool SeekableStream::End()
 {
-	return (GetPos() == (int)GetSize());
+	return ((uint64)GetPos() == GetSize());
 }
 
 size_t SeekableStream::Skip(size_t MaxLength)
 {
-	uint Pos = GetPos();
-	uint Size = GetSize();
-	uint BytesToSkip = std::min(MaxLength, Size - Pos);
-	SetPosFromCurrent((int)BytesToSkip);
-	return BytesToSkip;
+	int64 Pos = GetPos();
+	uint64 Size = GetSize();
+	uint64 BytesToSkip = std::min<uint64>(MaxLength, Size - Pos);
+	SetPosFromCurrent((int64)BytesToSkip);
+	return (size_t)BytesToSkip;
 }
 
 
@@ -547,7 +557,7 @@ CharWriter::~CharWriter()
 
 void CharWriter::WriteString(const string &s)
 {
-	uint BlockLength, i, s_i = 0, Length = s.length();
+	size_t BlockLength, i, s_i = 0, Length = s.length();
 	// Length będzie zmniejszany. Oznacza liczbę pozostałych do zapisania bajtów.
 
 	while (Length > 0)
@@ -567,7 +577,7 @@ void CharWriter::WriteString(const string &s)
 void CharWriter::WriteData(const void *Data, size_t Length)
 {
 	const char *CharData = (const char*)Data;
-	uint BlockLength;
+	size_t BlockLength;
 	// Length będzie zmniejszany. Oznacza liczbę pozostałych do zapisania bajtów.
 	// CharData będzie przesuwany.
 
@@ -606,7 +616,7 @@ WCharWriter::~WCharWriter()
 
 void WCharWriter::WriteString(const wstring &s)
 {
-	uint BlockLength, i, s_i = 0, Length = s.length();
+	size_t BlockLength, i, s_i = 0, Length = s.length();
 	// Length będzie zmniejszany. Oznacza liczbę pozostałych do zapisania znaków.
 
 	while (Length > 0)
@@ -625,7 +635,7 @@ void WCharWriter::WriteString(const wstring &s)
 
 void WCharWriter::WriteString(const wchar_t *s, size_t NumChars)
 {
-	uint BlockLength;
+	size_t BlockLength;
 	// NumChars będzie zmniejszany. Oznacza liczbę pozostałych do zapisania znaków.
 	// s będzie przesuwany.
 
@@ -654,7 +664,7 @@ void WCharWriter::WriteString(const wchar_t *s, size_t NumChars)
 bool CharReader::EnsureNewChars()
 {
 	assert(m_BufBeg == m_BufEnd);
-	uint ReadSize = m_Stream->Read(&m_Buf[0], BUFFER_SIZE);
+	size_t ReadSize = m_Stream->Read(&m_Buf[0], BUFFER_SIZE);
 	m_BufBeg = 0;
 	m_BufEnd = ReadSize;
 	return (ReadSize > 0);
@@ -662,7 +672,7 @@ bool CharReader::EnsureNewChars()
 
 size_t CharReader::ReadString(string *Out, size_t MaxLength)
 {
-	uint BlockSize, i, Sum = 0, Out_i = 0;
+	size_t BlockSize, i, Sum = 0, Out_i = 0;
 	Out->clear();
 
 	// MaxLength będzie zmniejszane.
@@ -691,7 +701,7 @@ size_t CharReader::ReadString(string *Out, size_t MaxLength)
 
 void CharReader::MustReadString(string *Out, size_t Length)
 {
-	uint BlockSize, i, Out_i = 0;
+	size_t BlockSize, i, Out_i = 0;
 	Out->clear();
 	Out->resize(Length);
 
@@ -717,7 +727,7 @@ void CharReader::MustReadString(string *Out, size_t Length)
 
 size_t CharReader::ReadString(char *Out, size_t MaxLength)
 {
-	uint BlockSize, i, Sum = 0;
+	size_t BlockSize, i, Sum = 0;
 
 	// MaxLength będzie zmniejszane.
 	// Out będzie przesuwane.
@@ -744,7 +754,7 @@ size_t CharReader::ReadString(char *Out, size_t MaxLength)
 
 void CharReader::MustReadString(char *Out, size_t Length)
 {
-	uint BlockSize, i;
+	size_t BlockSize, i;
 
 	// Length będzie zmniejszane.
 	// Out będzie przesuwane.
@@ -770,7 +780,7 @@ void CharReader::MustReadString(char *Out, size_t Length)
 size_t CharReader::ReadData(void *Out, size_t MaxLength)
 {
 	char *OutChars = (char*)Out;
-	uint BlockSize, Sum = 0;
+	size_t BlockSize, Sum = 0;
 
 	// MaxLength będzie zmniejszane.
 	// OutChars będzie przesuwane.
@@ -795,7 +805,7 @@ size_t CharReader::ReadData(void *Out, size_t MaxLength)
 void CharReader::MustReadData(void *Out, size_t Length)
 {
 	char *OutChars = (char*)Out;
-	uint BlockSize, i;
+	size_t BlockSize, i;
 
 	// Length będzie zmniejszane.
 	// OutChars będzie przesuwane.
@@ -820,7 +830,7 @@ void CharReader::MustReadData(void *Out, size_t Length)
 
 size_t CharReader::Skip(size_t MaxLength)
 {
-	uint BlockSize, Sum = 0;
+	size_t BlockSize, Sum = 0;
 
 	// MaxLength będzie zmniejszane.
 
@@ -841,7 +851,7 @@ size_t CharReader::Skip(size_t MaxLength)
 
 void CharReader::MustSkip(size_t Length)
 {
-	uint BlockSize;
+	size_t BlockSize;
 
 	// Length będzie zmniejszane.
 
@@ -910,7 +920,7 @@ void CharReader::MustReadLine(string *Out)
 bool WCharReader::EnsureNewChars()
 {
 	assert(m_BufBeg == m_BufEnd);
-	uint ReadSize = m_Stream->Read(&m_Buf[0], BUFFER_SIZE * sizeof(wchar_t));
+	size_t ReadSize = m_Stream->Read(&m_Buf[0], BUFFER_SIZE * sizeof(wchar_t));
 
 	if ((ReadSize & 0x01) != 0)
 		throw Error(_T("WCharReader: End of stream inside Unicode character."), __TFILE__, __LINE__);
@@ -923,7 +933,7 @@ bool WCharReader::EnsureNewChars()
 
 size_t WCharReader::ReadString(wstring *Out, size_t MaxLength)
 {
-	uint BlockSize, i, Sum = 0, Out_i = 0;
+	size_t BlockSize, i, Sum = 0, Out_i = 0;
 	Out->clear();
 
 	// MaxLength będzie zmniejszane.
@@ -952,7 +962,7 @@ size_t WCharReader::ReadString(wstring *Out, size_t MaxLength)
 
 void WCharReader::MustReadString(wstring *Out, size_t Length)
 {
-	uint BlockSize, i, Out_i = 0;
+	size_t BlockSize, i, Out_i = 0;
 	Out->clear();
 	Out->resize(Length);
 
@@ -978,7 +988,7 @@ void WCharReader::MustReadString(wstring *Out, size_t Length)
 
 size_t WCharReader::ReadString(wchar_t *Out, size_t MaxLength)
 {
-	uint BlockSize, i, Sum = 0;
+	size_t BlockSize, i, Sum = 0;
 
 	// MaxLength będzie zmniejszane.
 	// Out będzie przesuwane.
@@ -1005,7 +1015,7 @@ size_t WCharReader::ReadString(wchar_t *Out, size_t MaxLength)
 
 void WCharReader::MustReadString(wchar_t *Out, size_t Length)
 {
-	uint BlockSize, i;
+	size_t BlockSize, i;
 
 	// Length będzie zmniejszane.
 	// Out będzie przesuwane.
@@ -1030,7 +1040,7 @@ void WCharReader::MustReadString(wchar_t *Out, size_t Length)
 
 size_t WCharReader::Skip(size_t MaxLength)
 {
-	uint BlockSize, Sum = 0;
+	size_t BlockSize, Sum = 0;
 
 	// MaxLength będzie zmniejszane.
 
@@ -1051,7 +1061,7 @@ size_t WCharReader::Skip(size_t MaxLength)
 
 void WCharReader::MustSkip(size_t Length)
 {
-	uint BlockSize;
+	size_t BlockSize;
 
 	// Length będzie zmniejszane.
 
@@ -1136,10 +1146,10 @@ MemoryStream::~MemoryStream()
 
 void MemoryStream::Write(const void *Data, size_t Size)
 {
-	if (m_Pos >= 0 && m_Pos + (int)Size <= (int)m_Size)
+	if (m_Pos >= 0 && m_Pos + (ptrdiff_t)Size <= (ptrdiff_t)m_Size)
 	{
 		memcpy(&m_Data[m_Pos], Data, Size);
-		m_Pos += (int)Size;
+		m_Pos += Size;
 	}
 	else
 		throw Error(Format(_T("Cannot write # bytes to memory stream - position out of range (pos: #, size: #)")) % Size % m_Pos % m_Size, __TFILE__, __LINE__);
@@ -1147,11 +1157,11 @@ void MemoryStream::Write(const void *Data, size_t Size)
 
 size_t MemoryStream::Read(void *Data, size_t Size)
 {
-	if (m_Pos >= 0 && m_Pos <= (int)m_Size)
+	if (m_Pos >= 0 && m_Pos <= (ptrdiff_t)m_Size)
 	{
 		Size = std::min(Size, m_Size-m_Pos);
 		memcpy(Data, &m_Data[m_Pos], Size);
-		m_Pos += (int)Size;
+		m_Pos += Size;
 	}
 	else
 		throw Error(Format(_T("Cannot read # bytes from memory stream - position out of range (pos: #, size: #)")) % Size % m_Pos % m_Size, __TFILE__, __LINE__);
@@ -1160,28 +1170,28 @@ size_t MemoryStream::Read(void *Data, size_t Size)
 
 void MemoryStream::MustRead(void *Data, size_t Size)
 {
-	if (m_Pos >= 0 && m_Pos + (int)Size <= (int)m_Size)
+	if (m_Pos >= 0 && m_Pos + Size <= m_Size)
 	{
 		memcpy(Data, &m_Data[m_Pos], Size);
-		m_Pos += (int)Size;
+		m_Pos += Size;
 	}
 	else
 		throw Error(Format(_T("Cannot read (2) # bytes from memory stream - position out of range (pos: #, size: #)")) % Size % m_Pos % m_Size, __TFILE__, __LINE__);
 }
 
-size_t MemoryStream::GetSize()
+uint64 MemoryStream::GetSize()
 {
 	return m_Size;
 }
 
-int MemoryStream::GetPos()
+int64 MemoryStream::GetPos()
 {
 	return m_Pos;
 }
 
-void MemoryStream::SetPos(int pos)
+void MemoryStream::SetPos(int64 pos)
 {
-	m_Pos = pos;
+	m_Pos = (ptrdiff_t)pos;
 }
 
 void MemoryStream::Rewind()
@@ -1223,16 +1233,16 @@ void VectorStream::Write(const void *Data, size_t Size)
 	if (m_Size < m_Pos + Size)
 		m_Size = m_Pos + Size;
 	memcpy(&m_Data[m_Pos], Data, Size);
-	m_Pos += (int)Size;
+	m_Pos += Size;
 }
 
 size_t VectorStream::Read(void *Data, size_t Size)
 {
-	if (m_Pos >= 0 && m_Pos <= (int)m_Size)
+	if (m_Pos >= 0 && m_Pos <= (ptrdiff_t)m_Size)
 	{
 		Size = std::min(Size, m_Size-m_Pos);
 		memcpy(Data, &m_Data[m_Pos], Size);
-		m_Pos += (int)Size;
+		m_Pos += Size;
 	}
 	else
 		throw Error(Format(_T("Cannot read # bytes from VectorStream stream - position out of range (pos: #, size: #)")) % Size % m_Pos % m_Size, __TFILE__, __LINE__);
@@ -1241,23 +1251,24 @@ size_t VectorStream::Read(void *Data, size_t Size)
 
 void VectorStream::MustRead(void *Data, size_t Size)
 {
-	if (m_Pos >= 0 && m_Pos + (int)Size <= (int)m_Size)
+	if (m_Pos >= 0 && m_Pos + Size <= m_Size)
 	{
 		memcpy(Data, &m_Data[m_Pos], Size);
-		m_Pos += (int)Size;
+		m_Pos += Size;
 	}
 	else
 		throw Error(Format(_T("Cannot read (2) # bytes from VectorStream stream - position out of range (pos: #, size: #)")) % Size % m_Pos % m_Size, __TFILE__, __LINE__);
 }
 
-void VectorStream::SetSize(size_t Size)
+void VectorStream::SetSize(uint64 Size)
 {
+    assert(Size <= SIZE_MAX);
 	// zmniejszamy
 	if (Size < m_Size)
 	{
-		m_Size = Size;
+		m_Size = (size_t)Size;
 		// jeśli połowa miejsca się marnuje - pomniejsz
-		if (m_Capacity >= Size*2)
+		if (m_Capacity >= (size_t)Size*2)
 		{
 			size_t NewCapacity = std::max((size_t)8, m_Size);
 			if (NewCapacity != m_Capacity)
@@ -1269,8 +1280,8 @@ void VectorStream::SetSize(size_t Size)
 	{
 		// jeśli brakuje miejsca - powiększ
 		if (Size > m_Capacity)
-			Reserve(std::max(Size, m_Capacity + m_Capacity / 4));
-		m_Size = Size;
+			Reserve(std::max((size_t)Size, m_Capacity + m_Capacity / 4));
+		m_Size = (size_t)Size;
 	}
 }
 
@@ -1311,7 +1322,7 @@ void StringStream::Write(const void *Data, size_t Size)
 	for (size_t i = 0; i < Size; i++)
 		(*m_Data)[m_Pos+i] = reinterpret_cast<const char*>(Data)[i];
 
-	m_Pos += (int)Size;
+	m_Pos += Size;
 }
 
 size_t StringStream::Read(void *Data, size_t Size)
@@ -1336,9 +1347,14 @@ void StringStream::MustRead(void *Data, size_t Size)
 	for (size_t i = 0; i < Size; i++)
 		reinterpret_cast<char*>(Data)[i] = (*m_Data)[m_Pos+i];
 
-	m_Pos += (int)Size;
+	m_Pos += Size;
 }
 
+void StringStream::SetSize(uint64 Size)
+{
+    assert(Size <= SIZE_MAX);
+    m_Data->resize((size_t)Size);
+}
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa CounterOverlayStream
@@ -1369,18 +1385,13 @@ void CounterOverlayStream::MustRead(void *Data, size_t Size)
 	m_ReadCounter += Size;
 }
 
-void CounterOverlayStream::Flush()
-{
-	GetStream()->Flush();
-}
-
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa LimitOverlayStream
 
 const tchar * const LIMIT_OVERLAY_WRITE_ERRMSG = _T("LimitOverlayStream: Write limit exceeded.");
 
-LimitOverlayStream::LimitOverlayStream(Stream *a_Stream, uint32 WriteLimit, uint32 ReadLimit) :
+LimitOverlayStream::LimitOverlayStream(Stream *a_Stream, uint64 WriteLimit, uint64 ReadLimit) :
 	OverlayStream(a_Stream),
 	m_WriteLimit(WriteLimit),
 	m_ReadLimit(ReadLimit)
@@ -1398,7 +1409,7 @@ void LimitOverlayStream::Write(const void *Data, size_t Size)
 	}
 	else
 	{
-		GetStream()->Write(Data, m_WriteLimit);
+		GetStream()->Write(Data, (size_t)m_WriteLimit);
 		m_WriteLimit = 0;
 		throw Error(LIMIT_OVERLAY_WRITE_ERRMSG);
 	}
@@ -1427,12 +1438,12 @@ void LimitOverlayStream::Flush()
 	GetStream()->Flush();
 }
 
-void LimitOverlayStream::SetWriteLimit(uint32 WriteLimit)
+void LimitOverlayStream::SetWriteLimit(uint64 WriteLimit)
 {
 	m_WriteLimit = WriteLimit;
 }
 
-void LimitOverlayStream::SetReadLimit(uint32 ReadLimit)
+void LimitOverlayStream::SetReadLimit(uint64 ReadLimit)
 {
 	m_ReadLimit = ReadLimit;
 }
@@ -1441,7 +1452,7 @@ void LimitOverlayStream::SetReadLimit(uint32 ReadLimit)
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // class BufferingStream
 
-BufferingStream::BufferingStream(Stream *stream, uint readBufSize, uint writeBufSize)
+BufferingStream::BufferingStream(Stream *stream, size_t readBufSize, size_t writeBufSize)
 : OverlayStream(stream)
 , m_ReadBufSize(readBufSize)
 , m_WriteBufSize(writeBufSize)
@@ -1474,7 +1485,7 @@ void BufferingStream::Write(const void *Data, size_t Size)
 	if (m_WriteBufSize > 0)
 	{
 		const char *CharData = (const char*)Data;
-		uint BlockLength;
+		size_t BlockLength;
 		// Size będzie zmniejszany. Oznacza liczbę pozostałych do zapisania bajtów.
 		// CharData będzie przesuwany.
 
@@ -1509,7 +1520,7 @@ size_t BufferingStream::Read(void *Data, size_t MaxLength)
 	if (m_ReadBufSize > 0)
 	{
 		char *OutChars = (char*)Data;
-		uint BlockSize, Sum = 0;
+		size_t BlockSize, Sum = 0;
 
 		// MaxLength będzie zmniejszane.
 		// OutChars będzie przesuwane.
@@ -1552,15 +1563,15 @@ void BufferingStream::DoFlush()
 bool BufferingStream::EnsureNewChars()
 {
 	assert(m_ReadBufBeg == m_ReadBufEnd);
-	uint ReadSize = GetStream()->Read(&m_ReadBuf[0], m_ReadBufSize);
+	size_t ReadSize = GetStream()->Read(&m_ReadBuf[0], m_ReadBufSize);
 	m_ReadBufBeg = 0;
 	m_ReadBufEnd = ReadSize;
 	return (ReadSize > 0);
 }
 
-size_t BufferingStream::Skip( size_t MaxLength )
+size_t BufferingStream::Skip(size_t MaxLength)
 {
-	uint BlockSize, Sum = 0;
+	size_t BlockSize, Sum = 0;
 	// MaxLength będzie zmniejszane.
 	while (MaxLength > 0)
 	{
@@ -1581,10 +1592,10 @@ size_t BufferingStream::Skip( size_t MaxLength )
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa MultiWriterStream
 
-MultiWriterStream::MultiWriterStream(Stream *a_Streams[], uint StreamCount)
+MultiWriterStream::MultiWriterStream(Stream *a_Streams[], size_t StreamCount) :
+    m_Streams(StreamCount)
 {
-	m_Streams.resize(StreamCount);
-	for (uint i = 0; i < StreamCount; i++)
+	for (size_t i = 0; i < StreamCount; i++)
 		m_Streams[i] = a_Streams[i];
 }
 
@@ -1604,7 +1615,7 @@ void MultiWriterStream::Write(const void *Data, size_t Size)
 {
 	ERR_TRY;
 
-	for (uint i = 0; i < m_Streams.size(); i++)
+	for (size_t i = 0; i < m_Streams.size(); i++)
 		m_Streams[i]->Write(Data, Size);
 
 	ERR_CATCH_FUNC;
@@ -1614,7 +1625,7 @@ void MultiWriterStream::Flush()
 {
 	ERR_TRY;
 
-	for (uint i = 0; i < m_Streams.size(); i++)
+	for (size_t i = 0; i < m_Streams.size(); i++)
 		m_Streams[i]->Flush();
 
 	ERR_CATCH_FUNC;
@@ -2002,8 +2013,8 @@ void MD5_Calc::Write(const void *Buf, size_t BufLen)
 	left = total[0] & 0x3F;
 	fill = 64 - left;
 
-	total[0] += BufLen;
-	total[0] &= 0xFFFFFFFF;
+	total[0] += (uint32)BufLen;
+	//total[0] &= 0xFFFFFFFF; // WTF is that?
 
 	if(total[0] < BufLen)
 		total[1]++;
@@ -2114,7 +2125,7 @@ void XorCoder::Write(const void *Data, size_t Size)
 	ERR_TRY;
 
 	const char *Bytes = (const char*)Data;
-	uint BlockSize;
+	size_t BlockSize;
 
 	while (Size > 0)
 	{
@@ -2148,7 +2159,7 @@ size_t XorCoder::Read(void *Data, size_t Size)
 	ERR_TRY;
 
 	char * Bytes = (char*)Data;
-	uint BlockSize, ReadSize, Sum = 0;
+	size_t BlockSize, ReadSize, Sum = 0;
 
 	while (Size > 0)
 	{
@@ -2508,7 +2519,7 @@ break_2_ALL:
 	ERR_CATCH_FUNC;
 }
 
-bool BinDecoder::DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE Tolerance)
+bool BinDecoder::DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance)
 {
 	// Żadne dziwne znaki nie są tolerowane - po prostu zlicz znaki
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -2535,7 +2546,7 @@ bool BinDecoder::DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE
 	}
 }
 
-bool BinDecoder::DecodeLength(uint *OutLength, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance)
+bool BinDecoder::DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance)
 {
 	// Żadne dziwne znaki nie są tolerowane - po prostu zlicz znaki
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -2736,11 +2747,11 @@ break_2_ALL:
 	return Sum;
 }
 
-size_t BinDecoder::Decode(void *OutData, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance)
+size_t BinDecoder::Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance)
 {
 	uint8 *OutBytes = (uint8*)OutData;
 	uint8 Byte;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	char Ch;
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -2926,7 +2937,7 @@ void HexEncoder::Write(const void *Data, size_t Size)
 
 	if (m_UpperCase)
 	{
-		for (uint i = 0; i < Size; i++)
+		for (size_t i = 0; i < Size; i++)
 		{
 			Byte = *Bytes;
 			m_CharWriter.WriteChar(HEX_DIGITS_U[(Byte & 0xF0) >> 4]);
@@ -2936,7 +2947,7 @@ void HexEncoder::Write(const void *Data, size_t Size)
 	}
 	else
 	{
-		for (uint i = 0; i < Size; i++)
+		for (size_t i = 0; i < Size; i++)
 		{
 			Byte = *Bytes;
 			m_CharWriter.WriteChar(HEX_DIGITS_L[(Byte & 0xF0) >> 4]);
@@ -2988,7 +2999,7 @@ void HexEncoder::Encode(string *Out, const void *Data, size_t DataLength, bool U
 
 	const uint8 *InBytes = (const uint8*)Data;
 	uint8 Byte;
-	uint Out_i = 0;
+	size_t Out_i = 0;
 
 	if (UpperCase)
 	{
@@ -3055,7 +3066,7 @@ void HexEncoder::Encode(wstring *Out, const void *Data, size_t DataLength, bool 
 
 	const uint8 *InBytes = (const uint8*)Data;
 	uint8 Byte;
-	uint Out_i = 0;
+	size_t Out_i = 0;
 
 	if (UpperCase)
 	{
@@ -3218,7 +3229,7 @@ break_2_ALL:
 	ERR_CATCH_FUNC;
 }
 
-bool HexDecoder::DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE Tolerance)
+bool HexDecoder::DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance)
 {
 	// Żadne dziwne znaki nie są tolerowane - po prostu zlicz znaki
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -3245,7 +3256,7 @@ bool HexDecoder::DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE
 	}
 }
 
-bool HexDecoder::DecodeLength(uint *OutLength, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance)
+bool HexDecoder::DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance)
 {
 	// Żadne dziwne znaki nie są tolerowane - po prostu zlicz znaki
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -3280,7 +3291,7 @@ size_t HexDecoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE Toler
 {
 	uint8 *OutBytes = (uint8*)OutData;
 	uint8 Byte, HexNumber;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	char Ch;
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -3394,11 +3405,11 @@ break_2_ALL:
 	return Sum;
 }
 
-size_t HexDecoder::Decode(void *OutData, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance)
+size_t HexDecoder::Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance)
 {
 	uint8 *OutBytes = (uint8*)OutData;
 	uint8 Byte, HexNumber;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	char Ch;
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -3631,11 +3642,11 @@ break_2_ALL:
 	return Sum;
 }
 
-size_t HexDecoder::Decode(void *OutData, const wchar_t *s, uint s_Length, DECODE_TOLERANCE Tolerance)
+size_t HexDecoder::Decode(void *OutData, const wchar_t *s, size_t s_Length, DECODE_TOLERANCE Tolerance)
 {
 	uint8 *OutBytes = (uint8*)OutData;
 	uint8 Byte, HexNumber;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	wchar_t Ch;
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -4091,7 +4102,7 @@ bool Base64Decoder::End()
 	return (m_BufLength == 0) && (m_Finished || m_CharReader.End());
 }
 
-bool Base64Decoder::DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE Tolerance)
+bool Base64Decoder::DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance)
 {
 	// są tylko dokładnie te znaki co trzeba
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -4143,7 +4154,7 @@ bool Base64Decoder::DecodeLength(uint *OutLength, const string &s, DECODE_TOLERA
 	}
 }
 
-bool Base64Decoder::DecodeLength(uint *OutLength, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance)
+bool Base64Decoder::DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance)
 {
 	// są tylko dokładnie te znaki co trzeba
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -4163,7 +4174,7 @@ bool Base64Decoder::DecodeLength(uint *OutLength, const char *s, uint s_Length, 
 		uint EqualCount = 0;
 		uint DigitCount = 0;
 		*OutLength = 0;
-		for (uint i = 0; i < s_Length; i++)
+		for (size_t i = 0; i < s_Length; i++)
 		{
 			switch (Base64CharType(s[i]))
 			{
@@ -4198,7 +4209,7 @@ bool Base64Decoder::DecodeLength(uint *OutLength, const char *s, uint s_Length, 
 size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance)
 {
 	uint8 *OutBytes = (uint8*)OutData;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	uint8 Numbers[4];
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -4343,10 +4354,10 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 	return Sum;
 }
 
-size_t Base64Decoder::Decode(void *OutData, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance)
+size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance)
 {
 	uint8 *OutBytes = (uint8*)OutData;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	uint8 Numbers[4];
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
@@ -4495,7 +4506,7 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, uint s_Length, DECODE
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa RingBuffer
 
-RingBuffer::RingBuffer(uint Capacity) :
+RingBuffer::RingBuffer(size_t Capacity) :
 	m_Capacity(Capacity),
 	m_Size(0),
 	m_BegIndex(0),
@@ -4522,7 +4533,7 @@ void RingBuffer::Write(const void *Data, size_t Size)
 	}
 	// Nie zmieści się na końcu
 	else {
-		uint PartSize = m_Capacity - m_EndIndex;
+		size_t PartSize = m_Capacity - m_EndIndex;
 
 		// Przepisz na koniec ile się zmieści
 		if (PartSize)
@@ -4540,7 +4551,7 @@ size_t RingBuffer::Read(void *Out, size_t MaxLength)
 	if (MaxLength == 0) return 0;
 
 	// Ustal ile bajtąw odczytać
-	uint Length = std::min(MaxLength, m_Size);
+	size_t Length = std::min(MaxLength, m_Size);
 	// Wszystko będzie w jednym kawałku
 	if (m_Capacity - m_BegIndex >= Length)
 	{
@@ -4550,7 +4561,7 @@ size_t RingBuffer::Read(void *Out, size_t MaxLength)
 	// będzie w dwóch kawałkach
 	else
 	{
-		uint PartSize = m_Capacity - m_BegIndex;
+		size_t PartSize = m_Capacity - m_BegIndex;
 
 		// Kawałek z końca
 		if (PartSize)
@@ -4580,7 +4591,7 @@ void RingBuffer::MustRead(void *Out, size_t Length)
 	// będzie w dwóch kawałkach
 	else
 	{
-		uint PartSize = m_Capacity - m_BegIndex;
+		size_t PartSize = m_Capacity - m_BegIndex;
 
 		// Kawałek z końca
 		common_memcpy(Out, &m_Buf[m_BegIndex], PartSize);
@@ -4602,14 +4613,14 @@ size_t RingBuffer::Skip(size_t MaxLength)
 	if (MaxLength == 0) return 0;
 
 	// Ustal ile bajtąw pominąć
-	uint Length = std::min(MaxLength, m_Size);
+	size_t Length = std::min(MaxLength, m_Size);
 	// Wszystko jest w jednym kawałku
 	if (m_Capacity - m_BegIndex >= Length)
 		m_BegIndex += Length;
 	// Jest w dwóch kawałkach
 	else
 	{
-		uint PartSize = m_Capacity - m_BegIndex;
+		size_t PartSize = m_Capacity - m_BegIndex;
 		m_BegIndex = Length - PartSize;
 	}
 	m_Size -= Length;

@@ -57,30 +57,30 @@ public:
 	/** Jeœli ³añcuch za d³ugi - b³¹d. */
 	void WriteString1(const string &s);
 	void WriteString1(const char *s);
-	void WriteString1(const char *s, unsigned NumChars);
+	void WriteString1(const char *s, size_t NumChars);
 #ifdef WIN32
 	void WriteString1(const wstring &s);
 	void WriteString1(const wchar_t *s);
-	void WriteString1(const wchar_t *s, unsigned NumChars);
+	void WriteString1(const wchar_t *s, size_t NumChars);
 #endif
 	/// Zapisuje d³ugoœæ na 2B i ³añcuch
 	/** Jeœli ³añcuch za d³ugi - b³¹d. */
 	void WriteString2(const string &s);
 	void WriteString2(const char *s);
-	void WriteString2(const char *s, unsigned NumChars);
+	void WriteString2(const char *s, size_t NumChars);
 #ifdef WIN32
 	void WriteString2(const wstring &s);
 	void WriteString2(const wchar_t *s);
-	void WriteString2(const wchar_t *s, unsigned NumChars);
+	void WriteString2(const wchar_t *s, size_t NumChars);
 #endif
 	/// Zapisuje d³ugoœæ na 4B i ³añcuch
 	void WriteString4(const string &s);
 	void WriteString4(const char *s);
-	void WriteString4(const char *s, unsigned NumChars);
+	void WriteString4(const char *s, size_t NumChars);
 #ifdef WIN32
 	void WriteString4(const wstring &s);
 	void WriteString4(const wchar_t *s);
-	void WriteString4(const wchar_t *s, unsigned NumChars);
+	void WriteString4(const wchar_t *s, size_t NumChars);
 #endif
 	/// Zapisuje ³añcuch bez d³ugoœci
 	void WriteStringF(const string &s);
@@ -172,29 +172,29 @@ public:
 
 	/// Zwraca rozmiar
 	/** W oryginale: zg³asza b³¹d. */
-	virtual size_t GetSize();
+	virtual uint64 GetSize();
 	/// Zwraca pozycjê wzglêdem pocz¹tku
 	/** W oryginale: zg³asza b³¹d. */
-	virtual int GetPos();
+	virtual int64 GetPos();
 	/// Ustawia pozycjê wzglêdem pocz¹tku
 	/** W oryginale: zg³asza b³¹d.
 	\param pos Musi byæ dodatnie. */
-	virtual void SetPos(int pos);
+	virtual void SetPos(int64 pos);
 	/// Ustawia pozycjê wzglêdem bie¿¹cej
 	/** Mo¿na j¹ nadpisaæ, ale ma wersjê oryginaln¹
 	\param pos mo¿e byæ dodatnie albo ujemne. */
-	virtual void SetPosFromCurrent(int pos);
+	virtual void SetPosFromCurrent(int64 pos);
 	/// Ustawia pozycjê wzglêdem koñcowej
 	/** Mo¿na j¹ nadpisaæ, ale ma wersjê oryginaln¹.
 	Np. abu ustawiæ na ostatni znak, przesuñ do -1. */
-	virtual void SetPosFromEnd(int pos);
+	virtual void SetPosFromEnd(int64 pos);
 	/// Ustawia pozycjê na pocz¹tku
 	/** Mo¿na j¹ nadpisaæ, ale ma wersjê oryginaln¹. */
 	virtual void Rewind();
 	/// Ustawia rozmiar na podany
 	/** Po tym wywo³aniu pozycja kursora jest niezdefiniowana.
 	W oryginale: zg³asza b³¹d. */
-	virtual void SetSize(size_t Size);
+	virtual void SetSize(uint64 Size);
 	/// Obcina strumieñ od bie¿¹cej pozycji do koñca, czyli ustawia taki rozmiar jak bie¿¹ca pozycja.
 	/** Mo¿na j¹ nadpisaæ, ale ma wersjê oryginaln¹. */
 	virtual void Truncate();
@@ -216,13 +216,13 @@ public:
 	virtual size_t Read(void *Data, size_t MaxLength) { return 0; }
 	virtual bool End() { return true; }
 	virtual size_t Skip(size_t MaxLength) { return 0; }
-	virtual size_t GetSize() { return 0; }
-	virtual int GetPos() { return 0; }
-	virtual void SetPos(int pos) { }
-	virtual void SetPosFromCurrent(int pos) { }
-	virtual void SetPosFromEnd(int pos) { }
+	virtual uint64 GetSize() { return 0; }
+	virtual int64 GetPos() { return 0; }
+	virtual void SetPos(int64 pos) { }
+	virtual void SetPosFromCurrent(int64 pos) { }
+	virtual void SetPosFromEnd(int64 pos) { }
 	virtual void Rewind() { }
-	virtual void SetSize(size_t Size) { }
+	virtual void SetSize(uint64 Size) { }
 	virtual void Truncate() { }
 	virtual void Clear() { }
 };
@@ -245,7 +245,7 @@ class CharWriter
 private:
 	Stream *m_Stream;
 	std::vector<char> m_Buf;
-	uint m_BufIndex;
+	size_t m_BufIndex;
 
 	// Wykonuje Flush danych z bufora do strumienia nie sprawdzaj¹c ju¿, czy bufor nie jest pusty.
 	// Oczywiœcie zeruje te¿ BufIndex.
@@ -279,7 +279,7 @@ class WCharWriter
 private:
 	Stream *m_Stream;
 	std::vector<wchar_t> m_Buf;
-	uint m_BufIndex;
+	size_t m_BufIndex;
 
 	// Wykonuje Flush danych z bufora do strumienia nie sprawdzaj¹c ju¿, czy bufor nie jest pusty.
 	// Oczywiœcie zeruje te¿ BufIndex.
@@ -318,9 +318,9 @@ private:
 	Stream *m_Stream;
 	std::vector<char> m_Buf;
 	// Miejsce, do którego doczyta³em z bufora
-	uint m_BufBeg;
+	size_t m_BufBeg;
 	// Miejsce, do którego bufor jest wype³niony danymi
-	uint m_BufEnd;
+	size_t m_BufEnd;
 
 	// Wczytuje now¹ porcjê danych do strumienia
 	// Wywo³ywaæ tylko kiedy bufor siê skoñczy³, tzn. m_BufBeg == m_BufEnd.
@@ -404,9 +404,9 @@ private:
 	Stream *m_Stream;
 	std::vector<wchar_t> m_Buf;
 	// Miejsce, do którego doczyta³em z bufora
-	uint m_BufBeg;
+	size_t m_BufBeg;
 	// Miejsce, do którego bufor jest wype³niony danymi
-	uint m_BufEnd;
+	size_t m_BufEnd;
 
 	// Wczytuje now¹ porcjê danych do strumienia
 	// Wywo³ywaæ tylko kiedy bufor siê skoñczy³, tzn. m_BufBeg == m_BufEnd.
@@ -489,7 +489,7 @@ class MemoryStream : public SeekableStream
 private:
 	char *m_Data;
 	size_t m_Size;
-	int m_Pos;
+	ptrdiff_t m_Pos;
 	bool m_InternalAlloc;
 
 public:
@@ -503,9 +503,9 @@ public:
 	virtual size_t Read(void *Data, size_t Size);
 	virtual void MustRead(void *Data, size_t Size);
 
-	virtual size_t GetSize();
-	virtual int GetPos();
-	virtual void SetPos(int pos);
+	virtual uint64 GetSize();
+	virtual int64 GetPos();
+	virtual void SetPos(int64 pos);
 	virtual void Rewind();
 
 	char *Data() { return m_Data; }
@@ -519,7 +519,7 @@ private:
 	char *m_Data;
 	size_t m_Size;
 	size_t m_Capacity;
-	int m_Pos;
+	ptrdiff_t m_Pos;
 
 	// Zmienia capacity, a tym samym przealokowuje pamiêæ.
 	// O niczym sama nie decyduje ani niczego nie sprawdza.
@@ -532,11 +532,11 @@ public:
 	virtual void Write(const void *Data, size_t Size);
 	virtual size_t Read(void *Data, size_t Size);
 	virtual void MustRead(void *Data, size_t Size);
-	virtual size_t GetSize() { return m_Size; }
-	virtual int GetPos() { return m_Pos; }
-	virtual void SetPos(int pos) { m_Pos = pos; }
+	virtual uint64 GetSize() { return m_Size; }
+	virtual int64 GetPos() { return m_Pos; }
+	virtual void SetPos(int64 pos) { m_Pos = (ptrdiff_t)pos; }
 	virtual void Rewind() { m_Pos = 0; }
-	virtual void SetSize(size_t Size);
+	virtual void SetSize(uint64 Size);
 
 	size_t GetCapacity() { return m_Capacity; }
 	void SetCapacity(size_t Capacity);
@@ -551,7 +551,7 @@ class StringStream : public SeekableStream
 {
 private:
 	std::string *m_Data;
-	int m_Pos;
+	ptrdiff_t m_Pos;
 	bool m_InternalAlloc;
 
 public:
@@ -563,11 +563,11 @@ public:
 	virtual void Write(const void *Data, size_t Size);
 	virtual size_t Read(void *Data, size_t Size);
 	virtual void MustRead(void *Data, size_t Size);
-	virtual size_t GetSize() { return m_Data->length(); }
-	virtual int GetPos() { return m_Pos; }
-	virtual void SetPos(int pos) { m_Pos = pos; }
+	virtual uint64 GetSize() { return m_Data->length(); }
+	virtual int64 GetPos() { return m_Pos; }
+	virtual void SetPos(int64 pos) { m_Pos = (ptrdiff_t)pos; }
 	virtual void Rewind() { m_Pos = 0; }
-	virtual void SetSize(size_t Size) { m_Data->resize(Size); }
+	virtual void SetSize(uint64 Size);
 	virtual void Clear() { m_Data->clear(); }
 
 	size_t GetCapacity() { return m_Data->capacity(); }
@@ -595,8 +595,8 @@ public:
 class CounterOverlayStream : public OverlayStream
 {
 private:
-	uint32 m_WriteCounter;
-	uint32 m_ReadCounter;
+	uint64 m_WriteCounter;
+	uint64 m_ReadCounter;
 
 public:
 	CounterOverlayStream(Stream *a_Stream);
@@ -605,10 +605,10 @@ public:
 	virtual void Write(const void *Data, size_t Size);
 	virtual size_t Read(void *Data, size_t Size);
 	virtual void MustRead(void *Data, size_t Size);
-	virtual void Flush();
+    virtual void Flush() { GetStream()->Flush(); }
 
-	uint32 GetWriteCounter() { return m_WriteCounter; }
-	uint32 GetReadCounter() { return m_ReadCounter; }
+	uint64 GetWriteCounter() { return m_WriteCounter; }
+	uint64 GetReadCounter() { return m_ReadCounter; }
 	void ResetWriteCounter() { m_WriteCounter = 0; }
 	void ResetReadCounter() { m_ReadCounter = 0; }
 };
@@ -621,11 +621,11 @@ class LimitOverlayStream : public OverlayStream
 private:
 	// Przechowuj¹ aktualny limit, jaki pozosta³.
 	// S¹ zmniejszane przez funkcje odczytuj¹ce i zapisuj¹ce.
-	uint32 m_WriteLimit;
-	uint32 m_ReadLimit;
+	uint64 m_WriteLimit;
+	uint64 m_ReadLimit;
 
 public:
-	LimitOverlayStream(Stream *a_Stream, uint32 WriteLimit, uint32 ReadLimit);
+	LimitOverlayStream(Stream *a_Stream, uint64 WriteLimit, uint64 ReadLimit);
 
 	// ====== Implementacja Stream ======
 	virtual void Write(const void *Data, size_t Size);
@@ -633,15 +633,15 @@ public:
 	virtual void Flush();
 
 	/// Ustawia nowy limit
-	void SetWriteLimit(uint32 WriteLimit);
+	void SetWriteLimit(uint64 WriteLimit);
 	/// Ustawia nowy limit
-	void SetReadLimit(uint32 ReadLimit);
+	void SetReadLimit(uint64 ReadLimit);
 };
 
 class BufferingStream : public OverlayStream
 {
 public:
-	BufferingStream(Stream *stream, uint readBufSize, uint writeBufSize);
+	BufferingStream(Stream *stream, size_t readBufSize, size_t writeBufSize);
 	~BufferingStream();
 
 	// ====== Implementacja Stream ======
@@ -655,9 +655,9 @@ public:
 	void WriteChar(char ch) { if (m_WriteBufIndex == m_WriteBufSize) DoFlush(); m_WriteBuf[m_WriteBufIndex++] = ch; }
 
 private:
-	uint m_ReadBufSize, m_WriteBufSize;
+	size_t m_ReadBufSize, m_WriteBufSize;
 	std::vector<char> m_ReadBuf, m_WriteBuf;
-	uint m_ReadBufBeg, m_ReadBufEnd, m_WriteBufIndex;
+	size_t m_ReadBufBeg, m_ReadBufEnd, m_WriteBufIndex;
 
 	void DoFlush();
 	// Wczytuje now¹ porcjê danych do bufora
@@ -675,7 +675,7 @@ private:
 
 public:
 	MultiWriterStream() { }
-	MultiWriterStream(Stream *a_Streams[], uint StreamCount);
+	MultiWriterStream(Stream *a_Streams[], size_t StreamCount);
 
 	/// Dodaje strumieñ do listy.
 	void AddStream(Stream *a_Stream) { m_Streams.push_back(a_Stream); }
@@ -886,14 +886,14 @@ public:
 	// ======== Statyczne ========
 	/// Znajduje d³ugoœæ zakodowanych danych i zwraca true.
 	/** Jeœli nie uda³o siê ustaliæ d³ugoœci, zwraca false. */
-	static bool DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
-	static bool DecodeLength(uint *OutLength, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static bool DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static bool DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
 	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca MAXUINT32 (0xFFFFFFFF).
 	\param[out] OutData musi byæ tablic¹ zaalokowan¹ przynajmniej na rozmiar ustalony wywo³aniem DecodeLength()
 	lub jeœli nie chcesz wywo³ywaæ DecodeLength(), na d³ugoœæ równ¹ d³ugoœci danych wejœciowych / 8. */
 	static size_t Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
-	static size_t Decode(void *OutData, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static size_t Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 };
 
 /// Koduje strumieñ binarnych danych wejœciowych na zapis szesnastkowy (po 2 znaki na ka¿dy bajt).
@@ -944,18 +944,18 @@ public:
 	// ======== Statyczne ========
 	/// Znajduje d³ugoœæ zakodowanych danych i zwraca true.
 	/** Jeœli nie uda³o siê ustaliæ d³ugoœci, zwraca false. */
-	static bool DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
-	static bool DecodeLength(uint *OutLength, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static bool DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static bool DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
 	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca MAXUINT32 (0xFFFFFFFF).
 	\param[out] OutData musi byæ tablic¹ zaalokowan¹ przynajmniej na rozmiar ustalony wywo³aniem DecodeLength
 	lub jeœli nie chcesz wywo³ywaæ DecodeLength, na d³ugoœæ równ¹ d³ugoœci danych wejœciowych / 2. */
 	static size_t Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
-	static size_t Decode(void *OutData, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static size_t Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 #ifdef WIN32
 	static size_t Decode(void *OutData, const wstring &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
-	static size_t Decode(void *OutData, const wchar_t *s, uint s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static size_t Decode(void *OutData, const wchar_t *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 #endif
 };
 
@@ -971,7 +971,7 @@ private:
 	CharWriter m_CharWriter;
 	bool m_Finished; // Czy dane zakoñczone
 	uint8 m_Buf[2];
-	uint m_BufIndex;
+	size_t m_BufIndex;
 
 	void DoFinish();
 
@@ -1013,7 +1013,7 @@ private:
 	// Bajty s¹ w kolejnoœci: [2][1][0]. Jeœli jest mniej, to [1][0][-] albo [0][-][-].
 	uint8 m_Buf[3];
 	// Liczba zdekodowanych bajtów w buforze
-	uint m_BufLength;
+	size_t m_BufLength;
 	// True, jeœli sparsowano koñcówkê z '='
 	bool m_Finished;
 
@@ -1035,13 +1035,13 @@ public:
 	// ======== Statyczne ========
 	/// Znajduje d³ugoœæ zakodowanych danych i zwraca true.
 	/** Jeœli nie uda³o siê ustaliæ d³ugoœci, zwraca false. */
-	static bool DecodeLength(uint *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
-	static bool DecodeLength(uint *OutLength, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static bool DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static bool DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
 	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca MAXUINT32 (0xFFFFFFFF).
 	\param[out] OutData musi byæ tablic¹ zaalokowan¹ przynajmniej na rozmiar ustalony wywo³aniem DecodeLength(). */
 	static size_t Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
-	static size_t Decode(void *OutData, const char *s, uint s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
+	static size_t Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 };
 
 /// Bufor ko³owy
@@ -1053,13 +1053,13 @@ przypadku przepe³nienia przy zapisie rzuca wyj¹tek.
 class RingBuffer : public Stream
 {
 public:
-	RingBuffer(uint Capacity);
+	RingBuffer(size_t Capacity);
 	virtual ~RingBuffer();
 
 	/// Zwraca liczbê bajtów w buforze
-	uint GetSize() { return m_Size; }
+	uint64 GetSize() { return m_Size; }
 	/// Zwraca pojemnoœæ bufora
-	uint GetCapacity() { return m_Capacity; }
+	size_t GetCapacity() { return m_Capacity; }
 	/// Zwraca true, jeœli bufor jest pusty
 	bool IsEmpty() { return GetSize() == 0; }
 	/// Zwraca true, jeœli bufor jest pe³ny
@@ -1073,11 +1073,11 @@ public:
 	virtual size_t Skip(size_t MaxLength);
 
 private:
-	uint m_Capacity;
-	uint m_Size;
+	size_t m_Capacity;
+	size_t m_Size;
 	std::vector<char> m_Buf;
-	uint m_BegIndex;
-	uint m_EndIndex;
+	size_t m_BegIndex;
+	size_t m_EndIndex;
 };
 
 

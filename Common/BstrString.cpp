@@ -49,7 +49,8 @@ BstrString::BstrString(const char *str)
 	bool ok = CharsToUnicode_CalcBufLen(bufLen, str, strLen, CP_ACP);
 	if (!ok) { Bstr = NULL; return; }
 
-	Bstr = SysAllocStringLen(NULL, bufLen);
+    assert(bufLen < UINT_MAX);
+	Bstr = SysAllocStringLen(NULL, (UINT)bufLen);
 	ConvertCharsToUnicode(Bstr, bufLen, str, strLen, CP_ACP);
 }
 
@@ -62,7 +63,8 @@ BstrString::BstrString(const char *str, size_t strLen)
 	bool ok = CharsToUnicode_CalcBufLen(bufLen, str, strLen, CP_ACP);
 	if (!ok) { Bstr = NULL; return; }
 
-	Bstr = SysAllocStringLen(NULL, bufLen);
+    assert(bufLen < UINT_MAX);
+	Bstr = SysAllocStringLen(NULL, (UINT)bufLen);
 	ConvertCharsToUnicode(Bstr, bufLen, str, strLen, CP_ACP);
 }
 
@@ -81,7 +83,10 @@ BstrString::BstrString(const wchar_t *wcs, size_t wcsLen)
 	if (wcs == NULL)
 		Bstr = NULL;
 	else
-		Bstr = SysAllocStringLen(wcs, wcsLen);
+    {
+        assert(wcsLen < UINT_MAX);
+		Bstr = SysAllocStringLen(wcs, (UINT)wcsLen);
+    }
 }
 
 BstrString::BstrString(const std::string &s)
@@ -91,7 +96,8 @@ BstrString::BstrString(const std::string &s)
 	bool ok = CharsToUnicode_CalcBufLen(bufLen, s.data(), strLen, CP_ACP);
 	if (!ok) { Bstr = NULL; return; }
 
-	Bstr = SysAllocStringLen(NULL, bufLen);
+    assert(bufLen < UINT_MAX);
+	Bstr = SysAllocStringLen(NULL, (UINT)bufLen);
 	ConvertCharsToUnicode(Bstr, bufLen, s.data(), strLen, CP_ACP);
 }
 
@@ -107,7 +113,7 @@ BstrString::BstrString(BSTR bstr)
 {
 }
 
-BstrString::BstrString(size_t length)
+BstrString::BstrString(UINT length)
 : TmpStr(NULL)
 {
 	Bstr = SysAllocStringLen(NULL, length);
@@ -133,7 +139,10 @@ void BstrString::assign(const BstrString &bstr)
 		if (Bstr == NULL)
 			Bstr = SysAllocString(bstr.Bstr);
 		else
-			assert( SysReAllocString(&Bstr, bstr.Bstr) == TRUE );
+        {
+            INT r = SysReAllocString(&Bstr, bstr.Bstr);
+			assert(r == TRUE);
+        }
 	}
 }
 
@@ -160,7 +169,8 @@ void BstrString::assign(const char *str, size_t strLen)
 		bool ok = CharsToUnicode_CalcBufLen(bufLen, str, strLen, CP_ACP);
 		if (ok)
 		{
-			Bstr = SysAllocStringLen(NULL, bufLen);
+            assert(bufLen < UINT_MAX);
+			Bstr = SysAllocStringLen(NULL, (UINT)bufLen);
 			ConvertCharsToUnicode(Bstr, bufLen, str, strLen, CP_ACP);
 		}
 		else
@@ -180,7 +190,10 @@ void BstrString::assign(const wchar_t *wcs)
 		if (Bstr == NULL)
 			Bstr = SysAllocString(wcs);
 		else
-			assert( SysReAllocString(&Bstr, wcs) == TRUE );
+        {
+            INT r = SysReAllocString(&Bstr, wcs);
+			assert(r == TRUE);
+        }
 	}
 }
 
@@ -193,21 +206,25 @@ void BstrString::assign(const wchar_t *wcs, size_t wcsLen)
 	}
 	else
 	{
+        assert(wcsLen < UINT_MAX);
 		if (Bstr == NULL)
-			Bstr = SysAllocStringLen(wcs, wcsLen);
+			Bstr = SysAllocStringLen(wcs, (UINT)wcsLen);
 		else
-			assert( SysReAllocStringLen(&Bstr, wcs, wcsLen) == TRUE );
+        {
+            INT r = SysReAllocStringLen(&Bstr, wcs, (UINT)wcsLen);
+			assert(r == TRUE);
+        }
 	}
 }
 
 void BstrString::assign(const std::string &s)
 {
-	assign(s.c_str());
+	assign(s.c_str(), s.length());
 }
 
 void BstrString::assign(const std::wstring &s)
 {
-	assign(s.c_str());
+	assign(s.c_str(), s.length());
 }
 
 void BstrString::assign(BSTR bstr)
@@ -226,8 +243,8 @@ void BstrString::append(const BstrString &bstr)
 		assign(bstr);
 	else
 	{
-		size_t myLength = length(), bstrLength = bstr.length();
-		size_t newLength = myLength + bstrLength;
+		UINT myLength = length(), bstrLength = bstr.length();
+		UINT newLength = myLength + bstrLength;
 		BSTR newBstr = SysAllocStringLen(Bstr, newLength);
 		common_memcpy(newBstr + myLength, bstr.Bstr, bstrLength * sizeof(OLECHAR));
 		Bstr = newBstr;
@@ -249,7 +266,9 @@ void BstrString::append(const char *str, size_t strLen)
 	bool ok = CharsToUnicode_CalcBufLen(appLen, str, strLen, CP_ACP);
 	if (!ok) return;
 	size_t oldLen = length();
-	resize(oldLen + appLen);
+    size_t newLen = oldLen + appLen;
+    assert(newLen <= UINT_MAX);
+	resize((UINT)newLen);
 	ConvertCharsToUnicode(Bstr + oldLen, appLen, str, strLen, CP_ACP);
 }
 
@@ -261,8 +280,10 @@ void BstrString::append(const wchar_t *wcs)
 		assign(wcs);
 	else
 	{
-		size_t myLen = length(), wcsLen = wcslen(wcs);
-		size_t newLength = myLen + wcsLen;
+		UINT myLen = length();
+        size_t wcsLen = wcslen(wcs);
+        assert(wcsLen + myLen <= UINT_MAX);
+       	UINT newLength = myLen + (UINT)wcsLen;
 		BSTR newBstr = SysAllocStringLen(Bstr, newLength);
 		common_memcpy(newBstr + myLen, wcs, wcsLen * sizeof(OLECHAR));
 		Bstr = newBstr;
@@ -277,8 +298,9 @@ void BstrString::append(const wchar_t *wcs, size_t wcsLen)
 		assign(wcs);
 	else
 	{
-		size_t myLen = length();
-		size_t newLength = myLen + wcsLen;
+		UINT myLen = length();
+        assert(myLen + wcsLen <= UINT_MAX);
+		UINT newLength = myLen + (UINT)wcsLen;
 		BSTR newBstr = SysAllocStringLen(Bstr, newLength);
 		common_memcpy(newBstr + myLen, wcs, wcsLen * sizeof(OLECHAR));
 		Bstr = newBstr;
@@ -287,17 +309,17 @@ void BstrString::append(const wchar_t *wcs, size_t wcsLen)
 
 void BstrString::append(const std::string &s)
 {
-	append(s.c_str());
+	append(s.c_str(), s.length());
 }
 
 void BstrString::append(const std::wstring &s)
 {
-	append(s.c_str());
+	append(s.c_str(), s.length());
 }
 
 void BstrString::append(BSTR bstr)
 {
-	size_t bstrLen = (bstr == NULL) ? 0 : SysStringLen(bstr);
+	UINT bstrLen = (bstr == NULL) ? 0 : SysStringLen(bstr);
 	if (bstrLen == 0)
 		return;
 	else if (empty())
@@ -307,8 +329,8 @@ void BstrString::append(BSTR bstr)
 	}
 	else
 	{
-		size_t myLen = length();
-		size_t newLength = myLen + bstrLen;
+		UINT myLen = length();
+		UINT newLength = myLen + bstrLen;
 		BSTR newBstr = SysAllocStringLen(Bstr, newLength);
 		common_memcpy(newBstr + myLen, bstr, bstrLen * sizeof(OLECHAR));
 		Bstr = newBstr;
@@ -323,8 +345,8 @@ BstrString BstrString::operator + (const BstrString &bstr) const
 		return BstrString(*this);
 	else
 	{
-		size_t myLen = length(), bstrLen = bstr.length();
-		size_t newLen = myLen + bstrLen;
+		UINT myLen = length(), bstrLen = bstr.length();
+		UINT newLen = myLen + bstrLen;
 		BSTR newBstr = SysAllocStringLen(Bstr, newLen);
 		common_memcpy(newBstr + myLen, bstr.Bstr, bstrLen * sizeof(OLECHAR));
 		return BstrString(newBstr);
@@ -381,7 +403,7 @@ bool BstrString::ConvertToStr(char *outBuf, size_t bufLen) const
 	}
 	else
 	{
-		size_t myLen = length();
+		UINT myLen = length();
 		bool ok = ConvertUnicodeToChars(outBuf, bufLen, Bstr, myLen, CP_ACP);
 		if (bufLen > myLen)
 			outBuf[myLen] = '\0';
@@ -389,24 +411,24 @@ bool BstrString::ConvertToStr(char *outBuf, size_t bufLen) const
 	}
 }
 
-size_t BstrString::length() const
+UINT BstrString::length() const
 {
 	return SysStringLen(Bstr); // Mo¿na jej podaæ NULL.
 }
 
-void BstrString::resize(size_t newLength)
+void BstrString::resize(UINT newLength)
 {
 	if (newLength == length()) return;
 
 	BSTR newBstr = SysAllocStringLen(NULL, newLength);
-	size_t lengthToCopy = std::min(newLength, length());
+	UINT lengthToCopy = std::min(newLength, length());
 	if (lengthToCopy > 0)
 		common_memcpy(newBstr, Bstr, lengthToCopy * sizeof(OLECHAR));
 	SysFreeString(Bstr);
 	Bstr = newBstr;
 }
 
-BstrString BstrString::substr(size_t off, size_t count) const
+BstrString BstrString::substr(UINT off, UINT count) const
 {
 	count = std::min(count, length() - off);
 

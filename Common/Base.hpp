@@ -28,6 +28,7 @@ Header: Base.hpp */
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <cstdint>
 
 #ifdef WIN32
 	/// This is in case the user includes <Windows.h> somewhere below.
@@ -176,18 +177,21 @@ automatically deals with this. GNU compiler requires using special syntax:
 typedef std::vector<tstring> STRING_VECTOR;
 
 /// If pointer is not null, frees and zeroes it
-#define SAFE_DELETE(x) { delete (x); (x) = 0; }
+#define SAFE_DELETE(x) do { delete (x); (x) = 0; } while(false)
 /// If pointer is not null, frees it as and array and zeroes it
-#define SAFE_DELARR(x) { delete [] (x); (x) = 0; }
+#define SAFE_DELARR(x) do { delete [] (x); (x) = 0; } while(false)
 /// If pointer is not null, calls Release() and zeroes it
-#define SAFE_RELEASE(x) { if (x) { (x)->Release(); (x) = 0; } }
+#define SAFE_RELEASE(x) do { if (x) { (x)->Release(); (x) = 0; } } while(false)
 
 #ifdef WIN32
+    namespace Internal {
+        void DebugBreak();
+    }
 	/// Assert that ALWAYS breaks the program when false (in debugger - hits a breakpoint, without debugger - crashes the program).
-	#define	ASSERT_INT3(x) if ((x) == 0) { __asm { int 3 } }
+	#define	ASSERT_INT3(x) if ((x) == 0) { Internal::DebugBreak(); }
 	/// Assert that in Debug configuration breaks the program when false (in debugger - hits a breakpoint, without debugger - crashes the program).
 	#ifdef _DEBUG
-		#define	ASSERT_INT3_DEBUG(x) if ((x) == 0) { __asm { int 3 } }
+		#define	ASSERT_INT3_DEBUG(x) if ((x) == 0) { Internal::DebugBreak(); }
 	#else
 		#define ASSERT_INT3_DEBUG(x) { }
 	#endif
@@ -365,10 +369,10 @@ void InsertionSort(Iterator b, Iterator e, Compare Comp)
 template <typename IterT, typename KeyT, typename CmpT>
 IterT FirstNotLessIndex(IterT beg, IterT end, const KeyT &key, CmpT cmp)
 {
-	unsigned down=0, up=(end-beg);
+	size_t down=0, up=(end-beg);
 	while(down<up)
 	{
-		unsigned mid=(down+up)/2;
+		size_t mid=(down+up)/2;
 		int res=cmp(key,*(beg+mid));
 		if(res>0)
 			down=mid+1;
@@ -414,13 +418,13 @@ inline void SwapEndian64(void *p)
 		((u & 0x00000000ff000000ull) <<  8) | ((u & 0x000000ff00000000ull) >>  8);
 }
 
-void SwapEndian16_Array(void *p, uint count);
-void SwapEndian32_Array(void *p, uint count);
-void SwapEndian64_Array(void *p, uint count);
+void SwapEndian16_Array(void *p, size_t count);
+void SwapEndian32_Array(void *p, size_t count);
+void SwapEndian64_Array(void *p, size_t count);
 
-void SwapEndian16_Data(void *p, uint count, int stepBytes);
-void SwapEndian32_Data(void *p, uint count, int stepBytes);
-void SwapEndian64_Data(void *p, uint count, int stepBytes);
+void SwapEndian16_Data(void *p, size_t count, ptrdiff_t stepBytes);
+void SwapEndian32_Data(void *p, size_t count, ptrdiff_t stepBytes);
+void SwapEndian64_Data(void *p, size_t count, ptrdiff_t stepBytes);
 
 inline void SwapEndian(bool   &v) { }
 inline void SwapEndian(uint8  &v) { }
@@ -514,7 +518,7 @@ public:
 	
 	T & operator * () const { assert(m_Ptr != NULL); return *m_Ptr; }
 	T * operator -> () const { assert(m_Ptr != NULL); return m_Ptr; }
-	T & operator [] (uint i) const { return m_Ptr[i]; }
+	T & operator [] (size_t i) const { return m_Ptr[i]; }
 
 	inline friend bool operator == (const scoped_ptr &lhs, const T *rhs) { return lhs.m_Ptr == rhs; }
 	inline friend bool operator == (const T *lhs, const scoped_ptr &rhs) { return lhs == rhs.m_Ptr; }
@@ -554,7 +558,7 @@ public:
 
 	T & operator * () const { assert(m_Ptr != NULL); return *m_Ptr; }
 	T * operator -> () const { assert(m_Ptr != NULL); return m_Ptr; }
-	T & operator [] (uint i) const { return m_Ptr[i]; }
+	T & operator [] (size_t i) const { return m_Ptr[i]; }
 
 	inline friend bool operator == (const shared_ptr &lhs, const T *rhs) { return lhs.m_Ptr == rhs; }
 	inline friend bool operator == (const T *lhs, const shared_ptr &rhs) { return lhs == rhs.m_Ptr; }
@@ -846,7 +850,7 @@ template <typename T> inline T sqr(T v) { return v * v; }
 
 /// Returns sign of given integer number: -1, 0, or 1
 /** Use with signed integer numbers: int8, int16, int32, int64. */
-template <typename T> inline T sign(T v) { return (v > 0) - (v < 0); }
+template <typename T> inline T sign(T v) { return (v > (T)0) - (v < (T)0); }
 
 /// Merges bits of two numbers according to mask, that is selects these bits from A that have 0 in mask and these bits from B that have 1 in mask.
 template <typename T> inline T MergeBits(T a, T b, T Mask) { return a ^ ((a ^ b) & Mask); }
@@ -1481,8 +1485,8 @@ inline bool CharIsWhitespace_f(tchar ch)
 /// Szuka w ³añcuchu Str pod³añcucha SubStr, bez rozró¿niania wielkoœci liter.
 /** Zwraca indeks/wskaŸnik do pierwszego znaku pierwszego znalezionego wyst¹pienia wewn¹trz str.
 Jesli nie znaleziono, zwraca MAXUINT32. */
-size_t StrStrI(const tstring &Str, const tstring &SubStr, size_t Count = 0xffffffff);
-const tchar * StrStrI(const tchar *Str, const tchar *SubStr, size_t Count = 0xffffffff);
+size_t StrStrI(const tstring &Str, const tstring &SubStr, size_t Count = SIZE_MAX);
+const tchar * StrStrI(const tchar *Str, const tchar *SubStr, size_t Count = SIZE_MAX);
 /// Odwraca ³añcuch w miejscu
 void ReverseString(tstring *s);
 /// Obcina bia³e znaki z pocz¹tku i koñca ³añcucha w miejscu
@@ -1554,8 +1558,8 @@ size_t SubstringCount(const tstring &str, const tstring &substr);
 
 /// Porównuje dwa ³añcuchy bez rozró¿niania wielkoœci liter.
 /** Zwraca liczbê ujemn¹, 0 lub dodatni¹ zale¿nie od wyniku porównania. */
-int StrCmpI(const tstring &s1, const tstring &s2, size_t Count = 0xffffffff);
-int StrCmpI(const tchar *s1, const tchar *s2, size_t Count = 0xffffffff);
+int StrCmpI(const tstring &s1, const tstring &s2, size_t Count = SIZE_MAX);
+int StrCmpI(const tchar *s1, const tchar *s2, size_t Count = SIZE_MAX);
 /// Zwraca true, jeœli podfragmenty podanych ³añcuchów s¹ identyczne
 int SubStrCmp(const tstring &s1, size_t off1, const tstring &s2, size_t off2, size_t length);
 /// Zwraca true, jeœli podfragmenty podanych ³añcuchów s¹ identyczne nie rozró¿niaj¹c wielkoœci liter
@@ -1672,13 +1676,13 @@ inline void ClearStr(char *s) { assert(s); *s = '\0'; }
 /// Szuka w ³añcuchu str pod³añcucha substr, bez rozró¿niania wielkoœci liter.
 /** Zwraca wskaŸnik do pierwszego znaku pierwszego znalezionego wyst¹pienia wewn¹trz str.
 Jesli nie znaleziono, zwraca NULL. */
-const tchar * strnistr(const tchar *str, const tchar *substr, size_t count = MAXUINT32);
+const tchar * strnistr(const tchar *str, const tchar *substr, size_t count = SIZE_MAX);
 // Zwraca true, jeœli ³añcuch str zaczyna siê od ³añcucha substr
 bool StrBegins(const tchar *str, const tchar *substr, bool caseSensitive);
 /// Zwraca true, jeœli ³añcuch str koñczy siê na ³añcuch substr
 bool StrEnds(const tchar *str, const tchar *substr, bool caseSensitive);
 /// Usuwa podany zakres znaków z ³añcucha. Jest bezpieczny na przekroczenie zakresu.
-void StrErase(tchar *str, size_t off, size_t count = MAXUINT32);
+void StrErase(tchar *str, size_t off, size_t count = SIZE_MAX);
 /// Wstawia podany pod³añcuch do ³añcucha w podane miejsce.
 void StrInsert(tchar *str, size_t strCapacity, const tchar *newStr, size_t off, size_t count);
 void StrInsert(tchar *str, size_t strCapacity, const tchar *newStr, size_t off);
@@ -1710,10 +1714,10 @@ Funkcje zwracaj¹ false w przypadku niepowodzenia konwersji. Wówczas Out jest pus
 //@{
 
 bool ConvertUnicodeToChars(string *Out, const wstring &S, unsigned CodePage);
-bool ConvertUnicodeToChars(string *Out, const wchar_t *S, unsigned NumChars, unsigned CodePage);
+bool ConvertUnicodeToChars(string *Out, const wchar_t *S, size_t NumChars, unsigned CodePage);
 
 bool ConvertCharsToUnicode(wstring *Out, const string &S, unsigned CodePage);
-bool ConvertCharsToUnicode(wstring *Out, const char *S, unsigned NumChars, unsigned CodePage);	
+bool ConvertCharsToUnicode(wstring *Out, const char *S, size_t NumChars, unsigned CodePage);	
 
 /// Oblicza liczbê znaków (nie bajtów!) potrzebn¹ przy konwersji miêdzy Unicode i ANSI.
 /** B³¹d: Zwraca false, outLen ustawia na 0. */
@@ -2083,13 +2087,13 @@ int StrToInt(T *Number, const tstring &str, unsigned Base = 10)
 template <typename T> inline tstring IntToStrR (T x, int base = 10, bool UpperCase = true) { tstring r; IntToStr<T> (&r, x, base, UpperCase); return r; }
 template <typename T> inline tstring UintToStrR(T x, int base = 10, bool UpperCase = true) { tstring r; UintToStr<T>(&r, x, base, UpperCase); return r; }
 
-inline void Size_tToStr(tstring *Out, size_t x, size_t Base = 10, bool UpperCase = true) { UintToStr(Out, (uint32)x, Base, UpperCase); }
-inline tstring Size_tToStrR(size_t x, size_t Base = 10, bool UpperCase = true) { tstring R; Size_tToStr(&R, x, Base, UpperCase); return R; }
+inline void Size_tToStr(tstring *Out, size_t x, uint Base = 10, bool UpperCase = true) { UintToStr<size_t>(Out, x, Base, UpperCase); }
+inline tstring Size_tToStrR(size_t x, uint Base = 10, bool UpperCase = true) { tstring R; Size_tToStr(&R, x, Base, UpperCase); return R; }
 
 /// Konwersja liczby na ³añcuch o minimalnej podanej d³ugoœci.
 /** Zostanie do tej d³ugoœci uzupe³niony zerami. */
 template <typename T>
-void UintToStr2(tstring *Out, T x, unsigned Length, int base = 10)
+void UintToStr2(tstring *Out, T x, size_t Length, int base = 10)
 {
 	tstring Tmp;
 	UintToStr(&Tmp, x, base);
@@ -2105,7 +2109,7 @@ void UintToStr2(tstring *Out, T x, unsigned Length, int base = 10)
 	}
 }
 template <typename T>
-void IntToStr2(tstring *Out, T x, unsigned Length, int base = 10)
+void IntToStr2(tstring *Out, T x, size_t Length, int base = 10)
 {
 	tstring Tmp;
 	IntToStr<T>(&Tmp, x, base);
@@ -2132,8 +2136,8 @@ void IntToStr2(tstring *Out, T x, unsigned Length, int base = 10)
 	}
 }
 
-template <typename T> tstring UintToStr2R(T x, unsigned Length, int Base = 10) { tstring R; UintToStr2<T>(&R, x, Length, Base); return R; }
-template <typename T> tstring IntToStr2R (T x, unsigned Length, int Base = 10) { tstring R; IntToStr2<T> (&R, x, Length, Base); return R; }
+template <typename T> tstring UintToStr2R(T x, size_t Length, int Base = 10) { tstring R; UintToStr2<T>(&R, x, Length, Base); return R; }
+template <typename T> tstring IntToStr2R (T x, size_t Length, int Base = 10) { tstring R; IntToStr2<T> (&R, x, Length, Base); return R; }
 
 /// Konwertuje znak na ³añcuch, jako ¿e automatycznie to siê niestety nie odbywa
 inline void CharToStr(tstring *Out, tchar ch) { Out->clear(); *Out += ch; }

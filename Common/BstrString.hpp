@@ -48,7 +48,7 @@ public:
 	BstrString(const std::string &s);
 	BstrString(const std::wstring &s);
 	BstrString(BSTR bstr); ///< Takes ownership of existing BSTR.
-	BstrString(size_t length); ///< Allocates, but doesn't initialize.
+	BstrString(UINT length); ///< Allocates, but doesn't initialize.
 	~BstrString();
 
 	void assign(const BstrString &bstr);
@@ -107,12 +107,12 @@ public:
 	/// Converts the string to ANSI string. Appends trailing zero if there is enought room for it.
 	bool ConvertToStr(char *outBuf, size_t bufLen) const;
 
-	size_t length() const;
-	size_t size() const { return length(); }
+	UINT length() const;
+	UINT size() const { return length(); }
 	bool empty() const { return length() == 0; }
-	void resize(size_t newLength);
+	void resize(UINT newLength);
 
-	BstrString substr(size_t off = 0, size_t count = 0xFFFFFFFF) const;
+	BstrString substr(UINT off = 0, UINT count = UINT_MAX) const;
 
 private:
 	BSTR Bstr;

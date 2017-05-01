@@ -2296,9 +2296,6 @@ inline float LineDistance(const LINE2D &L1, const LINE2D &L2) {
 /** Jeœli proste nie przecinaj¹ siê, tylko s¹ równoleg³e lub siê pokrywan¹, to nie oblicza tylko zwraca false. */
 bool LinesIntersection(VEC2 *Out, const LINE2D &L1, const LINE2D &L2);
 
-/// Zwraca true, jeœli podane trzy punkty le¿¹ na jednej prostej
-bool PointsColinear(const VEC2 &p1, const VEC2 &p2, const VEC2 &p3);
-
 /// Skalowanie prostej
 inline void Mul(LINE2D *Out, const LINE2D &p, float s) {
 	Out->a = p.a * s; Out->b = p.b * s; Out->c = p.c * s;
@@ -3668,8 +3665,7 @@ float ClosestPointSegmentSegment(
 	float &OutSeg1_t, float &OutSeg2_t, VEC3 &OutSeg1_pt, VEC3 &OutSeg2_pt);
 /// Zwraca kwadrat odleg³oœci punktu od prostej
 /** \param LineDir   musi byæ znormalizowane! */
-float PointToLineDistanceSq(const VEC2 &P, const VEC2 &LineOrig, const VEC2 &LineDir);
-float PointToLineDistanceSq(const VEC3 &P, const VEC3 &LineOrig, const VEC3 &LineDir);
+float PointToLineDistance(const VEC3 &P, const VEC3 &LineOrig, const VEC3 &LineDir);
 /// Zwraca kwadrat odleg³oœci punktu od odcinka
 float PointToSegmentDistanceSq(const VEC2 &p, const VEC2 &segment_p1, const VEC2 &segment_p2);
 /// Zwraca kwadrat odleg³oœci punktu od odcinka
@@ -3800,7 +3796,7 @@ bool RayToCylinder(
 /// Czy punkt le¿y wewn¹trz wieloœciana wypuk³ego.
 /** P³aszczyzny wieloœcianu maj¹ mieæ wektory normalne zwrócone do wewn¹trz. */
 bool PointInConvexPolyhedron(const VEC3 &Point, const PLANE PolyhedronPlanes[], size_t PolyhedronPlaneCount);
-bool PointInConvexPolyhedron(const VEC3 &Point, const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, int PolyhedronPlaneStride);
+bool PointInConvexPolyhedron(const VEC3 &Point, const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, ptrdiff_t PolyhedronPlaneStride);
 /// Kolizja promienia z wieloœcianem wypuk³ym.
 /** P³aszczyzny wieloœcianu maj¹ mieæ wektory normalne zwrócone do wewn¹trz.
 Ta funkcja testuje tylko kolizjê pó³prostej.
@@ -3812,7 +3808,7 @@ bool RayToConvexPolyhedron(
 	float *OutBegT, float *OutEndT);
 bool RayToConvexPolyhedron(
 	const VEC3 &RayOrig, const VEC3 &RayDir,
-	const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, int PolyhedronPlaneStride,
+	const void *PolyhedronPlanes, size_t PolyhedronPlaneCount, ptrdiff_t PolyhedronPlaneStride,
 	float *OutBegT, float *OutEndT);
 /// Zwraca true jeœli kula koliduje z prostopad³oœcianem (tak¿e jeœli jest w jego œrodku)
 bool SphereToBox(const VEC3 &SphereCenter, float SphereRadius, const BOX &Box);
@@ -3935,12 +3931,12 @@ bool CapsuleToCapsule(
 /// Sprawdza, czy punkt le¿y wewn¹trz wypuk³ego wielok¹ta 2D.
 /** Wielok¹t musi mieæ wierzcho³ki zorientowane CW. */
 bool PointInConvexPolygon(const VEC2 &Point, const VEC2 PolygonPoints[], size_t PolygonPointCount);
-bool PointInConvexPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride);
+bool PointInConvexPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride);
 /// Zwraca true, jeœli podany punkt le¿y wewn¹trz podanego wielok¹ta (2D).
 /** Wielok¹t mo¿e mieæ dowolny kszta³t, tak¿e niewypuk³y, a nawet sam siê przecinaæ.
 Jego wierzcho³ki mog¹ biec w dowolnym kierunku. */
 bool PointInPolygon(const VEC2 &Point, const VEC2 PolygonPoints[], size_t PolygonPointCount);
-bool PointInPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride);
+bool PointInPolygon(const VEC2 &Point, const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride);
 /// Zwraca true, jeœli promieñ przecina wielok¹t wypuk³y 3D i wtedy przez OutT zwraca parametr dla promienia.
 /** Wierzcho³ki wielok¹ta musz¹ le¿eæ w jednej p³aszczyŸnie.
 Jeœli kolizja jest od ty³u pocz¹tku promienia, zwraca true i OutT ujemne.
@@ -3954,7 +3950,7 @@ bool RayToConvexPolygon(
 	bool BackfaceCulling, float *OutT, VEC3 *OutPoint, const PLANE *PolygonPlane = NULL);
 bool RayToConvexPolygon(
 	const VEC3 &RayOrig, const VEC3 &RayDir,
-	const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride,
+	const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride,
 	bool BackfaceCulling, float *OutT, VEC3 *OutPoint, const PLANE *PolygonPlane = NULL);
 /// Zwraca true, jeœli promieñ przecina wielok¹t 3D i wtedy przez OutT zwraca parametr dla promienia.
 /** Wierzcho³ki wielok¹ta musz¹ le¿eæ w jednej p³aszczyŸnie.
@@ -3969,7 +3965,7 @@ bool RayToPolygon(
 	bool BackfaceCulling, float *OutT, VEC3 *OutPoint, const PLANE *PolygonPlane = NULL);
 bool RayToPolygon(
 	const VEC3 &RayOrig, const VEC3 &RayDir,
-	const void *PolygonPoints, size_t PolygonPointCount, int PolygonPointStride,
+	const void *PolygonPoints, size_t PolygonPointCount, ptrdiff_t PolygonPointStride,
 	bool BackfaceCulling, float *OutT, VEC3 *OutPoint, const PLANE *PolygonPlane = NULL);
 
 /// Liczy kolizjê poruszaj¹cej siê sfery z p³aszczyzn¹
@@ -4025,61 +4021,61 @@ bool SegmentIntersectsOrIsContainedInCone(const VEC3 & segmentPoint1, const VEC3
 /// Z podanej tablicy punktów typu VEC2 znajduje punkt najbli¿szy wzglêdem p, zwraca jego indeks.
 /** \param OutDistance jest opcjonalny, mo¿na podaæ NULL Jeœli odleg³oœæ od niego nas nie interesuje. */
 size_t ClosestPoint(const VEC2 &p, const VEC2 Points[], size_t PointCount, float *OutDistance = NULL);
-size_t ClosestPoint(const VEC2 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance = NULL);
+size_t ClosestPoint(const VEC2 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance = NULL);
 /// Z podanej tablicy punktów typu VEC3 znajduje punkt najbli¿szy wzglêdem p, zwraca jego indeks.
 /** \param OutDistance jest opcjonalny, mo¿na podaæ NULL Jeœli odleg³oœæ od niego nas nie interesuje. */
 size_t ClosestPoint(const VEC3 &p, const VEC3 Points[], size_t PointCount, float *OutDistance = NULL);
-size_t ClosestPoint(const VEC3 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance = NULL);
+size_t ClosestPoint(const VEC3 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance = NULL);
 /// Z podanej tablicy punktów typu VEC2 znajduje punkt najdalszy wzglêdem p, zwraca jego indeks.
 /** \param OutDistance jest opcjonalny, mo¿na podaæ NULL Jeœli odleg³oœæ od niego nas nie interesuje. */
 size_t FurthestPoint(const VEC2 &p, const VEC2 Points[], size_t PointCount, float *OutDistance = NULL);
-size_t FurthestPoint(const VEC2 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance = NULL);
+size_t FurthestPoint(const VEC2 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance = NULL);
 /// Z podanej tablicy punktów typu VEC3 znajduje punkt najdalszy wzglêdem p, zwraca jego indeks.
 /** \param OutDistance jest opcjonalny, mo¿na podaæ NULL Jeœli odleg³oœæ od niego nas nie interesuje. */
 size_t FurthestPoint(const VEC3 &p, const VEC3 Points[], size_t PointCount, float *OutDistance = NULL);
-size_t FurthestPoint(const VEC3 &p, const void *Data, size_t PointCount, int Stride, float *OutDistance = NULL);
+size_t FurthestPoint(const VEC3 &p, const void *Data, size_t PointCount, ptrdiff_t Stride, float *OutDistance = NULL);
 /// Z podanej tablicy punktów typu VEC2 znajduje najbardziej wysuniêty w kierunku okreœlonym przez Dir. Zwraca jego indeks.
 size_t FurthestPointForDir(const VEC2 &Dir, const VEC2 Points[], size_t PointCount);
-size_t FurthestPointForDir(const VEC2 &Dir, const void *Data, size_t PointCount, int Stride);
+size_t FurthestPointForDir(const VEC2 &Dir, const void *Data, size_t PointCount, ptrdiff_t Stride);
 /// Z podanej tablicy punktów typu VEC3 znajduje najbardziej wysuniêty w kierunku okreœlonym przez Dir. Zwraca jego indeks.
 size_t FurthestPointForDir(const VEC3 &Dir, const VEC3 Points[], size_t PointCount);
-size_t FurthestPointForDir(const VEC3 &Dir, const void *Data, size_t PointCount, int Stride);
+size_t FurthestPointForDir(const VEC3 &Dir, const void *Data, size_t PointCount, ptrdiff_t Stride);
 
 /// Tworzy najmniejszy prostok¹t otaczaj¹cy podany zbiór punktów typu VEC2.
 void RectBoundingPoints(RECTF *OutRect, const VEC2 Points[], size_t PointCount);
-void RectBoundingPoints(RECTF *OutRect, const void *Data, size_t PointCount, int Stride);
+void RectBoundingPoints(RECTF *OutRect, const void *Data, size_t PointCount, ptrdiff_t Stride);
 /// Tworzy najmniejszy boks otaczaj¹cy podany zbiór punktów typu VEC3.
 void BoxBoundingPoints(BOX *box, const VEC3 points[], size_t PointCount);
-void BoxBoundingPoints(BOX *box, const void *Data, size_t PointCount, int Stride);
+void BoxBoundingPoints(BOX *box, const void *Data, size_t PointCount, ptrdiff_t Stride);
 /// Liczy sferê otaczaj¹c¹ dwie sfery
 void SphereBoundingSpheres(VEC3 *OutCenter, float *OutRadius, const VEC3 &Center1, float Radius1, const VEC3 &Center2, float Radius2);
 
 /// Znajduje okr¹g otaczaj¹cy podany zbiór punktów typu VEC2.
 /** Nie jest to mo¿e najmniejszy okr¹g, ale przynajmniej ten algorytm jest prosty i szybki. */
 void CircleBoundingPoints(VEC2 *OutSphereCenter, float *OutSphereRadius, const VEC2 Points[], size_t PointCount);
-void CircleBoundingPoints(VEC2 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, int PointStride);
+void CircleBoundingPoints(VEC2 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride);
 /// Znajduje sferê otaczaj¹c¹ podany zbiór punktów typu VEC3.
 /** Nie jest to mo¿e najmniejsza sfera, ale przynajmniej ten algorytm jest prosty i szybki. */
 void SphereBoundingPoints(VEC3 *OutSphereCenter, float *OutSphereRadius, const VEC3 Points[], size_t PointCount);
-void SphereBoundingPoints(VEC3 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, int PointStride);
+void SphereBoundingPoints(VEC3 *OutSphereCenter, float *OutSphereRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride);
 
 /// Znajduje promieñ najmniejszego okrêgu o œrodku (0,0) otaczaj¹cego podany zbiór punktów 2D.
 void OriginCircleBoundingPoints(float *OutRadius, const VEC2 Points[], size_t PointCount);
-void OriginCircleBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, int PointStride);
+void OriginCircleBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride);
 /// Znajduje promieñ najmniejszej sfery o œrodku (0,0) otaczaj¹cej podany zbiór punktów 3D.
 void OriginSphereBoundingPoints(float *OutRadius, const VEC3 Points[], size_t PointCount);
-void OriginSphereBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, int PointStride);
+void OriginSphereBoundingPoints(float *OutRadius, const void *PointData, size_t PointCount, ptrdiff_t PointStride);
 
 /// Dla podanego zbioru punktów typu VEC2 oblicza ich centroid, czyli po prostu œredni¹.
 void CalcCentroid(VEC2 *OutCentroid, const VEC2 Points[], size_t PointCount);
-void CalcCentroid(VEC2 *OutCentroid, const void *PointData, size_t PointCount, int PointStride);
+void CalcCentroid(VEC2 *OutCentroid, const void *PointData, size_t PointCount, ptrdiff_t PointStride);
 /// Dla podanego zbioru punktów typu VEC3 oblicza ich centroid, czyli po prostu œredni¹.
 void CalcCentroid(VEC3 *OutCentroid, const VEC3 Points[], size_t PointCount);
-void CalcCentroid(VEC3 *OutCentroid, const void *PointData, size_t PointCount, int PointStride);
+void CalcCentroid(VEC3 *OutCentroid, const void *PointData, size_t PointCount, ptrdiff_t PointStride);
 
 /// Oblicza macierz kowariancji dla podanego zbioru punktów typu VEC3.
 void CalcCovarianceMatrix(MATRIX33 *OutCov, const VEC3 Points[], size_t PointCount);
-void CalcCovarianceMatrix(MATRIX33 *OutCov, const void *PointData, size_t PointCount, int PointStride);
+void CalcCovarianceMatrix(MATRIX33 *OutCov, const void *PointData, size_t PointCount, ptrdiff_t PointStride);
 /// Oblicza wartoœci w³asne i wektory w³asne dla podanej macierzy symetrycznej (np. macierz kowariancji).
 /** Uwaga! Du¿o obliczeñ, procedura iteracyjna. Mo¿e dzia³aæ wolno.
 \param InCovOutEigenvalues [in,out] Jako wejœcie - dana macierz. Jako wyjœcie - na przek¹tnej ma wartoœci w³asne.

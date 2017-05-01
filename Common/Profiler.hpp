@@ -41,7 +41,7 @@ private:
 	// Sumaryczny czas wykonania
 	GameTime m_Time;
 	// Liczba przebiegów
-	uint m_Count;
+	size_t m_Count;
 	// Czas rozpoczêcia bie¿¹cego przebiegu [s]
 	GameTime m_StartTime;
 	tstring m_strName; // Nazwa elementu
@@ -57,7 +57,7 @@ public:
 
 	const tstring &GetName() { return m_strName; }
 	bool Empty() { return m_Count == 0; }
-	uint GetCount() { return m_Count; }
+	size_t GetCount() { return m_Count; }
 	GameTime GetAvgTime() { return Empty() ? GameTime::ZERO : (m_Time / (int64)m_Count); }
 	size_t GetItemCount() { return m_ItemVector.size(); }
 	ProfilerItem* GetItem(size_t index) { return &m_ItemVector[index]; }
@@ -121,7 +121,7 @@ private:
 	struct ENTRY
 	{
 		GameTime SumTime;
-		uint Count;
+		size_t Count;
 		ENTRY() : SumTime(GameTime::ZERO), Count(0) { }
 		GameTime GetAvgTime() const { return SumTime / (int64)Count; }
 	};

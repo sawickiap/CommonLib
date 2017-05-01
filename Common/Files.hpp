@@ -86,12 +86,12 @@ public:
 	virtual void Write(const void *Data, size_t Size);
 	virtual size_t Read(void *Data, size_t Size);
 	virtual void Flush();
-	virtual size_t GetSize();
-	virtual int GetPos();
-	virtual void SetPos(int pos);
-	virtual void SetPosFromCurrent(int pos);
-	virtual void SetPosFromEnd(int pos);
-	virtual void SetSize(size_t Size);
+	virtual uint64 GetSize();
+	virtual int64 GetPos();
+	virtual void SetPos(int64 pos);
+	virtual void SetPosFromCurrent(int64 pos);
+	virtual void SetPosFromEnd(int64 pos);
+	virtual void SetSize(uint64 Size);
 	virtual void Truncate();
 	virtual bool End();
 

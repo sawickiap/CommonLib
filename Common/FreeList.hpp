@@ -36,8 +36,8 @@ private:
 
 	char *m_Data;
 	FreeBlock *m_FreeBlocks;
-	uint m_Capacity;
-	uint m_FreeCount;
+	size_t m_Capacity;
+	size_t m_FreeCount;
 
 	// Zablokowane
 	FreeList(const FreeList &);
@@ -63,7 +63,7 @@ private:
 
 public:
 	/** \param Capacity to maksymalna liczba elementów */
-	FreeList(uint Capacity) :
+	FreeList(size_t Capacity) :
 		m_Capacity(Capacity),
 		m_FreeCount(Capacity)
 	{
@@ -75,7 +75,7 @@ public:
 		char *data_current = m_Data;
 		FreeBlock *fb_prev = NULL, *fb_current;
 
-		for (uint i = 0; i < Capacity; i++)
+		for (size_t i = 0; i < Capacity; i++)
 		{
 			fb_current = (FreeBlock*)(data_current);
 			fb_current->Next = fb_prev;
@@ -133,15 +133,15 @@ public:
 	bool IsFull() { return m_FreeCount == 0; }
 	/** \name Statystyki w elementach */
 	//@{
-	uint GetUsedCount() { return m_Capacity - m_FreeCount; }
-	uint GetFreeCount() { return m_FreeCount; }
-	uint GetCapacity() { return m_Capacity; }
+	size_t GetUsedCount() { return m_Capacity - m_FreeCount; }
+	size_t GetFreeCount() { return m_FreeCount; }
+	size_t GetCapacity() { return m_Capacity; }
 	//@}
 	/** \name Statystyki w bajtach */
 	//@{
 	uint GetUsedSize() { return GetUsedCount() * sizeof(T); }
 	uint GetFreeSize() { return GetFreeCount() * sizeof(T); }
-	uint GetAllSize() { return m_Capacity * sizeof(T); }
+	size_t GetAllSize() { return m_Capacity * sizeof(T); }
 	//@}
 
 	/// Zwraca true, jeœli podany adres jest zaalokowany z tej listy
@@ -153,7 +153,7 @@ template <typename T>
 class DynamicFreeList
 {
 private:
-	uint m_BlockCapacity;
+	size_t m_BlockCapacity;
 	// Lista utrzymywana w porz¹dku od najbardziej zajêtych po najbardziej wolne.
 	std::vector< FreeList<T> * > m_Blocks;
 
@@ -165,9 +165,9 @@ private:
 	{
 		assert(!m_Blocks.empty());
 
-		uint LastIndex = m_Blocks.size()-1;
+		size_t LastIndex = m_Blocks.size()-1;
 		FreeList<T> *LastList = m_Blocks[LastIndex];
-		uint LastListFreeCount = LastList->GetFreeCount();
+		size_t LastListFreeCount = LastList->GetFreeCount();
 		// Wszystko zajête - zaalokuj now¹ ca³kowicie woln¹
 		if (LastListFreeCount == 0)
 		{
@@ -180,7 +180,7 @@ private:
 		{
 			// Sortowanie
 			LastListFreeCount--;
-			uint Index = LastIndex;
+			size_t Index = LastIndex;
 			if (Index > 0) // Tylko dla optymalizacji
 			{
 				while (Index > 0 && m_Blocks[Index-1]->GetFreeCount() > LastListFreeCount)
@@ -196,7 +196,7 @@ private:
 
 public:
 	/** \param BlockCapacity to d³ugoœæ jednego bloku, w elementach */
-	DynamicFreeList(uint BlockCapacity) :
+	DynamicFreeList(size_t BlockCapacity) :
 		m_BlockCapacity(BlockCapacity)
 	{
 		assert(BlockCapacity > 0);
@@ -206,7 +206,7 @@ public:
 
 	~DynamicFreeList()
 	{
-		for (uint i = m_Blocks.size(); i--; )
+		for (size_t i = m_Blocks.size(); i--; )
 			delete m_Blocks[i];
 	}
 
@@ -237,20 +237,20 @@ public:
 	/// Zwalnia komórkê pamiêci zaalokowan¹ wczeœniej z tej listy.
 	void Delete(T *x)
 	{
-		for (uint i = 0; i < m_Blocks.size(); i++)
+		for (size_t i = 0; i < m_Blocks.size(); i++)
 		{
 			if (m_Blocks[i]->BelongsTo(x))
 			{
 				FreeList<T> *CurrentBlock = m_Blocks[i];
-				uint MaxIndex = m_Blocks.size()-1;
+				size_t MaxIndex = m_Blocks.size()-1;
 
 				CurrentBlock->Delete(x);
 
 				// Sortowanie
-				uint NewFreeCount = CurrentBlock->GetFreeCount();
+				size_t NewFreeCount = CurrentBlock->GetFreeCount();
 				if (i < MaxIndex)
 				{
-					uint j = i;
+					size_t j = i;
 					while (j < MaxIndex && NewFreeCount > m_Blocks[j+1]->GetFreeCount())
 					{
 						m_Blocks[j] = m_Blocks[j+1];
@@ -275,7 +275,7 @@ public:
 	/// Zwraca true, jeœli lista jest pusta - nic nie zaalokowane.
 	bool IsEmpty()
 	{
-		for (uint i = 0; i < m_Blocks.size(); i++)
+		for (size_t i = 0; i < m_Blocks.size(); i++)
 			if (!m_Blocks[i]->IsEmpty())
 				return false;
 		return true;
@@ -283,37 +283,37 @@ public:
 	/// Zwraca true, jeœli lista jest pe³na - nie ma ju¿ pustego miejsca.
 	bool IsFull()
 	{
-		for (uint i = 0; i < m_Blocks.size(); i++)
+		for (size_t i = 0; i < m_Blocks.size(); i++)
 			if (!m_Blocks[i]->IsFull())
 				return false;
 		return true;
 	}
-	uint GetBlockCount() { return m_Blocks.size(); }
+	size_t GetBlockCount() { return m_Blocks.size(); }
 	/** \name Statystyki w elementach */
 	//@{
-	uint GetBlockCapacity() { return m_BlockCapacity; }
-	uint GetUsedCount()
+	size_t GetBlockCapacity() { return m_BlockCapacity; }
+	size_t GetUsedCount()
 	{
-		uint R = 0;
-		for (uint i = 0; i < m_Blocks.size(); i++)
+		size_t R = 0;
+		for (size_t i = 0; i < m_Blocks.size(); i++)
 			R += m_Blocks[i]->GetUsedCount();
 		return R;
 	}
-	uint GetFreeCount()
+	size_t GetFreeCount()
 	{
-		uint R = 0;
-		for (uint i = 0; i < m_Blocks.size(); i++)
+		size_t R = 0;
+		for (size_t i = 0; i < m_Blocks.size(); i++)
 			R += m_Blocks[i]->GetFreeCount();
 		return R;
 	}
-	uint GetCapacity() { return m_BlockCapacity * m_Blocks.size(); }
+	size_t GetCapacity() { return m_BlockCapacity * m_Blocks.size(); }
 	//@}
 	/** \name Statystyki w bajtach */
 	//@{
-	uint GetBlockSize() { return GetBlockCapacity() * sizeof(T); }
-	uint GetUsedSize() { return GetUsedCount() * sizeof(T); }
-	uint GetFreeSize() { return GetFreeCount() * sizeof(T); }
-	uint GetAllSize() { return GetCapacity() * sizeof(T); }
+	size_t GetBlockSize() { return GetBlockCapacity() * sizeof(T); }
+	size_t GetUsedSize() { return GetUsedCount() * sizeof(T); }
+	size_t GetFreeSize() { return GetFreeCount() * sizeof(T); }
+	size_t GetAllSize() { return GetCapacity() * sizeof(T); }
 	//@}
 };
 

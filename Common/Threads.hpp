@@ -88,7 +88,7 @@ public:
 
 // Rzeczy które nie wiem jak zrealizowaæ w pthreads - dzia³aj¹ tylko w Windows
 #ifdef WIN32
-	uint GetNativeHandle(); ///< Returns HANDLE.
+	void* GetNativeHandle(); ///< Returns HANDLE.
 	uint GetNativeId(); ///< Returns DWORD.
 	/// Zwraca true, jeœli w¹tek jest w tej chwili uruchomiony i naprawdê jeszcze dzia³a
 	bool IsRunning();
@@ -369,7 +369,7 @@ public:
 	}
 
 private:
-	int m_Readers;
+	size_t m_Readers;
 	Event m_ReadersEvent, m_DataEvent;
 };
 

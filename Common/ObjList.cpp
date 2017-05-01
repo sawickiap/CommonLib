@@ -9,13 +9,4 @@ Documentation: \ref Module_ObjList \n
 Module components: \ref code_objlist
 */
 
-/*
-#include "Base.hpp"
-#include "ObjList.hpp"
-
-namespace common
-{
-
-
-} // namespace common
-*/
+// Totally empty.

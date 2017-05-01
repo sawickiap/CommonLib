@@ -60,7 +60,7 @@ void ProfilerItem::FormatString(tstring *S, unsigned dwLevel, PROFILER_UNITS uni
 		*S += _T(")\n");
 	}
 
-	for (uint i = 0; i < GetItemCount(); i++)
+	for (size_t i = 0; i < GetItemCount(); i++)
 		GetItem(i)->FormatString(S, dwLevel+1, units);
 }
 

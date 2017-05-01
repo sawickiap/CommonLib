@@ -16,6 +16,7 @@ Module components: \ref code_base
 #ifdef WIN32
 	#include <windows.h>
 	#include <float.h> // dla _finite i _isnan
+    #include <intrin.h> // for _debugbreak
 #else
 	#include <sys/time.h> // dla gettimeofday
 #endif
@@ -24,44 +25,58 @@ Module components: \ref code_base
 namespace common
 {
 
+namespace Internal
+{
+
+#ifdef WIN32
+
+void DebugBreak()
+{
+    __debugbreak();
+}
+
+#endif // #ifdef WIN32
+
+} // namespace Internal
+
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Ogólne
 
-void SwapEndian16_Array(void *p, uint count)
+void SwapEndian16_Array(void *p, size_t count)
 {
 	uint16 *u = (uint16*)p;
-	for (uint i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		SwapEndian16(&u[i]);
 }
-void SwapEndian32_Array(void *p, uint count)
+void SwapEndian32_Array(void *p, size_t count)
 {
 	uint32 *u = (uint32*)p;
-	for (uint i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		SwapEndian32(&u[i]);
 }
-void SwapEndian64_Array(void *p, uint count)
+void SwapEndian64_Array(void *p, size_t count)
 {
 	uint64 *u = (uint64*)p;
-	for (uint i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		SwapEndian64(&u[i]);
 }
 
-void SwapEndian16_Data(void *p, uint count, int stepBytes)
+void SwapEndian16_Data(void *p, size_t count, ptrdiff_t stepBytes)
 {
 	char *bytes = (char*)p;
-	for (uint i = 0; i < count; i++, bytes += stepBytes)
+	for (size_t i = 0; i < count; i++, bytes += stepBytes)
 		SwapEndian16(bytes);
 }
-void SwapEndian32_Data(void *p, uint count, int stepBytes)
+void SwapEndian32_Data(void *p, size_t count, ptrdiff_t stepBytes)
 {
 	char *bytes = (char*)p;
-	for (uint i = 0; i < count; i++, bytes += stepBytes)
+	for (size_t i = 0; i < count; i++, bytes += stepBytes)
 		SwapEndian32(bytes);
 }
-void SwapEndian64_Data(void *p, uint count, int stepBytes)
+void SwapEndian64_Data(void *p, size_t count, ptrdiff_t stepBytes)
 {
 	char *bytes = (char*)p;
-	for (uint i = 0; i < count; i++, bytes += stepBytes)
+	for (size_t i = 0; i < count; i++, bytes += stepBytes)
 		SwapEndian64(bytes);
 }
 
@@ -1136,7 +1151,7 @@ bool ConvertUnicodeToChars(string *Out, const wstring &S, unsigned CodePage)
 
 	// Phase 2 - Do conversion.
 	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[Size]);
-	int R = WideCharToMultiByte(CodePage, 0, S.data(), (int)S.length(), Buf.get(), (int)Size, NULL, NULL);
+	int R = WideCharToMultiByte(CodePage, 0, S.data(), (int)S.length(), Buf.get(), Size, NULL, NULL);
 	if (R == 0)
 	{
 		Out->clear(); return false;
@@ -1146,12 +1161,14 @@ bool ConvertUnicodeToChars(string *Out, const wstring &S, unsigned CodePage)
 	return true;
 }
 
-bool ConvertUnicodeToChars(string *Out, const wchar_t *S, unsigned NumChars, unsigned CodePage)
+bool ConvertUnicodeToChars(string *Out, const wchar_t *S, size_t NumChars, unsigned CodePage)
 {
 	if (NumChars == 0)
 	{
 		Out->clear(); return true;
 	}
+
+    assert(NumChars <= (size_t)INT_MAX);
 
 	// Phase 1 - Get buffer size.
 	int Size = WideCharToMultiByte(CodePage, 0, S, (int)NumChars, NULL, 0, NULL, NULL);
@@ -1198,12 +1215,14 @@ bool ConvertCharsToUnicode(wstring *Out, const string &S, unsigned CodePage)
 	return true;
 }
 
-bool ConvertCharsToUnicode(wstring *Out, const char *S, unsigned NumChars, unsigned CodePage)
+bool ConvertCharsToUnicode(wstring *Out, const char *S, size_t NumChars, unsigned CodePage)
 {
 	if (NumChars == 0)
 	{
 		Out->clear(); return true;
 	}
+
+    assert(NumChars <= (size_t)INT_MAX);
 
 	// Phase 1 - Get buffer size.
 	int Size = MultiByteToWideChar(CodePage, 0, S, (int)NumChars, NULL, 0);
@@ -1457,7 +1476,7 @@ void DecomposePath(const tstring &s, tstring *OutPrefix, tstring *OutPath, tstri
 	OutPrefix->clear();
 	OutPath->clear();
 	OutTrailingPathDelimiter->clear();
-	uint Beg = 0, End = s.length();
+	size_t Beg = 0, End = s.length();
 
 	// Prefix
 	if (!s.empty())
@@ -1468,7 +1487,7 @@ void DecomposePath(const tstring &s, tstring *OutPrefix, tstring *OutPath, tstri
 			// <slash> <slash> <serwer> <slash> <udzia³> <slash>
 			if (s.length() > 1 && IsPathSlash(s[1]))
 			{
-				uint i = s.find_first_of(_T("/\\"), 2);
+				size_t i = s.find_first_of(_T("/\\"), 2);
 				if (i == tstring::npos) { *OutPrefix = s; return; }
 				i = s.find_first_of(_T("/\\"), i+1);
 				if (i == tstring::npos) { *OutPrefix = s; return; }
@@ -1485,10 +1504,10 @@ void DecomposePath(const tstring &s, tstring *OutPrefix, tstring *OutPath, tstri
 		// <dysk> : <slash>
 		else
 		{
-			uint i = s.find(':');
+			size_t i = s.find(':');
 			if (i != tstring::npos)
 			{
-				uint j = s.find_first_of(_T("/\\"));
+				size_t j = s.find_first_of(_T("/\\"));
 				if (j == tstring::npos || j > i+1)
 				{
 					*OutPrefix = s.substr(0, i+1);
@@ -1526,10 +1545,10 @@ bool PathIsAbsolute(const tstring &s)
 	if (IsPathSlash(s[0]))
 		return true;
 	// <dysk> : <slash>
-	uint i = s.find(_T(':'));
+	size_t i = s.find(_T(':'));
 	if (i == tstring::npos)
 		return false;
-	uint j = s.find_first_of(_T("/\\"));
+	size_t j = s.find_first_of(_T("/\\"));
 	if (j == tstring::npos || j > i)
 		return true;
 	return false;
@@ -1583,7 +1602,7 @@ void ExcludeTrailingPathDelimiter(tstring *OutPath, const tstring &InPath)
 void ExtractPathPrefix(tstring *OutPrefix, const tstring &s)
 {
 	OutPrefix->clear();
-	uint Beg = 0;
+	size_t Beg = 0;
 
 	// Skopiowana czêœæ Prefix z funkcji DecomposePath
 	if (!s.empty())
@@ -1594,7 +1613,7 @@ void ExtractPathPrefix(tstring *OutPrefix, const tstring &s)
 			// <slash> <slash> <serwer> <slash> <udzia³> <slash>
 			if (s.length() > 1 && IsPathSlash(s[1]))
 			{
-				uint i = s.find_first_of(_T("/\\"), 2);
+				size_t i = s.find_first_of(_T("/\\"), 2);
 				if (i == tstring::npos) { *OutPrefix = s; return; }
 				i = s.find_first_of(_T("/\\"), i+1);
 				if (i == tstring::npos) { *OutPrefix = s; return; }
@@ -1611,10 +1630,10 @@ void ExtractPathPrefix(tstring *OutPrefix, const tstring &s)
 		// <dysk> : <slash>
 		else
 		{
-			uint i = s.find(_T(':'));
+			size_t i = s.find(_T(':'));
 			if (i != tstring::npos)
 			{
-				uint j = s.find_first_of(_T("/\\"));
+				size_t j = s.find_first_of(_T("/\\"));
 				if (j == tstring::npos || j > i+1)
 				{
 					*OutPrefix = s.substr(0, i+1);
@@ -1675,7 +1694,7 @@ void NormalizePath(tstring *OutPath, const tstring &s)
 	tstring Path, Trailing, Tmp;
 	DecomposePath(s, OutPath, &Path, &Trailing);
 	STRING_VECTOR Dirs;
-	uint Index = 0;
+	size_t Index = 0;
 	while (SplitFirstOf(Path, Delimiters, &Tmp, &Index))
 	{
 		if (Tmp.empty())
@@ -1700,7 +1719,7 @@ void NormalizePath(tstring *OutPath, const tstring &s)
 			Dirs.push_back(Tmp);
 	}
 
-	for (uint i = 0; i < Dirs.size(); i++)
+	for (size_t i = 0; i < Dirs.size(); i++)
 	{
 		if (!OutPath->empty())
 			IncludeTrailingPathDelimiter(OutPath);
@@ -1748,19 +1767,19 @@ void AbsoluteToRelativePath(tstring *Out, const tstring &Base, const tstring &Ta
 
 	tstring R;
 	// Wyeliminuj wspólne katalogi z pocz¹tku œcie¿ek
-	uint DirsDifferenceIndex = 0;
+	size_t DirsDifferenceIndex = 0;
 	while (DirsDifferenceIndex < BaseDirs.size() && DirsDifferenceIndex < TargetDirs.size() && PathCmp(BaseDirs[DirsDifferenceIndex], TargetDirs[DirsDifferenceIndex]))
 		DirsDifferenceIndex++;
 
 	// Przepisz na wyjœcie "/.." lub "\.."
-	for (uint i = DirsDifferenceIndex; i < BaseDirs.size(); i++)
+	for (size_t i = DirsDifferenceIndex; i < BaseDirs.size(); i++)
 	{
 		if (!R.empty())
 			IncludeTrailingPathDelimiter(&R);
 		R.append(_T(".."));
 	}
 	// Przepisz na wyjœcie to co w Target
-	for (uint i = DirsDifferenceIndex; i < TargetDirs.size(); i++)
+	for (size_t i = DirsDifferenceIndex; i < TargetDirs.size(); i++)
 	{
 		if (!R.empty())
 			IncludeTrailingPathDelimiter(&R);
@@ -1837,7 +1856,7 @@ void FloatToStr(tstring *Out, float x, char mode, int precision)
 int StrToDouble(double *out, const tstring &s)
 {
 	////// Sprawdzenie sk³adni
-	uint32 pos = 0;
+	size_t pos = 0;
 	// Whitespace
 	for (;;)
 	{
@@ -2106,7 +2125,7 @@ uint Extend16BitsBy1Zero(uint n)
 
 void sincos(float angle, float *sine, float *cosine)
 {
-	#ifdef WIN32
+	#if defined(WIN32) && !defined(_WIN64)
 		// Procedurê mam od: Karol Kuczmarski "Xion"
 		__asm
 		{
@@ -2284,7 +2303,8 @@ uint MurmurHash(const void *Data, uint DataLen, uint Seed)
 uint SuperFastHash(const void *DataBytes, size_t DataLen)
 {
 	const char *data = (const char *)DataBytes;
-	uint hash = DataLen, tmp;
+    assert(DataLen <= UINT_MAX);
+	uint hash = (uint)DataLen, tmp;
 	int rem;
 
 	assert(data != NULL && DataLen > 0);
@@ -2530,8 +2550,8 @@ RandomGenerator::RandomGenerator() :
 
 void RandomGenerator::RandData(void *OutData, size_t DataLength)
 {
-	uint WordCount = DataLength >> 2;
-	uint32 RemainingBytes = DataLength & 0x3;
+	size_t WordCount = DataLength >> 2;
+	size_t RemainingBytes = DataLength & 0x3;
 
 	uint *OutWords = (uint*)OutData;
 	while (WordCount > 0)
@@ -2818,7 +2838,7 @@ private:
 	size_t m_CmdLineLength;
 	// Jeœli m_argv != NULL, przechowuje indeks nastêpnego argumentu w m_argv.
 	// Jeœli m_CmdLine != NULL, przechowuje indeks nastêpnego znaku w m_CmdLine.
-	int m_ArgIndex;
+	size_t m_ArgIndex;
 
 	// Zwraca nastêpny argumet
 	// Zwraca false, jeœli nie odczytano nastêpnego argumentu, bo ju¿ koniec.
@@ -2861,7 +2881,7 @@ bool CmdLineParser_pimpl::ReadNextArg(tstring *OutArg)
 {
 	if (m_argv != NULL)
 	{
-		if (m_ArgIndex >= m_argc) return false;
+		if (m_ArgIndex >= (size_t)m_argc) return false;
 
 		*OutArg = m_argv[m_ArgIndex];
 		m_ArgIndex++;
@@ -2869,14 +2889,14 @@ bool CmdLineParser_pimpl::ReadNextArg(tstring *OutArg)
 	}
 	else
 	{
-		if (m_ArgIndex >= (int)m_CmdLineLength) return false;
+		if (m_ArgIndex >= m_CmdLineLength) return false;
 		
 		// Algorytm parsowania opracowany na podstawie dog³êbnych badañ zachowania wiersza poleceñ Windows
 		// z ró¿nymi dziwnymi kombinacjami znaków w parametrach i sposobu ich przetwarzania na argc i argv
 		// przekazywane przez system do main().
 		OutArg->clear();
 		bool InsideQuotes = false;
-		while (m_ArgIndex < (int)m_CmdLineLength)
+		while (m_ArgIndex < m_CmdLineLength)
 		{
 			tchar Ch = m_CmdLine[m_ArgIndex];
 			if (Ch == _T('\\'))
@@ -2884,8 +2904,8 @@ bool CmdLineParser_pimpl::ReadNextArg(tstring *OutArg)
 				// Analiza dalszego ci¹gu ³añcucha
 				bool FollowedByQuote = false; // wynik analizy 1
 				size_t BackslashCount = 1; // wynik analizy 2
-				int TmpIndex = m_ArgIndex + 1;
-				while (TmpIndex < (int)m_CmdLineLength)
+				size_t TmpIndex = m_ArgIndex + 1;
+				while (TmpIndex < m_CmdLineLength)
 				{
 					tchar TmpCh = m_CmdLine[TmpIndex];
 					if (TmpCh == _T('\\'))
@@ -2955,7 +2975,7 @@ bool CmdLineParser_pimpl::ReadNextArg(tstring *OutArg)
 		}
 
 		// Pomiñ dodatkowe odstêpy
-		while (m_ArgIndex < (int)m_CmdLineLength && CharIsWhitespace(m_CmdLine[m_ArgIndex]))
+		while (m_ArgIndex < m_CmdLineLength && CharIsWhitespace(m_CmdLine[m_ArgIndex]))
 			m_ArgIndex++;
 
 		return true;
@@ -2964,7 +2984,7 @@ bool CmdLineParser_pimpl::ReadNextArg(tstring *OutArg)
 
 CmdLineParser_pimpl::SHORT_OPT * CmdLineParser_pimpl::FindShortOpt(tchar Opt)
 {
-	for (uint i = 0; i < m_ShortOpts.size(); i++)
+	for (size_t i = 0; i < m_ShortOpts.size(); i++)
 		if (m_ShortOpts[i].Opt == Opt)
 			return &m_ShortOpts[i];
 	return NULL;
@@ -2972,7 +2992,7 @@ CmdLineParser_pimpl::SHORT_OPT * CmdLineParser_pimpl::FindShortOpt(tchar Opt)
 
 CmdLineParser_pimpl::LONG_OPT * CmdLineParser_pimpl::FindLongOpt(const tstring &Opt)
 {
-	for (uint i = 0; i < m_LongOpts.size(); i++)
+	for (size_t i = 0; i < m_LongOpts.size(); i++)
 		if (m_LongOpts[i].Opt == Opt)
 			return &m_LongOpts[i];
 	return NULL;
@@ -3010,7 +3030,7 @@ CmdLineParser_pimpl::CmdLineParser_pimpl(const tchar *CmdLine) :
 #endif
 
 	// Pomiñ pocz¹tkowe odstêpy
-	while (m_ArgIndex < (int)m_CmdLineLength && CharIsWhitespace(m_CmdLine[m_ArgIndex]))
+	while (m_ArgIndex < m_CmdLineLength && CharIsWhitespace(m_CmdLine[m_ArgIndex]))
 		m_ArgIndex++;
 }
 

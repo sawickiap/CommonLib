@@ -75,14 +75,14 @@ namespace common
 		return 0;
 	}
 
-	uint Thread::GetNativeHandle()
+	void* Thread::GetNativeHandle()
 	{
-		return (uint)pimpl->ThreadHandle.get();
+		return pimpl->ThreadHandle.get();
 	}
 	
 	uint Thread::GetNativeId()
 	{
-		return (uint)pimpl->ThreadId;
+		return pimpl->ThreadId;
 	}
 
 	void Thread::Exit()
