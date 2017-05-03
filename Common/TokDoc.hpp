@@ -119,12 +119,12 @@ inline bool NodeValueToSth(T &out, const Node &node, bool required)
 /** If val is other than values of items given, val is converted to numeric string, like "123".
 \param itemValues Can be NULL, which means consecutive items have values 0, 1, 2, ... */
 void NodeValueFromEnum(Node &node, uint val,
-	const tchar * const *itemNames, const uint *itemValues, uint itemCount);
+	const tchar * const *itemNames, const uint *itemValues, size_t itemCount);
 /// Parses string from Value of given node to enumeration value (given as uint&).
 /** node.Value may be one of given item names or a numeric string, like "123".
 \param itemValues Can be NULL, which means consecutive items have values 0, 1, 2, ... */
 bool NodeValueToEnum(uint &out, const Node &node, bool required,
-	const tchar * const *itemNames, const uint *itemValues, uint itemCount);
+	const tchar * const *itemNames, const uint *itemValues, size_t itemCount);
 
 template <typename T>
 inline void NodeFromVector(Node &node, const std::vector<T> &vec)

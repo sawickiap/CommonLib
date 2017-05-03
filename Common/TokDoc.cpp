@@ -414,13 +414,13 @@ void Node::SaveChildren( TokenWriter &tok ) const
 ////////////////////////////////////////////////////////////////////////////////
 // Globals
 
-void NodeValueFromEnum( Node &node, uint val, const tchar * const *itemNames, const uint *itemValues, uint itemCount )
+void NodeValueFromEnum( Node &node, uint val, const tchar * const *itemNames, const uint *itemValues, size_t itemCount )
 {
 	node.DeleteAllChildren();
 
 	if (itemValues)
 	{
-		uint i;
+		size_t i;
 		for (i = 0; i < itemCount; i++)
 		{
 			if (itemValues[i] == val)
@@ -642,13 +642,13 @@ bool NodeTo( GameTime &out, const Node &node, bool required )
 
 #endif // #ifdef WIN32
 
-bool NodeValueToEnum( uint &out, const Node &node, bool required, const tchar * const *itemNames, const uint *itemValues, uint itemCount )
+bool NodeValueToEnum( uint &out, const Node &node, bool required, const tchar * const *itemNames, const uint *itemValues, size_t itemCount )
 {
-	for (uint i = 0; i < itemCount; i++)
+	for (size_t i = 0; i < itemCount; i++)
 	{
 		if (node.Value == itemNames[i])
 		{
-			out = itemValues ? itemValues[i] : i;
+			out = itemValues ? itemValues[i] : (uint32)i;
 			return true;
 		}
 	}

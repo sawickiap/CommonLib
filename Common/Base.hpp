@@ -184,9 +184,9 @@ typedef std::vector<tstring> STRING_VECTOR;
 #define SAFE_RELEASE(x) do { if (x) { (x)->Release(); (x) = 0; } } while(false)
 
 #ifdef WIN32
-    namespace Internal {
+    namespace common { namespace Internal {
         void DebugBreak();
-    }
+    } }
 	/// Assert that ALWAYS breaks the program when false (in debugger - hits a breakpoint, without debugger - crashes the program).
 	#define	ASSERT_INT3(x) if ((x) == 0) { Internal::DebugBreak(); }
 	/// Assert that in Debug configuration breaks the program when false (in debugger - hits a breakpoint, without debugger - crashes the program).
@@ -3059,7 +3059,7 @@ struct StrToSth_obj< std::vector<T> >
 	bool operator () (std::vector<T> *Sth, const tstring &Str)
 	{
 		Sth->clear();
-		uint32 Index = 0;
+		size_t Index = 0;
 		tstring Element;
 		T Val;
 		while (common::Split(Str, _T(","), &Element, &Index))

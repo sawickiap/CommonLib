@@ -138,8 +138,8 @@ void LoadStringFromFile(const tstring &FileName, wstring *Data);
 /// Zwraca wybrane informacje na temat pliku/katalogu
 /** Jako parametry wyjœciowe mo¿na podawaæ NULL.
 Jeœli to katalog, zwrócony rozmiar jest niezdefiniowany. */
-bool GetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime = NULL, DATETIME *OutAccessTime = NULL);
-void MustGetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime = NULL, DATETIME *OutAccessTime = NULL);
+bool GetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint64 *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime = NULL, DATETIME *OutAccessTime = NULL);
+void MustGetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint64 *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime = NULL, DATETIME *OutAccessTime = NULL);
 /// Zwraca typ - czy to jest plik, katalog czy b³¹d/nie-istnieje.
 /** Jeœli b³¹d lub nie istnieje, zwraca common::IT_NONE. */
 FILE_ITEM_TYPE GetFileItemType(const tstring &Path);

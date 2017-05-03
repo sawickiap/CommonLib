@@ -104,7 +104,8 @@ namespace common
 	void FileStream::Write(const void *Data, size_t Size)
 	{
 		uint32 WrittenSize;
-		if (WriteFile(pimpl->m_File, Data, Size, (LPDWORD)&WrittenSize, 0) == 0)
+        assert(Size <= UINT_MAX);
+		if (WriteFile(pimpl->m_File, Data, (DWORD)Size, (LPDWORD)&WrittenSize, 0) == 0)
 			throw Win32Error(Format(_T("Cannot write # bytes to file.")) % Size, __TFILE__, __LINE__);
 		if (WrittenSize != Size)
 			throw Error(Format(_T("Cannot write to file. #/# bytes written.")) % WrittenSize % Size, __TFILE__, __LINE__);
@@ -113,7 +114,8 @@ namespace common
 	size_t FileStream::Read(void *Data, size_t Size)
 	{
 		uint32 ReadSize;
-		if (ReadFile(pimpl->m_File, Data, Size, (LPDWORD)&ReadSize, 0) == 0)
+        assert(Size <= UINT_MAX);
+		if (ReadFile(pimpl->m_File, Data, (DWORD)Size, (LPDWORD)&ReadSize, 0) == 0)
 			throw Win32Error(Format(_T("Cannot read # bytes from file.")) % Size, __TFILE__, __LINE__);
 		return ReadSize;
 	}
@@ -123,43 +125,52 @@ namespace common
 		FlushFileBuffers(pimpl->m_File);
 	}
 
-	size_t FileStream::GetSize()
+	uint64 FileStream::GetSize()
 	{
-		return (size_t)GetFileSize(pimpl->m_File, 0);
+        LARGE_INTEGER i;
+        if(!GetFileSizeEx(pimpl->m_File, &i))
+            throw Win32Error(_T("Cannot get file size."), __TFILE__, __LINE__);
+		return (uint64)i.QuadPart;
 	}
 
 	int64 FileStream::GetPos()
 	{
-		// Fuj! Ale to nieeleganckie. Szkoda, ¿e nie ma lepszego sposobu.
-		uint32 r = SetFilePointer(pimpl->m_File, 0, 0, FILE_CURRENT);
-		if (r == INVALID_SET_FILE_POINTER)
-			throw Win32Error(_T("Cannot read position in file stream."), __TFILE__, __LINE__);
-		return (int)r;
+        LARGE_INTEGER distanceToMove, newFilePointer;
+        distanceToMove.QuadPart = 0;
+        if(!SetFilePointerEx(pimpl->m_File, distanceToMove, &newFilePointer, FILE_CURRENT))
+			throw Win32Error(_T("Cannot read position from file stream."), __TFILE__, __LINE__);
+        return newFilePointer.QuadPart;
 	}
 
 	void FileStream::SetPos(int64 pos)
 	{
-		if (SetFilePointer(pimpl->m_File, pos, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+        LARGE_INTEGER distanceToMove;
+        distanceToMove.QuadPart = pos;
+		if (!SetFilePointerEx(pimpl->m_File, distanceToMove, nullptr, FILE_BEGIN))
 			throw Win32Error(Format(_T("Cannot set position in file stream to # from the beginning.")) % pos, __TFILE__, __LINE__);
 	}
 
 	void FileStream::SetPosFromCurrent(int64 pos)
 	{
-		if (SetFilePointer(pimpl->m_File, pos, 0, FILE_CURRENT) == INVALID_SET_FILE_POINTER)
+        LARGE_INTEGER distanceToMove;
+        distanceToMove.QuadPart = pos;
+		if (!SetFilePointerEx(pimpl->m_File, distanceToMove, nullptr, FILE_CURRENT))
 			throw Win32Error(Format(_T("Cannot set position in file stream to # from current.")) % pos, __TFILE__, __LINE__);
 	}
 
 	void FileStream::SetPosFromEnd(int64 pos)
 	{
-		if (SetFilePointer(pimpl->m_File, pos, 0, FILE_END) == INVALID_SET_FILE_POINTER)
+        LARGE_INTEGER distanceToMove;
+        distanceToMove.QuadPart = pos;
+		if (!SetFilePointerEx(pimpl->m_File, distanceToMove, nullptr, FILE_END))
 			throw Win32Error(Format(_T("Cannot set position in file stream to # from the end.")) % pos, __TFILE__, __LINE__);
 	}
 
-	void FileStream::SetSize(size_t Size)
+	void FileStream::SetSize(uint64 Size)
 	{
-		int SavedPos = GetPos();
+		int64 SavedPos = GetPos();
 		
-		SetPos((int)Size);
+		SetPos((int64)Size);
 		Truncate();
 
 		SetPos(SavedPos);
@@ -174,7 +185,7 @@ namespace common
 	bool FileStream::End()
 	{
 		// Fuj! Ale to nieeleganckie. Szkoda, ¿e nie ma lepszego sposobu.
-		return ((int)GetSize() == GetPos());
+		return GetSize() == (uint64)GetPos();
 	}
 
 	HANDLE FileStream::GetNativeHandle()
@@ -261,14 +272,14 @@ namespace common
 		fflush(pimpl->m_File);
 	}
 
-	size_t FileStream::GetSize()
+	uint64 FileStream::GetSize()
 	{
 		// Wersja 1
-		int SavedPos = GetPos();
+		int64 SavedPos = GetPos();
 		SetPosFromEnd(0);
-		int EndPos = GetPos();
+		int64 EndPos = GetPos();
 		SetPos(SavedPos);
-		return (size_t)EndPos;
+		return (uint64)EndPos;
 
 		// Ta wersja jest z³a bo mo¿e nie pokazywaæ aktualnego rozmiaru, bo jest bufor
 /*		// Wersja 2
@@ -277,7 +288,7 @@ namespace common
 		return s.st_size;*/
 	}
 
-	int FileStream::GetPos()
+	int64 FileStream::GetPos()
 	{
 		int r = ftell(pimpl->m_File);
 		if (r < 0)
@@ -285,30 +296,30 @@ namespace common
 		return r;
 	}
 
-	void FileStream::SetPos(int pos)
+	void FileStream::SetPos(int64 pos)
 	{
-		int r = fseek(pimpl->m_File, pos, SEEK_SET);
+		int r = fseek(pimpl->m_File, (long)pos, SEEK_SET);
 		if (r < 0)
 			throw ErrnoError(Format(_T("Cannot set position in file stream to # from the beginning.")) % pos, __TFILE__, __LINE__);
 	}
 
-	void FileStream::SetPosFromCurrent(int pos)
+	void FileStream::SetPosFromCurrent(int64 pos)
 	{
-		int r = fseek(pimpl->m_File, pos, SEEK_CUR);
+		int r = fseek(pimpl->m_File, (long)pos, SEEK_CUR);
 		if (r < 0)
 			throw ErrnoError(Format(_T("Cannot set position in file stream to # from current.")) % pos, __TFILE__, __LINE__);
 	}
 
 	void FileStream::SetPosFromEnd(int pos)
 	{
-		int r = fseek(pimpl->m_File, pos, SEEK_END);
+		int r = fseek(pimpl->m_File, (long)pos, SEEK_END);
 		if (r < 0)
 			throw ErrnoError(Format(_T("Cannot set position in file stream to # from the end.")) % pos, __TFILE__, __LINE__);
 	}
 
-	void FileStream::SetSize(size_t Size)
+	void FileStream::SetSize(uint64 Size)
 	{
-		ftruncate(fileno(pimpl->m_File), Size);
+		ftruncate(fileno(pimpl->m_File), (off_t)Size);
 	}
 
 	void FileStream::Truncate()
@@ -322,7 +333,7 @@ namespace common
 		// UWAGA! Jak by³o zamienione miejscami, najpierw wyliczane GetSize
 		// a potem GetPos to za pierwszym wyliczaniem wychodzi³o false a dopiero
 		// za drugim true - LOL!
-		return (GetPos() == (int)GetSize());
+		return (uint64)GetPos() == GetSize();
 	}
 
 #endif
@@ -540,11 +551,11 @@ void LoadStringFromFile(const tstring &FileName, wstring *Data)
 
 #endif
 
-bool GetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime, DATETIME *OutAccessTime)
+bool GetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint64 *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime, DATETIME *OutAccessTime)
 {
 #ifdef WIN32
-	struct _stat S;
-	if ( _tstat(Path.c_str(), &S) != 0 )
+	struct _stat32i64 S;
+	if ( _tstat32i64(Path.c_str(), &S) != 0 )
 		return false;
 
 	if (OutType != NULL)
@@ -559,7 +570,7 @@ bool GetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint *OutSize
 #endif
 
 	if (OutSize != NULL)
-		*OutSize = S.st_size;
+		*OutSize = (uint64)S.st_size;
 	if (OutModificationTime != NULL)
 		*OutModificationTime = DATETIME(S.st_mtime);
 	if (OutCreationTime != NULL)
@@ -570,7 +581,7 @@ bool GetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint *OutSize
 	return true;
 }
 
-void MustGetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime, DATETIME *OutAccessTime)
+void MustGetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint64 *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime, DATETIME *OutAccessTime)
 {
 	if (!GetFileItemInfo(Path, OutType, OutSize, OutModificationTime, OutCreationTime, OutAccessTime))
 		throw ErrnoError(_T("Cannot obtain information about: ") + Path, __TFILE__, __LINE__);

@@ -618,8 +618,8 @@ void TestFreeList()
 
 	const uint COUNT = 10;
 
-	FreeList<int> lista(COUNT);
-	scoped_ptr<int*, DeleteArrayPolicy> tablica(new int*[COUNT]);
+	FreeList<ptrdiff_t> lista(COUNT);
+	scoped_ptr<ptrdiff_t*, DeleteArrayPolicy> tablica(new ptrdiff_t*[COUNT]);
 
 	for (uint i = 0; i < COUNT; i++)
 		tablica.get()[i] = lista.New_ctor();
@@ -648,8 +648,8 @@ void TestDynamicFreeList()
 	const uint BLOCK_COUNT = 3;
 	const uint COUNT = 10;
 
-	DynamicFreeList<int> lista(BLOCK_COUNT);
-	scoped_ptr<int*, DeleteArrayPolicy> tablica(new int*[COUNT]);
+	DynamicFreeList<ptrdiff_t> lista(BLOCK_COUNT);
+	scoped_ptr<ptrdiff_t*, DeleteArrayPolicy> tablica(new ptrdiff_t*[COUNT]);
 
 	tcout << (Format(_T("Stats: Empty=#, Full=#, BlockCount=#, BlockCapacity=#, UsedCount=#, FreeCount=#, Capacity=#, BlockSize=#, ...\n")) %
 		lista.IsEmpty() % lista.IsFull() % lista.GetBlockCount() % lista.GetBlockCapacity() % lista.GetUsedCount() % lista.GetFreeCount() % lista.GetCapacity() % lista.GetBlockSize()).str();
@@ -977,7 +977,7 @@ void TestFiles()
 	}
 
 	{
-		common::DATETIME ctime, mtime, atime; uint size; common::FILE_ITEM_TYPE type;
+		common::DATETIME ctime, mtime, atime; uint64 size; common::FILE_ITEM_TYPE type;
 		common::MustGetFileItemInfo(_T("EmptyDir"), &type, &size, &mtime, &ctime, &atime);
 		WriteLine(Format(_T("MustGetFileItemInfo(\"EmptyDir\"): Type=#, Size=#\n  MTime=#\n  CTime=#\n  ATime=#")) %
 			(uint)type % size % common::TMSTRUCT(mtime) % common::TMSTRUCT(ctime) % common::TMSTRUCT(atime));

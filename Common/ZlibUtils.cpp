@@ -149,12 +149,12 @@ ZlibCompressionStream_pimpl::~ZlibCompressionStream_pimpl()
 		do
 		{
 			m_ZStream.next_out = (Bytef*)&m_OutBuf[0];
-			m_ZStream.avail_out = BUFFER_SIZE;
+			m_ZStream.avail_out = (uInt)BUFFER_SIZE;
 
 			R = deflate(&m_ZStream, Z_FINISH);
 
-			if (m_ZStream.avail_out < BUFFER_SIZE)
-				m_Stream->Write(&m_OutBuf[0], BUFFER_SIZE - m_ZStream.avail_out);
+			if (m_ZStream.avail_out < (uInt)BUFFER_SIZE)
+				m_Stream->Write(&m_OutBuf[0], (uInt)BUFFER_SIZE - m_ZStream.avail_out);
 		}
 		while (R != Z_STREAM_END);
 
@@ -169,19 +169,20 @@ ZlibCompressionStream_pimpl::~ZlibCompressionStream_pimpl()
 void ZlibCompressionStream_pimpl::Write(const void *Data, size_t Size)
 {
 	if (Size == 0) return;
+    assert(Size <= UINT_MAX);
 
 	m_ZStream.next_in = (Bytef*)Data;
-	m_ZStream.avail_in = Size;
+	m_ZStream.avail_in = (uInt)Size;
 
 	do
 	{
 		m_ZStream.next_out = (Bytef*)&m_OutBuf[0];
-		m_ZStream.avail_out = BUFFER_SIZE;
+		m_ZStream.avail_out = (uInt)BUFFER_SIZE;
 
 		deflate(&m_ZStream, Z_NO_FLUSH); // Nie sprawdzamy b³êdu, bo podobno nie trzeba a nawet nie nale¿y, bo zdarza siê Z_BUF_ERROR.
 
-		if (m_ZStream.avail_out < BUFFER_SIZE)
-			m_Stream->Write(&m_OutBuf[0], BUFFER_SIZE - m_ZStream.avail_out);
+		if (m_ZStream.avail_out < (uInt)BUFFER_SIZE)
+			m_Stream->Write(&m_OutBuf[0], (uInt)BUFFER_SIZE - m_ZStream.avail_out);
 	}
 	while (m_ZStream.avail_out == 0); // Tak, dziwne, ale w³aœnie taki warunek + ten assert jest w przyk³adzie w zlib.
 	assert(m_ZStream.avail_in == 0);
@@ -196,12 +197,12 @@ void ZlibCompressionStream_pimpl::Flush()
 	do
 	{
 		m_ZStream.next_out = (Bytef*)&m_OutBuf[0];
-		m_ZStream.avail_out = BUFFER_SIZE;
+		m_ZStream.avail_out = (uInt)BUFFER_SIZE;
 
 		deflate(&m_ZStream, Z_SYNC_FLUSH);
 
-		if (m_ZStream.avail_out < BUFFER_SIZE)
-			m_Stream->Write(&m_OutBuf[0], BUFFER_SIZE - m_ZStream.avail_out);
+		if (m_ZStream.avail_out < (uInt)BUFFER_SIZE)
+			m_Stream->Write(&m_OutBuf[0], (uInt)BUFFER_SIZE - m_ZStream.avail_out);
 	}
 	while (m_ZStream.avail_out == 0);
 }
@@ -233,13 +234,15 @@ void ZlibCompressionStream::Flush()
 
 size_t ZlibCompressionStream::CompressLength(size_t DataLength)
 {
-	return compressBound(DataLength);
+    assert(DataLength <= ULONG_MAX);
+	return compressBound((uLong)DataLength);
 }
 
 size_t ZlibCompressionStream::Compress(void *OutData, size_t BufLength, const void *Data, size_t DataLength, int Level)
 {
-	uLongf DestLen = BufLength;
-	int R = compress2((Bytef*)OutData, &DestLen, (const Bytef*)Data, DataLength, Level);
+    assert(BufLength <= ULONG_MAX && DataLength <= ULONG_MAX);
+	uLongf DestLen = (uLongf)BufLength;
+	int R = compress2((Bytef*)OutData, &DestLen, (const Bytef*)Data, (uLong)DataLength, Level);
 	if (R != Z_OK)
 		throw ZlibError(R, _T("Cannot compress data with zlib."), __TFILE__, __LINE__);
 	return DestLen;
@@ -321,7 +324,7 @@ ZlibDecompressionStream_pimpl::ZlibDecompressionStream_pimpl(Stream *a_Stream, b
 
 	EnsureBuf(m_Stream);
 	m_ZStream.next_in = (Bytef*)&m_InBuf[0];
-	m_ZStream.avail_in = m_InBufLen;
+	m_ZStream.avail_in = (uInt)m_InBufLen;
 
 	// Tak te¿ mo¿e byæ
 	//m_ZStream.next_in = 0;
@@ -374,13 +377,15 @@ size_t ZlibDecompressionStream_pimpl::Read(void *Out, size_t MaxLength)
 	if (m_OutEnd == true || MaxLength == 0)
 		return 0;
 
+    assert(MaxLength <= UINT_MAX);
+
 	// avail_out wskazuje na liczbê pozosta³ych bajtów do odczytania w tym wywo³aniu Read.
 	//   Wiêc (MaxLength - avail_out) to liczba zwróconych przez zlib bajtów w tym wywo³aniu Read.
 	// avail_in to liczba niepobranych jeszcze przez zlib danych z bufora InBuf.
 	//   Wiêc (InBufLen - avail_in) to liczba przetworznych ju¿ przez zlib bajtów danego bufora InBuf.
 
 	// Miejsce do pisania
-	m_ZStream.avail_out = MaxLength;
+	m_ZStream.avail_out = (uInt)MaxLength;
 	m_ZStream.next_out = (Bytef*)Out;
 
 	for (;;)
@@ -397,7 +402,7 @@ size_t ZlibDecompressionStream_pimpl::Read(void *Out, size_t MaxLength)
 			if (m_InBufLen == 0)
 				throw Error(_T("Zlib decompression stream error: Unfinished data."), __TFILE__, __LINE__);
 			m_ZStream.next_in = (Bytef*)&m_InBuf[0];
-			m_ZStream.avail_in = m_InBufLen;
+			m_ZStream.avail_in = (uInt)m_InBufLen;
 		}
 
 		int R = inflate(&m_ZStream, Z_NO_FLUSH);
@@ -464,8 +469,9 @@ bool ZlibDecompressionStream::End()
 
 size_t ZlibDecompressionStream::Decompress(void *OutData, size_t BufLength, const void *Data, size_t DataLength)
 {
-	uLongf DestLen = BufLength;
-	int R = uncompress((Bytef*)OutData, &DestLen, (Bytef*)Data, DataLength);
+    assert(BufLength <= ULONG_MAX && DataLength <= ULONG_MAX);
+	uLongf DestLen = (uLongf)BufLength;
+	int R = uncompress((Bytef*)OutData, &DestLen, (Bytef*)Data, (uLong)DataLength);
 	if (R != Z_OK)
 		throw ZlibError(R, _T("Cannot decompress data with zlib."), __TFILE__, __LINE__);
 	return DestLen;
@@ -558,7 +564,8 @@ GzipFileStream::~GzipFileStream()
 
 void GzipFileStream::Write(const void *Data, size_t Size)
 {
-	size_t Written = gzwrite(pimpl->File, Data, Size);
+    assert(Size <= UINT_MAX);
+	size_t Written = (size_t)gzwrite(pimpl->File, Data, (unsigned int)Size);
 	if (Written != Size)
 		throw Error(Format(_T("Cannot write to gzip file - #/# bytes written.")) % Written % Size, __TFILE__, __LINE__);
 }
@@ -580,7 +587,9 @@ size_t GzipFileStream::Read(void *Out, size_t MaxLength)
 	MaxLength--;
 	Out2++;
 
-	int BytesRead = gzread(pimpl->File, Out2, MaxLength);
+    assert(MaxLength <= UINT_MAX);
+
+	int BytesRead = gzread(pimpl->File, Out2, (unsigned int)MaxLength);
 
 	if (BytesRead == -1)
 		throw Error(Format(_T("Cannot read # bytes from gzip file.")) % (MaxLength+1), __TFILE__, __LINE__);
