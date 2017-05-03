@@ -1427,7 +1427,7 @@ size_t LimitOverlayStream::Read(void *Data, size_t Size)
 	}
 	else
 	{
-		size_t BytesRead = GetStream()->Read(Data, m_ReadLimit);
+		size_t BytesRead = GetStream()->Read(Data, (size_t)m_ReadLimit);
 		m_ReadLimit -= BytesRead;
 		return BytesRead;
 	}

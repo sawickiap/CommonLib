@@ -1011,7 +1011,10 @@ void LoadUnicodeFromStream(SeekableStream *Src, wstring *Out, unsigned Encoding,
 	// Wczytaj ca³y plik do pamiêci
 	VectorStream VS;
 	{
-		VS.SetCapacity(Src->GetSize());
+        uint64 size = Src->GetSize();
+        if(size > SIZE_MAX)
+            throw Error(_T("Stream too long."), __TFILE__, __LINE__);
+		VS.SetCapacity((size_t)size);
 		CopyToEnd(&VS, Src);
 		VS.Rewind();
 	}
@@ -1025,7 +1028,7 @@ void LoadUnicodeFromStream(SeekableStream *Src, wstring *Out, unsigned Encoding,
 			{
 				// Jeœli jest nag³ówek, pomiñ go
 				size_t BOMSize = strlen(BOM_UTF16_LE);
-				if (HasBOM(VS.Data(), VS.GetSize(), BOM_UTF16_LE, BOMSize))
+				if (HasBOM(VS.Data(), (size_t)VS.GetSize(), BOM_UTF16_LE, BOMSize))
 					VS.SetPosFromCurrent(BOMSize);
 				// Wczytaj dane
 				VS.ReadStringToEnd(Out);
@@ -1036,17 +1039,17 @@ void LoadUnicodeFromStream(SeekableStream *Src, wstring *Out, unsigned Encoding,
 				// Jeœli jest nag³ówek, pomiñ go
 				size_t BOMSize = strlen(BOM_UTF8);
 				size_t Index = 0;
-				if (HasBOM(VS.Data(), VS.GetSize(), BOM_UTF8, BOMSize))
+				if (HasBOM(VS.Data(), (size_t)VS.GetSize(), BOM_UTF8, BOMSize))
 					Index += BOMSize;
 				// Wczytaj dane - skonwertuj z UTF-8 do Unicode
-				if (!ConvertCharsToUnicode(Out, &VS.Data()[Index], VS.GetSize() - Index, CP_UTF8))
+				if (!ConvertCharsToUnicode(Out, &VS.Data()[Index], (size_t)VS.GetSize() - Index, CP_UTF8))
 					throw Error(_T("Cannot convert UTF-8 to Unicode."), __TFILE__, __LINE__);
 			}
 			break;
 		case FILE_ENCODING_ANSI:
 			{
 				// Wczytaj dane - skonwertuj z ANSI do Unicode
-				if (!ConvertCharsToUnicode(Out, VS.Data(), VS.GetSize(), CP_ACP))
+				if (!ConvertCharsToUnicode(Out, VS.Data(), (size_t)VS.GetSize(), CP_ACP))
 					throw Error(_T("Cannot convert ANSI to Unicode."), __TFILE__, __LINE__);
 			}
 			break;
@@ -1059,7 +1062,7 @@ void LoadUnicodeFromStream(SeekableStream *Src, wstring *Out, unsigned Encoding,
 	{
 		// Wykryj kodowanie
 		size_t BomSize;
-		ENC Enc = DetectEncoding(VS.Data(), VS.GetSize(), Encoding & 0xFFFF, &BomSize);
+		ENC Enc = DetectEncoding(VS.Data(), (size_t)VS.GetSize(), Encoding & 0xFFFF, &BomSize);
 
 		// Rzuæ wyj¹tek, jeœli to nieob³sugiwane kodowanie
 		if (Enc == ENC_UTF32_LE)
@@ -1081,11 +1084,11 @@ void LoadUnicodeFromStream(SeekableStream *Src, wstring *Out, unsigned Encoding,
 		{
 			if (OutEncoding != NULL) *OutEncoding = FILE_ENCODING_UTF8;
 			// Wczytaj dane - skonwertuj z UTF-8 do Unicode
-			if (!ConvertCharsToUnicode(Out, &VS.Data()[BomSize], VS.GetSize() - BomSize, CP_UTF8))
+			if (!ConvertCharsToUnicode(Out, &VS.Data()[BomSize], (size_t)VS.GetSize() - BomSize, CP_UTF8))
 			{
 				// Jeœli nie uda³o siê jako UTF-8, skonwertuj do ANSI
 				if (OutEncoding != NULL) *OutEncoding = FILE_ENCODING_ANSI;
-				if (!ConvertCharsToUnicode(Out, VS.Data(), VS.GetSize(), CP_ACP))
+				if (!ConvertCharsToUnicode(Out, VS.Data(), (size_t)VS.GetSize(), CP_ACP))
 					throw Error(_T("Cannot convert UTF-8 or ANSI to Unicode."), __TFILE__, __LINE__);
 			}
 		}
@@ -1093,7 +1096,7 @@ void LoadUnicodeFromStream(SeekableStream *Src, wstring *Out, unsigned Encoding,
 		{
 			if (OutEncoding != NULL) *OutEncoding = FILE_ENCODING_ANSI;
 			// Wczytaj dane - skonwertuj z ANSI do Unicode
-			if (!ConvertCharsToUnicode(Out, VS.Data(), VS.GetSize(), CP_ACP))
+			if (!ConvertCharsToUnicode(Out, VS.Data(), (size_t)VS.GetSize(), CP_ACP))
 				throw Error(_T("Cannot convert ANSI to Unicode."), __TFILE__, __LINE__);
 		}
 	}
@@ -1108,7 +1111,10 @@ void LoadUnicodeFromStream(SeekableStream *Src, string *Out, unsigned Encoding, 
 	// Wczytaj ca³y plik do pamiêci
 	VectorStream VS;
 	{
-		VS.SetCapacity(Src->GetSize());
+        uint64 size = Src->GetSize();
+        if(size > SIZE_MAX)
+            throw Error(_T("Stream too long."), __TFILE__, __LINE__);
+		VS.SetCapacity((size_t)size);
 		CopyToEnd(&VS, Src);
 		VS.Rewind();
 	}
@@ -1123,10 +1129,10 @@ void LoadUnicodeFromStream(SeekableStream *Src, string *Out, unsigned Encoding, 
 				// Jeœli jest nag³ówek, pomiñ go
 				size_t BOMSize = strlen(BOM_UTF16_LE);
 				size_t Index = 0;
-				if (HasBOM(VS.Data(), VS.GetSize(), BOM_UTF16_LE, BOMSize))
+				if (HasBOM(VS.Data(), (size_t)VS.GetSize(), BOM_UTF16_LE, BOMSize))
 					Index = BOMSize;
 				// Skonwertuj Unicode na ANSI
-				if (!ConvertUnicodeToChars(Out, (const wchar_t*)&VS.Data()[Index], (VS.GetSize() / Index) / sizeof(wchar_t), CP_ACP))
+				if (!ConvertUnicodeToChars(Out, (const wchar_t*)&VS.Data()[Index], ((size_t)VS.GetSize() / Index) / sizeof(wchar_t), CP_ACP))
 					throw Error(_T("Cannot convert Unicode to ANSI."), __TFILE__, __LINE__);
 			}
 			break;
@@ -1135,11 +1141,11 @@ void LoadUnicodeFromStream(SeekableStream *Src, string *Out, unsigned Encoding, 
 				// Jeœli jest nag³ówek, pomiñ go
 				size_t BOMSize = strlen(BOM_UTF8);
 				size_t Index = 0;
-				if (HasBOM(VS.Data(), VS.GetSize(), BOM_UTF8, BOMSize))
+				if (HasBOM(VS.Data(), (size_t)VS.GetSize(), BOM_UTF8, BOMSize))
 					Index += BOMSize;
 				// Wczytaj dane - skonwertuj z UTF-8 do Unicode
 				wstring TmpWstr;
-				if (!ConvertCharsToUnicode(&TmpWstr, &VS.Data()[Index], VS.GetSize() - Index, CP_UTF8))
+				if (!ConvertCharsToUnicode(&TmpWstr, &VS.Data()[Index], (size_t)VS.GetSize() - Index, CP_UTF8))
 					throw Error(_T("Cannot convert UTF-8 to Unicode."), __TFILE__, __LINE__);
 				// Skonwertuj Unicode do ANSI
 				if (!ConvertUnicodeToChars(Out, TmpWstr, CP_ACP))
@@ -1162,7 +1168,7 @@ void LoadUnicodeFromStream(SeekableStream *Src, string *Out, unsigned Encoding, 
 	{
 		// Wykryj kodowanie
 		size_t BomSize;
-		ENC Enc = DetectEncoding(VS.Data(), VS.GetSize(), Encoding & 0xFFFF, &BomSize);
+		ENC Enc = DetectEncoding(VS.Data(), (size_t)VS.GetSize(), Encoding & 0xFFFF, &BomSize);
 
 		// Rzuæ wyj¹tek, jeœli to nieob³sugiwane kodowanie
 		if (Enc == ENC_UTF32_LE)
@@ -1176,7 +1182,7 @@ void LoadUnicodeFromStream(SeekableStream *Src, string *Out, unsigned Encoding, 
 		{
 			if (OutEncoding != NULL) *OutEncoding = FILE_ENCODING_UTF16_LE;
 			// Skonwertuj UTF-16 na ANSI
-			if (!ConvertUnicodeToChars(Out, (const wchar_t*)&VS.Data()[BomSize], (VS.GetSize() - BomSize) / sizeof(wchar_t), CP_ACP))
+			if (!ConvertUnicodeToChars(Out, (const wchar_t*)&VS.Data()[BomSize], ((size_t)VS.GetSize() - BomSize) / sizeof(wchar_t), CP_ACP))
 				throw Error(_T("Cannot convert Unicode to ANSI."), __TFILE__, __LINE__);
 		}
 		else if (Enc == ENC_UTF8)
@@ -1184,7 +1190,7 @@ void LoadUnicodeFromStream(SeekableStream *Src, string *Out, unsigned Encoding, 
 			if (OutEncoding != NULL) *OutEncoding = FILE_ENCODING_UTF8;
 			// Wczytaj dane - skonwertuj z UTF-8 do Unicode, potem Unicode do ANSI
 			wstring TmpWstr;
-			if (!ConvertCharsToUnicode(&TmpWstr, &VS.Data()[BomSize], VS.GetSize() - BomSize, CP_UTF8) ||
+			if (!ConvertCharsToUnicode(&TmpWstr, &VS.Data()[BomSize], (size_t)VS.GetSize() - BomSize, CP_UTF8) ||
 				!ConvertUnicodeToChars(Out, TmpWstr, CP_ACP))
 			{
 				// Jeœli nie uda³o siê jako UTF-8, wczytaj jako ANSI
