@@ -9,7 +9,7 @@ Documentation: \ref Module_Threads \n
 Module components: \ref code_threads
 */
 #include "Base.hpp"
-#ifdef WIN32
+#ifdef _WIN32
 	#define _WIN32_WINNT 0x0400 // dla windows.h dla SwitchToThread
 	#include <windows.h>
 	#include <process.h> // dla _beginthreadex
@@ -26,7 +26,7 @@ Module components: \ref code_threads
 namespace common
 {
 
-#ifndef WIN32
+#ifndef _WIN32
 	// [Wewnêtrzna]
 	void MillisecondsToAbsTimespec(struct timespec *Out, uint Milliseconds)
 	{
@@ -40,7 +40,7 @@ namespace common
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa Thread
 
-#ifdef WIN32
+#ifdef _WIN32
 	class Thread_pimpl
 	{
 	public:
@@ -339,7 +339,7 @@ namespace common
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa Mutex
 
-#ifdef WIN32
+#ifdef _WIN32
 
 	/* W Win32 i sekcja krytyczna i muteks s¹ rekursywne, ale sekcja krytyczna nie pozwala czekaæ czasowo. */
 
@@ -476,7 +476,7 @@ namespace common
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa Semaphore
 
-#ifdef WIN32
+#ifdef _WIN32
 
 	class Semaphore_pimpl
 	{
@@ -577,7 +577,7 @@ namespace common
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa Cond
 
-#ifdef WIN32
+#ifdef _WIN32
 
 /*
 WinAPI nie ma zmiennych kondycyjnych takich jak Pthreads czy Java i bardzo
@@ -742,7 +742,7 @@ niej siê tutaj wzorowa³em.
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa Barrier
 
-#ifdef WIN32
+#ifdef _WIN32
 
 	class Barrier_pimpl
 	{
@@ -814,7 +814,7 @@ niej siê tutaj wzorowa³em.
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa Event
 
-#ifdef WIN32
+#ifdef _WIN32
 
 	class Event_pimpl
 	{

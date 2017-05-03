@@ -381,7 +381,7 @@ MONTH StrToMonth(const tstring &s);
 ¯eby to mia³o sens, musz¹ siê znaleŸæ tam co najmniej rok, miesi¹c i dzieñ.*/
 bool StrToDate(TMSTRUCT *Out, const tstring &s, const tstring &Format);
 
-#ifdef WIN32
+#ifdef _WIN32
 
 /// Reprezentuje b¹dŸ to bezwzglêdny czas systemowy, b¹dŸ te¿ odcinek (róznicê) czasu, jeœli odjête dwa GameTime.
 /** Wartoœæ bezwzglêdna jest mierzona od chwili startu programu. */
@@ -450,7 +450,7 @@ GameTime MillisecondsToGameTime(int64 Milliseconds);
 GameTime SecondsToGameTime(float Seconds);
 GameTime SecondsToGameTime(double Seconds);
 
-#endif // WIN32
+#endif // _WIN32
 
 //@}
 // code_datetime

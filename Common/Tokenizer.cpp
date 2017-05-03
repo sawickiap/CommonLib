@@ -125,7 +125,7 @@ void Tokenizer_pimpl::InitSymbols()
 
 	const tchar * DEFAULT_SYMBOLS = _T("`~!@#$%^&*()=[]{};:,.<>?\\|");
 
-#ifdef WIN32
+#ifdef _WIN32
 	size_t SymbolCount = _tcslen(DEFAULT_SYMBOLS);
 #else
 	size_t SymbolCount = strlen(DEFAULT_SYMBOLS);

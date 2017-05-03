@@ -11,7 +11,7 @@ Module components: \ref code_error
 #include "Base.hpp"
 #include "Error.hpp"
 
-#ifndef WIN32
+#ifndef _WIN32
 	#include <errno.h>
 #endif
 
@@ -450,7 +450,7 @@ ErrnoError::ErrnoError(const tstring &msg, const tstring &file, int line)
 	}
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 	Win32Error::Win32Error(const tstring &msg, const tstring &file, int line)
 	{
 		DWORD Code = GetLastError();

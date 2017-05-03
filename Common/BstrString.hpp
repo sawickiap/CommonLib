@@ -14,8 +14,8 @@ Module components: \ref code_bstrstring
 #ifndef BSTR_STRING_H_
 #define BSTR_STRING_H_
 
-#ifndef WIN32
-#error BstrString module supports only WIN32 platform.
+#ifndef _WIN32
+#error BstrString module supports only _WIN32 platform.
 #endif
 
 #include <windows.h> // Must be before Oleauto.h or I get compilation errors.

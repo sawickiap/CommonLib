@@ -28,7 +28,7 @@ ZlibError::ZlibError(int Code, const tstring &Msg, const tstring &File, int Line
 {
 	if (Code == Z_ERRNO)
 	{
-	#ifdef WIN32
+	#ifdef _WIN32
 		#ifdef _MSC_VER
 			tchar buf[256];
 			_tcserror_s(buf, _countof(buf), errno);
@@ -107,7 +107,7 @@ ZlibCompressionStream_pimpl::ZlibCompressionStream_pimpl(Stream *a_Stream, const
 	// Nag³ówek gzip
 	common_memzero(&m_Header, sizeof(m_Header));
 	m_Header.time = (uLong)Now().GetTicks();
-#ifdef WIN32
+#ifdef _WIN32
 	m_Header.os = 0;
 #else
 	m_Header.os = 3;

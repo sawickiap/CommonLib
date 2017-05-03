@@ -13,7 +13,7 @@ Module components: \ref code_base
 #include <cctype> // dla tolower, isalnum itp.
 #include <ctime> // dla time potrzebnego w RandomGenerator
 #include <memory.h>
-#ifdef WIN32
+#ifdef _WIN32
 	#include <windows.h>
 	#include <float.h> // dla _finite i _isnan
     #include <intrin.h> // for _debugbreak
@@ -28,14 +28,14 @@ namespace common
 namespace Internal
 {
 
-#ifdef WIN32
+#ifdef _WIN32
 
 void DebugBreak()
 {
     __debugbreak();
 }
 
-#endif // #ifdef WIN32
+#endif // #ifdef _WIN32
 
 } // namespace Internal
 
@@ -82,7 +82,7 @@ void SwapEndian64_Data(void *p, size_t count, ptrdiff_t stepBytes)
 
 void Wait(uint32 Miliseconds)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	Sleep(Miliseconds);
 #else
 	timeval t;
@@ -96,7 +96,7 @@ void Wait(uint32 Miliseconds)
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // £añcuchy
 
-#ifdef WIN32
+#ifdef _WIN32
 	const tchar * const EOL = _T("\r\n");
 #else
 	const tchar * const EOL = _T("\n");
@@ -122,7 +122,7 @@ static const string CHARSET_CHARS[CHARSET_COUNT][18] = {
 
 bool CharIsAlphaNumeric(tchar ch)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return (IsCharAlphaNumeric(ch) != 0);
 #else
 	return (isalnum(static_cast<unsigned char>(ch)) != 0);
@@ -131,7 +131,7 @@ bool CharIsAlphaNumeric(tchar ch)
 
 bool CharIsAlpha(tchar ch)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return (IsCharAlpha(ch) != 0);
 #else
 	return (isalpha(static_cast<unsigned char>(ch)) != 0);
@@ -140,7 +140,7 @@ bool CharIsAlpha(tchar ch)
 
 bool CharIsLower(tchar ch)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return (IsCharLower(ch) != 0);
 #else
 	return (islower(static_cast<unsigned char>(ch)) != 0);
@@ -149,7 +149,7 @@ bool CharIsLower(tchar ch)
 
 bool CharIsUpper(tchar ch)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return (IsCharUpper(ch) != 0);
 #else
 	return (isupper(static_cast<unsigned char>(ch)) != 0);
@@ -161,7 +161,7 @@ bool CharIsWhitespace(char ch)
 	return (isspace(static_cast<unsigned char>(ch)) != 0);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 bool CharIsWhitespace(wchar_t ch)
 {
 	return (iswspace(ch) != 0);
@@ -182,14 +182,14 @@ const tchar * StrStrI(const tchar *Str, const tchar *SubStr, size_t Count)
 	size_t nLen, nOffset, nMaxOffset, nStringLenInt;
 	const tchar *pPos;
 	assert(Str && SubStr);
-#ifdef WIN32
+#ifdef _WIN32
 	nLen = _tcslen(SubStr);
 #else
 	nLen = strlen(SubStr);
 #endif
 	if (nLen == 0)
 		return Str;
-#ifdef WIN32
+#ifdef _WIN32
 	size_t nStringToBeSearched = _tcslen(Str);
 #else
 	size_t nStringToBeSearched = strlen(Str);
@@ -273,7 +273,7 @@ wiec niech tak sobie juz zostanie :PPP
 
 tchar CharToLower(tchar ch)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	tchar s[2];
 	s[0] = ch;
 	s[1] = '\0';
@@ -286,7 +286,7 @@ tchar CharToLower(tchar ch)
 
 tchar CharToUpper(tchar ch)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	tchar s[2];
 	s[0] = ch;
 	s[1] = '\0';
@@ -542,7 +542,7 @@ int StrCmpI(const tstring &s1, const tstring &s2, size_t Count)
 
 int StrCmpI(const tchar *s1, const tchar *s2, size_t Count)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	if (Count == MAXUINT32)
 		return _tcsicmp(s1, s2);
 	else
@@ -572,7 +572,7 @@ int SubStrCmp(const tstring &s1, size_t off1, const tstring &s2, size_t off2, si
 
 int SubStrCmpI(const tstring &s1, size_t off1, const tstring &s2, size_t off2, size_t length)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	if (length == MAXUINT32)
 		return _tcsicmp(s1.c_str()+off1, s2.c_str()+off2);
 	else
@@ -1133,7 +1133,7 @@ unsigned StrReplace(tchar *str, tchar from, tchar to)
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Obs³uga Unicode (tylko Windows)
-#ifdef WIN32
+#ifdef _WIN32
 
 bool ConvertUnicodeToChars(string *Out, const wstring &S, unsigned CodePage)
 {
@@ -1327,7 +1327,7 @@ const char * const BOM_UTF16_BE = "\xFE\xFF";
 	bool TstringToString(string *Out, const tstring &S) { return ConvertUnicodeToChars(Out, S, CP_ACP); }
 	bool StringToTstring(tstring *Out, const string &S) { return ConvertCharsToUnicode(Out, S, CP_ACP); }
 #else
-	#ifdef WIN32
+	#ifdef _WIN32
 		bool TstringToWstring(wstring *Out, const tstring &S) { return ConvertCharsToUnicode(Out, S, CP_ACP); }
 		bool WstringToTstring(tstring *Out, const wstring &S) { return ConvertUnicodeToChars(Out, S, CP_ACP); }
 	#endif
@@ -1462,7 +1462,7 @@ inline bool IsPathSlash(tchar Ch)
 // Z rozró¿nianiem lub bez rozró¿niania wielkoœci znaków, zale¿nie od systemu
 bool PathCmp(const tstring &s1, const tstring &s2)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return StrCmpI(s1, s2) == 0;
 #else
 	return (s1 == s2);
@@ -1803,7 +1803,7 @@ u¿ywana by³a zawsze kropka, a nie przecinek jeœli ustawiony jest polski locale.
 Niestety nie zwalniam tego obiektu na koniec, choæ powinienem wywo³aæ
 _free_locale.
 */
-#ifdef WIN32
+#ifdef _WIN32
 	static _locale_t g_MainLocale = _create_locale(LC_ALL, "C");
 #endif
 
@@ -1819,7 +1819,7 @@ void DoubleToStr(tstring *Out, double x, char mode, int precision)
 {
 	tchar sz[256], Format[6];
 
-#ifdef WIN32
+#ifdef _WIN32
 	#ifdef _UNICODE
 		wcscpy_s(Format, _countof(Format), DOUBLE_TO_STR_FORMAT[precision]);
 		size_t l = _tcslen(Format);
@@ -1920,7 +1920,7 @@ int StrToDouble(double *out, const tstring &s)
 	}
 
 	////// Konwersja w³aœciwa
-	#ifdef WIN32
+	#ifdef _WIN32
 		#ifdef _UNICODE
 			*out = _wtof_l(s.c_str(), g_MainLocale);
 		#else
@@ -2017,7 +2017,7 @@ void Rot13(tstring *InOut)
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Matematyka
 
-#ifdef WIN32
+#ifdef _WIN32
 	bool is_finite(float x)  { return (_finite(x) != 0); }
 	bool is_finite(double x) { return (_finite(x) != 0); }
 	bool is_nan(float x)  { return (_isnan(x) != 0); }
@@ -2125,7 +2125,7 @@ uint Extend16BitsBy1Zero(uint n)
 
 void sincos(float angle, float *sine, float *cosine)
 {
-	#if defined(WIN32) && !defined(_WIN64)
+	#if defined(_WIN32) && !defined(_WIN64)
 		// Procedurê mam od: Karol Kuczmarski "Xion"
 		__asm
 		{

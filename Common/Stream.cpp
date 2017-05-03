@@ -9,7 +9,7 @@ Documentation: \ref Module_Stream \n
 Module components: \ref code_stream
 */
 #include "Base.hpp"
-#ifdef WIN32
+#ifdef _WIN32
 	#include <typeinfo.h>
 #else
 	#include <typeinfo>
@@ -105,7 +105,7 @@ void Stream::WriteString1(const char *s, size_t NumChars)
 }
 
 ////// WriteString 1 (Unicode)
-#ifdef WIN32
+#ifdef _WIN32
 
 void Stream::WriteString1(const wstring &s)
 {
@@ -154,7 +154,7 @@ void Stream::WriteString2(const char *s, size_t NumChars)
 }
 
 ////// WriteString 2 (Unicode)
-#ifdef WIN32
+#ifdef _WIN32
 
 void Stream::WriteString2(const wstring &s)
 {
@@ -203,7 +203,7 @@ void Stream::WriteString4(const char *s, size_t NumChars)
 }
 
 ////// WriteString 4 (Unicode)
-#ifdef WIN32
+#ifdef _WIN32
 
 void Stream::WriteString4(const wstring &s)
 {
@@ -235,7 +235,7 @@ void Stream::WriteStringF(const string &s)
 	Write(s.data(), s.length());
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 void Stream::WriteStringF(const wstring &s)
 {
 	Write(s.data(), s.length() * sizeof(wchar_t));
@@ -341,7 +341,7 @@ void Stream::ReadStringToEnd(string *s)
 }
 
 ////// ReadString (Unicode)
-#ifdef WIN32
+#ifdef _WIN32
 
 void Stream::ReadString1(wstring *s)
 {
@@ -600,7 +600,7 @@ void CharWriter::WriteData(const void *Data, size_t Length)
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa WCharWriter
-#ifdef WIN32
+#ifdef _WIN32
 
 WCharWriter::~WCharWriter()
 {
@@ -915,7 +915,7 @@ void CharReader::MustReadLine(string *Out)
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa WCharReader
-#ifdef WIN32
+#ifdef _WIN32
 
 bool WCharReader::EnsureNewChars()
 {
@@ -1698,7 +1698,7 @@ uint32 Hash_Calc::Calc(const string &s)
 	return Hash;
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 // To wprawdzie jest algorytm do skutecznego hashowania stringów typu single-byte,
 // a ja go tutaj użyję do Unicode, ale co tam...
 uint32 Hash_Calc::Calc(const wstring &s)
@@ -2241,7 +2241,7 @@ void XorCoder::Code(string *Out, const string &Data, const string &Key)
 	}
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 void XorCoder::Code(wstring *Out, const wstring &Data, const wstring &Key)
 {
 	Out->resize(Data.length());
@@ -2923,7 +2923,7 @@ break_2_ALL:
 
 const char * const HEX_DIGITS_U = "0123456789ABCDEF";
 const char * const HEX_DIGITS_L = "0123456789abcdef";
-#ifdef WIN32
+#ifdef _WIN32
 const wchar_t * const WHEX_DIGITS_U = L"0123456789ABCDEF";
 const wchar_t * const WHEX_DIGITS_L = L"0123456789abcdef";
 #endif
@@ -3025,7 +3025,7 @@ void HexEncoder::Encode(string *Out, const void *Data, size_t DataLength, bool U
 	}
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 void HexEncoder::Encode(wchar_t *Out, const void *Data, size_t DataLength, bool UpperCase)
 {
 	// DataLength będzie zmniejszane.
@@ -3523,7 +3523,7 @@ break_2_ALL:
 	return Sum;
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 size_t HexDecoder::Decode(void *OutData, const wstring &s, DECODE_TOLERANCE Tolerance)
 {
 	uint8 *OutBytes = (uint8*)OutData;

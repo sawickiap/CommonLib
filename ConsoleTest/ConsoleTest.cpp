@@ -13,7 +13,7 @@
 #include "../Common/Logger.hpp"
 #include "../Common/ObjList.hpp"
 
-#ifdef WIN32
+#ifdef _WIN32
 	#include "../Common/BstrString.hpp"
 #endif
 
@@ -945,7 +945,7 @@ void TestFiles()
 	tstring Name;
 	common::FILE_ITEM_TYPE Type;
 
-#ifdef WIN32
+#ifdef _WIN32
 	const tchar * PATHS[] =
 	{
 		_T("D:"),
@@ -963,7 +963,7 @@ void TestFiles()
 	};
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 	for (uint i = 0; _tcslen(PATHS[i]) > 0; i++)
 #else
 	for (uint i = 0; strlen(PATHS[i]) > 0; i++)
@@ -1474,7 +1474,7 @@ void TestThreads()
 		for (uint i = 0; i < 4; i++)
 			Threads[i]->Start();
 
-		#ifdef WIN32
+		#ifdef _WIN32
 			Threads[0]->SetPriority(Thread::PRIORITY_HIGH);
 			WriteLine(Format(_T("Main: Thread 1 Running: #")) % Threads[0]->IsRunning());
 		#endif
@@ -1482,7 +1482,7 @@ void TestThreads()
 		for (uint i = 0; i < 4; i++)
 			Threads[i]->Join();
 
-		#ifdef WIN32
+		#ifdef _WIN32
 			WriteLine(Format(_T("Main: Thread 1 Running: #")) % Threads[0]->IsRunning());
 		#endif
 	}
@@ -1608,7 +1608,7 @@ void TestLogger()
 	HtmlLog.reset(0);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 void TestBstrString()
 {
 	BstrString b1 = "Dupa";
@@ -1620,7 +1620,7 @@ void TestBstrString()
 	assert(b4.length() == 4);
 	cout << "Here should be \"adam\": " << b4.c_str() << endl;
 }
-#endif // #ifdef WIN32
+#endif // #ifdef _WIN32
 
 
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
@@ -1889,7 +1889,7 @@ void Test()
 	TestTokenizer();
 	TestThreads();
 	TestLogger();
-#ifdef WIN32
+#ifdef _WIN32
 	TestBstrString();
 #endif
 	TestObjList();
@@ -1900,7 +1900,7 @@ void Test()
 	tcout << _T("Result:") << endl << Result << endl;
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 int _tmain(int argc, tchar* argv[], tchar* envp[])
 #else
 int main(int argc, char* argv[])

@@ -15,7 +15,7 @@ Module components: \ref code_error
 #define COMMON_ERROR_H_
 
 typedef long HRESULT;
-#ifdef WIN32
+#ifdef _WIN32
 	#include <windows.h>
 #endif
 #ifdef USE_DIRECTX
@@ -99,7 +99,7 @@ public:
 	};
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 	/// Tworzy wyj¹tek na podstawie b³êdu WinAPI pobieranego za pomoc¹ GetLastError
 	class Win32Error : public Error
 	{

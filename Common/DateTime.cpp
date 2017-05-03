@@ -9,7 +9,7 @@ Documentation: \ref Module_DateTime
 */
 #include "Base.hpp"
 #include "DateTime.hpp"
-#ifdef WIN32
+#ifdef _WIN32
 	#include <windows.h>
 #else
 	#include <sys/time.h> // dla gettimeofday
@@ -138,7 +138,7 @@ int GetTruncatedJDN(uint16 day, MONTH mon, int year)
 // Napisana tak ¿eby by³a bezpieczna w¹tkowo, nie to co standardowa localtime.
 void MyLocalTime(struct tm *OutTm, time_t Time)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	int R = localtime_s(OutTm, &Time);
 	assert( R == 0 );
 
@@ -604,7 +604,7 @@ DATETIME UNow()
 {
 	DATETIME R;
 
-#ifdef WIN32
+#ifdef _WIN32
 	SYSTEMTIME thenst = { 1970, 1, 4, 1, 0, 0, 0, 0 }; // 00:00:00 Jan 1st 1970
 	FILETIME thenft;
 	SystemTimeToFileTime(&thenst, &thenft);
@@ -991,7 +991,7 @@ bool StrToDate(TMSTRUCT *Out, const tstring &s, const tstring &Format)
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // class GameTime
 
-#ifdef WIN32
+#ifdef _WIN32
 
 const GameTime GameTime::ZERO = GameTime(0ll);
 const GameTime GameTime::MIN_VALUE = GameTime(MININT64);
@@ -1006,7 +1006,7 @@ GameTime GetCurrentGameTime()
 
 	int64 v;
 
-#ifdef WIN32
+#ifdef _WIN32
 	QueryPerformanceCounter((LARGE_INTEGER*)&v);
 #else
 	timeval tv;
@@ -1052,7 +1052,7 @@ void GameTime::Initialize()
 {
 	ASSERT_INT3_DEBUG(!s_Initialized);
 
-#ifdef WIN32
+#ifdef _WIN32
 	QueryPerformanceFrequency((LARGE_INTEGER*)&s_PerfFreq);
 	QueryPerformanceCounter((LARGE_INTEGER*)&s_StartPerfCount);
 #else

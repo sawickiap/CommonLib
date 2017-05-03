@@ -12,7 +12,7 @@ Module components: \ref code_tokdoc
 #include "TokDoc.hpp"
 #include "Tokenizer.hpp"
 
-#ifdef WIN32
+#ifdef _WIN32
 #include "DateTime.hpp"
 #endif
 
@@ -624,7 +624,7 @@ void NodeFrom( Node &node, const PLANE &val )
 	node.LinkChildAtEnd(childNode = new Node()); NodeFrom(*childNode, val.d);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 
 void NodeFrom( Node &node, GameTime val )
 {
@@ -640,7 +640,7 @@ bool NodeTo( GameTime &out, const Node &node, bool required )
 	return true;
 }
 
-#endif // #ifdef WIN32
+#endif // #ifdef _WIN32
 
 bool NodeValueToEnum( uint &out, const Node &node, bool required, const tchar * const *itemNames, const uint *itemValues, size_t itemCount )
 {

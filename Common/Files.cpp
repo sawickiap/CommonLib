@@ -13,7 +13,7 @@ Module components: \ref code_files
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h> // dla unlink [Win, Linux ma go w unistd.h], rename [obydwa]
-#ifdef WIN32
+#ifdef _WIN32
 	extern "C" {
 		#include <sys/utime.h> // dla utime
 		#include <direct.h> // dla mkdir (Linux ma go w sys/stat.h + sys/types.h)
@@ -40,7 +40,7 @@ namespace common
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa FileStream
 
-#ifdef WIN32
+#ifdef _WIN32
 
 	class File_pimpl
 	{
@@ -347,7 +347,7 @@ class DirLister_pimpl
 private:
 	tstring m_Dir;
 
-	#ifdef WIN32
+	#ifdef _WIN32
 		WIN32_FIND_DATA m_FindData;
 		HANDLE m_Handle;
 		bool m_ReachedEnd;
@@ -367,7 +367,7 @@ public:
 	bool ReadNext(tstring *OutName, FILE_ITEM_TYPE *OutType);
 };
 
-#ifdef WIN32
+#ifdef _WIN32
 	void DirLister_pimpl::GetFirst()
 	{
 		tstring Path;
@@ -519,7 +519,7 @@ void LoadStringFromFile(const tstring &FileName, string *Data)
 	}
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 
 void SaveStringToFile(const tstring &FileName, const wstring &Data)
 {
@@ -553,7 +553,7 @@ void LoadStringFromFile(const tstring &FileName, wstring *Data)
 
 bool GetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint64 *OutSize, DATETIME *OutModificationTime, DATETIME *OutCreationTime, DATETIME *OutAccessTime)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	struct _stat32i64 S;
 	if ( _tstat32i64(Path.c_str(), &S) != 0 )
 		return false;
@@ -589,7 +589,7 @@ void MustGetFileItemInfo(const tstring &Path, FILE_ITEM_TYPE *OutType, uint64 *O
 
 FILE_ITEM_TYPE GetFileItemType(const tstring &Path)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	// szukanie pliku
 	DWORD Attr = GetFileAttributes(Path.c_str());
 	// pliku nie ma
@@ -617,7 +617,7 @@ FILE_ITEM_TYPE GetFileItemType(const tstring &Path)
 
 bool UpdateFileTimeToNow(const tstring &FileName)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return ( _tutime(FileName.c_str(), NULL) == 0 );
 #else
 	return ( utime(FileName.c_str(), NULL) == 0 );
@@ -632,7 +632,7 @@ void MustUpdateFileTimeToNow(const tstring &FileName)
 
 bool UpdateFileTime(const tstring &FileName, const DATETIME &ModificationTime, const DATETIME &AccessTime)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	_utimbuf B;
 	B.modtime = ModificationTime.GetTicks();
 	B.actime = AccessTime.GetTicks();
@@ -655,7 +655,7 @@ void MustUpdateFileTime(const tstring &FileName, const DATETIME &ModificationTim
 
 bool CreateDirectory(const tstring &Path)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return ( _tmkdir(Path.c_str()) == 0 );
 #else
 	return ( mkdir(Path.c_str(), 0777) == 0 );
@@ -670,7 +670,7 @@ void MustCreateDirectory(const tstring &Path)
 
 bool DeleteDirectory(const tstring &Path)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return ( _trmdir(Path.c_str()) == 0 );
 #else
 	return ( rmdir(Path.c_str()) == 0 );
@@ -740,7 +740,7 @@ void MustCreateDirectoryChain(const tstring &Path)
 
 bool DeleteFile(const tstring &FileName)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return ( _tunlink(FileName.c_str()) == 0 );
 #else
 	return ( unlink(FileName.c_str()) == 0 );
@@ -755,7 +755,7 @@ void MustDeleteFile(const tstring &FileName)
 
 bool MoveItem(const tstring &OldPath, const tstring &NewPath)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return ( _trename(OldPath.c_str(), NewPath.c_str()) == 0 );
 #else
 	return ( rename(OldPath.c_str(), NewPath.c_str()) == 0 );
@@ -768,7 +768,7 @@ void MustMoveItem(const tstring &OldPath, const tstring &NewPath)
 		throw ErrnoError(_T("Cannot move element from \"") + OldPath + _T("\" to \"") + NewPath + _T("\""), __TFILE__, __LINE__);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 
 void SaveUnicodeToFile(const tstring &FileName, const wstring &Data, unsigned Encoding)
 {

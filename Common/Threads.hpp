@@ -87,7 +87,7 @@ public:
 	void Kill();
 
 // Rzeczy które nie wiem jak zrealizowaæ w pthreads - dzia³aj¹ tylko w Windows
-#ifdef WIN32
+#ifdef _WIN32
 	void* GetNativeHandle(); ///< Returns HANDLE.
 	uint GetNativeId(); ///< Returns DWORD.
 	/// Zwraca true, jeœli w¹tek jest w tej chwili uruchomiony i naprawdê jeszcze dzia³a

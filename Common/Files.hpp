@@ -95,7 +95,7 @@ public:
 	virtual void Truncate();
 	virtual bool End();
 
-#ifdef WIN32
+#ifdef _WIN32
 	HANDLE GetNativeHandle();
 #endif
 };
@@ -130,7 +130,7 @@ void SaveDataToFile(const tstring &FileName, const void *Data, size_t NumBytes);
 /// Wczytuje ca³¹ zawartoœæ pliku do ³añcucha
 void LoadStringFromFile(const tstring &FileName, string *Data);
 /// Wersje Unicode
-#ifdef WIN32
+#ifdef _WIN32
 void SaveStringToFile(const tstring &FileName, const wstring &Data);
 void LoadStringFromFile(const tstring &FileName, wstring *Data);
 #endif
@@ -171,7 +171,7 @@ bool MoveItem(const tstring &OldPath, const tstring &NewPath);
 void MustMoveItem(const tstring &OldPath, const tstring &NewPath);
 
 // Pliki tekstowe z u¿yciem Unicode
-#ifdef WIN32
+#ifdef _WIN32
 
 /// Kodowanie pliku tekstowego
 enum FILE_ENCODING

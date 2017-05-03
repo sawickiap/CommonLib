@@ -58,7 +58,7 @@ public:
 	void WriteString1(const string &s);
 	void WriteString1(const char *s);
 	void WriteString1(const char *s, size_t NumChars);
-#ifdef WIN32
+#ifdef _WIN32
 	void WriteString1(const wstring &s);
 	void WriteString1(const wchar_t *s);
 	void WriteString1(const wchar_t *s, size_t NumChars);
@@ -68,7 +68,7 @@ public:
 	void WriteString2(const string &s);
 	void WriteString2(const char *s);
 	void WriteString2(const char *s, size_t NumChars);
-#ifdef WIN32
+#ifdef _WIN32
 	void WriteString2(const wstring &s);
 	void WriteString2(const wchar_t *s);
 	void WriteString2(const wchar_t *s, size_t NumChars);
@@ -77,14 +77,14 @@ public:
 	void WriteString4(const string &s);
 	void WriteString4(const char *s);
 	void WriteString4(const char *s, size_t NumChars);
-#ifdef WIN32
+#ifdef _WIN32
 	void WriteString4(const wstring &s);
 	void WriteString4(const wchar_t *s);
 	void WriteString4(const wchar_t *s, size_t NumChars);
 #endif
 	/// Zapisuje ³añcuch bez d³ugoœci
 	void WriteStringF(const string &s);
-#ifdef WIN32
+#ifdef _WIN32
 	void WriteStringF(const wstring &s);
 #endif
 	/// Zapisuje wartoœæ logiczn¹ za pomoc¹ jednego bajtu
@@ -132,7 +132,7 @@ public:
 	/// Odczytuje tyle znaków do ³añcucha, ile siê da do koñca strumienia
 	void ReadStringToEnd(string *s);
 	/// Wersje powy¿szych funkcji dla Unicode
-#ifdef WIN32
+#ifdef _WIN32
 	void ReadString1(wstring *s);
 	void ReadString2(wstring *s);
 	void ReadString4(wstring *s);
@@ -271,7 +271,7 @@ public:
 	void Flush() { if (m_BufIndex > 0) DoFlush(); }
 };
 
-#ifdef WIN32
+#ifdef _WIN32
 /// Nak³adka przyspieszaj¹ca zapisuj¹ca do strumienia pojedyncze znaki Unicode.
 /** Uwaga! Wersja Unicode nie posiada zapisywania surowych danych binarnych. */
 class WCharWriter
@@ -395,7 +395,7 @@ public:
 	void MustReadLine(string *Out);
 };
 
-#ifdef WIN32
+#ifdef _WIN32
 /// Nak³adka przyspieszaj¹ca odczytuj¹ca ze strumienia pojedyncze znaki Unicode.
 /** Uwaga! Wersja Unicode nie posiada odczytywania surowych danych binarnych. */
 class WCharReader
@@ -716,7 +716,7 @@ public:
 	/// Po prostu oblicza sumê kontroln¹ z podanych danych
 	static uint32 Calc(const void *Buf, uint32 BufLen);
 	static uint32 Calc(const string &s);
-#ifdef WIN32
+#ifdef _WIN32
 	static uint32 Calc(const wstring &s);
 #endif
 };
@@ -838,7 +838,7 @@ public:
 	static void Code(void *Out, const void *Data, size_t DataLength, const void *Key, size_t KeyLength);
 	/// Po prostu przetwarza podane dane
 	static void Code(string *Out, const string &Data, const string &Key);
-#ifdef WIN32
+#ifdef _WIN32
 	/// Po prostu przetwarza podane dane
 	static void Code(wstring *Out, const wstring &Data, const wstring &Key);
 #endif
@@ -918,7 +918,7 @@ public:
 	/** \param[out] Out £añcuch wyjœciowy Out nie musi mieæ ¿adnego konkretnego rozmiaru -
 	zostaje wyczyszczony i wype³niony od nowa. */
 	static void Encode(string *Out, const void *Data, size_t DataLength, bool UpperCase = true);
-#ifdef WIN32
+#ifdef _WIN32
 	static void Encode(wchar_t *Out, const void *Data, size_t DataLength, bool UpperCase = true);
 	static void Encode(wstring *Out, const void *Data, size_t DataLength, bool UpperCase = true);
 #endif
@@ -953,7 +953,7 @@ public:
 	static size_t Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
 	static size_t Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
-#ifdef WIN32
+#ifdef _WIN32
 	static size_t Decode(void *OutData, const wstring &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	static size_t Decode(void *OutData, const wchar_t *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 #endif

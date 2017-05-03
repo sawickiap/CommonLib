@@ -30,7 +30,7 @@ Header: Base.hpp */
 #include <cmath>
 #include <cstdint>
 
-#ifdef WIN32
+#ifdef _WIN32
 	/// This is in case the user includes <Windows.h> somewhere below.
 	#define NOMINMAX
 #endif
@@ -43,12 +43,12 @@ using std::wstring;
 // __FUNCSIG__ macro - conversion from GCC convention to Visual C++ convention.
 // __FUNCTION__ macro with function name only is the same in Visual C++ and GCC,
 // so I don't touch it.
-#ifndef WIN32
+#ifndef _WIN32
 	#define __FUNCSIG__ __PRETTY_FUNCTION__
 #endif
 
 // Things regarding Unicode
-#ifdef WIN32
+#ifdef _WIN32
 	#include <tchar.h>
 	#include <wchar.h>
 	/// Character type, depending on _UNICODE macro, is defined as char or wchar_t.
@@ -80,7 +80,7 @@ using std::wstring;
 
 /** \addtogroup base_main_types Fundamental data types */
 //@{
-#ifdef WIN32
+#ifdef _WIN32
 	/// Unsigned 32-bit numer
 	typedef unsigned __int32 uint;
 	/// Signed 8-bit number
@@ -112,7 +112,7 @@ using std::wstring;
 #endif
 //@}
 
-#ifdef WIN32
+#ifdef _WIN32
 	#define common_memzero(buf,bufSize)   { ZeroMemory(buf,bufSize); }
 #else
 	#define common_memzero(buf,bufSize)   { memset(buf,0,bufSize); }
@@ -183,7 +183,7 @@ typedef std::vector<tstring> STRING_VECTOR;
 /// If pointer is not null, calls Release() and zeroes it
 #define SAFE_RELEASE(x) do { if (x) { (x)->Release(); (x) = 0; } } while(false)
 
-#ifdef WIN32
+#ifdef _WIN32
     namespace common { namespace Internal {
         void DebugBreak();
     } }
@@ -575,7 +575,7 @@ public:
 	bool is_null() const { return m_Ptr == NULL; }
 };
 
-#ifdef WIN32
+#ifdef _WIN32
 	/// Handle closing policy which does: <tt>CloseHandle(p);</tt>
 	class CloseHandlePolicy  { public: template <typename T> static void Destroy(T p) { if (p != NULL) CloseHandle(p); } };
 	/// Handle closing policy which does: <tt>DeleteObject(p);</tt>
@@ -705,7 +705,7 @@ const float SQRT1_2   = 0.707106781186547524401f; ///< 1/sqrt(2)
 //@}
 
 // Windows - requires float.h
-#ifdef WIN32
+#ifdef _WIN32
 	/// Returns true if number is not INF or NaN
 	bool is_finite(float x);
 	/// Returns true if number is not INF or NaN
@@ -1467,7 +1467,7 @@ bool CharIsUpper(tchar ch);
 /// Returns true if character is a whitespace according to the system
 /** Two versions of this function - ANSI and Unicode - are needed for Stream - HexDecoder. */
 bool CharIsWhitespace(char ch);
-#ifdef WIN32
+#ifdef _WIN32
 bool CharIsWhitespace(wchar_t ch);
 #endif
 /// Returns true if character is a whitespace
@@ -1668,7 +1668,7 @@ inline bool StrIsEmpty(const char *s) { return s == NULL || *s == '\0'; }
 /// Czyœci ³añcuch wpisuj¹c samo koñcz¹ce '\0'.
 inline void ClearStr(char *s) { assert(s); *s = '\0'; }
 
-#ifdef WIN32
+#ifdef _WIN32
 	inline bool StrIsEmpty(const wchar_t *s) { return s == NULL || *s == L'\0'; }
 	inline void ClearStr(wchar_t *s) { assert(s); *s = L'\0'; }
 #endif
@@ -1699,7 +1699,7 @@ unsigned StrReplace(tchar *str, tchar from, tchar to);
 Dostêpne tylko w Windows. */
 //@{
 
-#ifdef WIN32
+#ifdef _WIN32
 
 /** \addtogroup base_unicode_convs Konwersje ³añcuchów Unicode
 
@@ -1764,7 +1764,7 @@ W przypadku niepowodzenia zwracaj¹ false i Out jest wtedy pusty. */
 	inline bool StringToTstring(tstring *Out, const string &S) { *Out = S; return true; }
 	inline string TstringToStringR(const tstring &S) { return S; }
 	inline tstring StringToTstringR(const string &S) { return S; }
-	#ifdef WIN32
+	#ifdef _WIN32
 		bool TstringToWstring(wstring *Out, const tstring &S);
 		bool WstringToTstring(tstring *Out, const wstring &S);
 		inline wstring TstringToWstringR(const tstring &S) { wstring R; if (!TstringToWstring(&R, S)) return wstring(); return R; }
@@ -1784,7 +1784,7 @@ W przypadku niepowodzenia zwracaj¹ false i Out jest wtedy pusty. */
 /** \addtogroup base_paths Œcie¿ki do plików */
 //@{
 
-#ifdef WIN32
+#ifdef _WIN32
 	/// Separator katalogów w œcie¿ce, zale¿ny od platformy.
 	const tchar DIR_SEP = _T('\\');
 #else
@@ -1856,7 +1856,7 @@ inline int HexDigitToNumber(char Ch)
 	else if (Ch >= 'a' && Ch <= 'f') return (int)(uint8)(Ch - ('a' - 10));
 	else return 0xFF;
 }
-#ifdef WIN32
+#ifdef _WIN32
 inline int HexDigitToNumber(wchar_t Ch)
 {
 	if      (Ch >= L'0' && Ch <= L'9') return (int)(Ch -  L'0');
@@ -2601,7 +2601,7 @@ struct SthToStr_obj
 		assert(0 && "SthToStr: Unsupported type.");
 		// Compilation error
 		// Dzia³a tylko w Visual C++, g++ pokazuje b³¹d kompilacji nawet kiedy nieu¿yte
-#ifdef WIN32
+#ifdef _WIN32
 		int y = UnsupportedTypeInSthToStr;
 #endif
 	}
@@ -2623,7 +2623,7 @@ struct StrToSth_obj
 		assert(0 && "StrToSth: Unsupported type.");
 		// Compilation error
 		// Dzia³a tylko w Visual C++, g++ pokazuje b³¹d kompilacji nawet kiedy nieu¿yte
-#ifdef WIN32
+#ifdef _WIN32
 		int y = UnsupportedTypeInSthToStr;
 #endif
 		return false;

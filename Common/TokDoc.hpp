@@ -18,7 +18,7 @@ Module components: \ref code_tokdoc
 
 namespace common {
 
-#ifdef WIN32
+#ifdef _WIN32
 struct GameTime;
 #endif
 
@@ -218,10 +218,10 @@ inline bool NodeTo(double &out, const Node &node, bool required) { return NodeVa
 
 // ======== Time types ========
 
-#ifdef WIN32
+#ifdef _WIN32
 void NodeFrom(Node &node, GameTime val);
 bool NodeTo(GameTime &out, const Node &node, bool required);
-#endif // #ifdef WIN32
+#endif // #ifdef _WIN32
 
 // ======== Math types ========
 

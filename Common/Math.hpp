@@ -14,7 +14,7 @@ Module components: \ref code_math
 #ifndef COMMON_MATH_H_
 #define COMMON_MATH_H_
 
-#ifdef WIN32
+#ifdef _WIN32
 	#include <windows.h> // bo bez tego w d3d9types.h s¹ b³êdy bo nie zna DWORD itp., poza tym potrzebny jest Point itd.
 #endif
 
@@ -93,7 +93,7 @@ inline POINT_ operator / (const POINT_ &pt, int v) { return POINT_(pt.x/v, pt.y/
 inline POINT_ operator * (int v, const POINT_ &pt) { return POINT_(pt.x*v, pt.y*v); }
 inline POINT_ operator / (int v, const POINT_ &pt) { return POINT_(pt.x/v, pt.y/v); }
 
-#ifdef WIN32
+#ifdef _WIN32
 	/// Konwersja z common::POINT_ do POINT
 	template <> inline ::POINT & math_cast<::POINT, POINT_>(const POINT_ &x) { return (::POINT&)(x); }
 	/// Konwersja z POINT do common::POINT_
@@ -1206,7 +1206,7 @@ extern const RECTF RECTF_MINUS_ONE_ONE;
 extern const RECTF RECTF_MAX; ///< Maximal possible rectangle: -FLT_MAX..FLT_MAX
 extern const RECTF RECTF_INV_MAX; ///< Inverted maximal rectangle: FLT_MAX..-FLT_MAX. It's invalid. Use it to initialize rectangle for finding min-max.
 
-#ifdef WIN32
+#ifdef _WIN32
 	/// Konwersja z common::RECTI do RECT z WinAPI
 	template <> inline ::RECT & math_cast<::RECT, RECTI>(const RECTI &x) { return (::RECT&)(x); }
 	/// Konwersja z RECT z WinAPI do common::RECTI
