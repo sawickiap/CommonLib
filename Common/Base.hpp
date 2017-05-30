@@ -855,22 +855,40 @@ template <typename T> inline T sign(T v) { return (v > (T)0) - (v < (T)0); }
 /// Merges bits of two numbers according to mask, that is selects these bits from A that have 0 in mask and these bits from B that have 1 in mask.
 template <typename T> inline T MergeBits(T a, T b, T Mask) { return a ^ ((a ^ b) & Mask); }
 
-/// Returns number of bits that are set to 1.
-template <typename T> inline uint CountBitsSet(T v) { uint c; for (c = 0; v; c++) v &= v - 1; return c; }
-
-// Specialization based on "Bit Twiddling Hacks" by Sean Eron Anderson
-template<> inline uint CountBitsSet<uint>(unsigned v)
+/// Returns number of bits set to 1 in given number.
+inline uint CountBitsSet(uint8 v)
 {
-	uint c; // store the total here
-	static const int S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
-	static const int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
-
-	c = v - ((v >> 1) & B[0]);
-	c = ((c >> S[1]) & B[1]) + (c & B[1]);
-	c = ((c >> S[2]) + c) & B[2];
-	c = ((c >> S[3]) + c) & B[3];
-	c = ((c >> S[4]) + c) & B[4];
-	return c;
+    uint8 c = v - ((v >> 1) & 0x55);
+    c = ((c >> 2) & 0x33) + (c & 0x33);
+    c = ((c >> 4) + c) & 0x0F;
+    return c;
+}
+inline uint CountBitsSet(uint16 v)
+{
+    uint16 c = v - ((v >> 1) & 0x5555);
+    c = ((c >> 2) & 0x3333) + (c & 0x3333);
+    c = ((c >> 4) + c) & 0x0F0F;
+    c = ((c >> 8) + c) & 0x00FF;
+    return c;
+}
+inline uint CountBitsSet(uint32 v)
+{
+    uint32 c = v - ((v >> 1) & 0x55555555);
+    c = ((c >>  2) & 0x33333333) + (c & 0x33333333);
+    c = ((c >>  4) + c) & 0x0F0F0F0F;
+    c = ((c >>  8) + c) & 0x00FF00FF;
+    c = ((c >> 16) + c) & 0x0000FFFF;
+    return c;
+}
+inline uint CountBitsSet(uint64 v)
+{
+    uint64 c = v - ((v >> 1) & 0x5555555555555555ll);
+    c = ((c >>  2) & 0x3333333333333333ll) + (c & 0x3333333333333333ll);
+    c = ((c >>  4) + c) & 0x0F0F0F0F0F0F0F0Fll;
+    c = ((c >>  8) + c) & 0x00FF00FF00FF00FFll;
+    c = ((c >> 16) + c) & 0x0000FFFF0000FFFFll;
+    c = ((c >> 32) + c) & 0x00000000FFFFFFFFll;
+    return (uint)c;
 }
 
 /// Calculates parity bit of a number
