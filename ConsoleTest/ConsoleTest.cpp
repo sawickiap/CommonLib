@@ -189,6 +189,99 @@ void TestBase()
 		common_sprintf(s, _countof(s), _T("common_sprintf: 1=%i, 2.5=%g"), 1, 2.5);
 		tcout << s << endl;
 	}
+    
+    // CountBitsSet
+    {
+        uint result;
+
+        uint8_t u8;
+        u8 = 0x00; result = CountBitsSet(u8); assert(result == 0);
+        u8 = 0x01; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x02; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x04; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x08; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x10; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x20; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x40; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x80; result = CountBitsSet(u8); assert(result == 1);
+        u8 = 0x03; result = CountBitsSet(u8); assert(result == 2);
+        u8 = 0x81; result = CountBitsSet(u8); assert(result == 2);
+        u8 = 0xFF; result = CountBitsSet(u8); assert(result == 8);
+
+        uint16_t u16;
+        u16 = 0x0000; result = CountBitsSet(u16); assert(result == 0);
+        u16 = 0x0001; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0002; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0004; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0008; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0010; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0020; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0040; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0080; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0200; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x4000; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x8000; result = CountBitsSet(u16); assert(result == 1);
+        u16 = 0x0003; result = CountBitsSet(u16); assert(result == 2);
+        u16 = 0x0081; result = CountBitsSet(u16); assert(result == 2);
+        u16 = 0x0110; result = CountBitsSet(u16); assert(result == 2);
+        u16 = 0xF021; result = CountBitsSet(u16); assert(result == 6);
+        u16 = 0xFF00; result = CountBitsSet(u16); assert(result == 8);
+        u16 = 0xFFFF; result = CountBitsSet(u16); assert(result == 16);
+
+        uint32_t u32;
+        u32 = 0x00000000; result = CountBitsSet(u32); assert(result == 0);
+        u32 = 0x00000001; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000002; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000004; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000008; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000010; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000020; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000040; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000080; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000200; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00004000; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00008000; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00400000; result = CountBitsSet(u32); assert(result == 1);
+        u32 = 0x00000003; result = CountBitsSet(u32); assert(result == 2);
+        u32 = 0x00000081; result = CountBitsSet(u32); assert(result == 2);
+        u32 = 0x00000110; result = CountBitsSet(u32); assert(result == 2);
+        u32 = 0x0000F021; result = CountBitsSet(u32); assert(result == 6);
+        u32 = 0x0000FF00; result = CountBitsSet(u32); assert(result == 8);
+        u32 = 0x0000FFFF; result = CountBitsSet(u32); assert(result == 16);
+        u32 = 0x12481248; result = CountBitsSet(u32); assert(result == 8);
+        u32 = 0x80014002; result = CountBitsSet(u32); assert(result == 4);
+        u32 = 0xFFFFFFFF; result = CountBitsSet(u32); assert(result == 32);
+
+        uint64_t u64;
+        u64 = 0x0000000000000000; result = CountBitsSet(u64); assert(result == 0);
+        u64 = 0x0000000000000001; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000002; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000004; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000008; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000010; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000020; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000040; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000080; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000200; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000004000; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000008000; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000400000; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000400000000; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000800000000000; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x8000000000000000; result = CountBitsSet(u64); assert(result == 1);
+        u64 = 0x0000000000000003; result = CountBitsSet(u64); assert(result == 2);
+        u64 = 0x0000000000000081; result = CountBitsSet(u64); assert(result == 2);
+        u64 = 0x0000000000000110; result = CountBitsSet(u64); assert(result == 2);
+        u64 = 0x0005000000000000; result = CountBitsSet(u64); assert(result == 2);
+        u64 = 0x0500000000000000; result = CountBitsSet(u64); assert(result == 2);
+        u64 = 0x000000000000F021; result = CountBitsSet(u64); assert(result == 6);
+        u64 = 0x000000000000FF00; result = CountBitsSet(u64); assert(result == 8);
+        u64 = 0x000000000000FFFF; result = CountBitsSet(u64); assert(result == 16);
+        u64 = 0x0000000012481248; result = CountBitsSet(u64); assert(result == 8);
+        u64 = 0x0000000080014002; result = CountBitsSet(u64); assert(result == 4);
+        u64 = 0x00000000FFFFFFFF; result = CountBitsSet(u64); assert(result == 32);
+        u64 = 0xFFFFFFFFFFFFFFFF; result = CountBitsSet(u64); assert(result == 64);
+    }
 }
 
 void TestError()

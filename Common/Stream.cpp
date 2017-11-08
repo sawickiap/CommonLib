@@ -1287,7 +1287,7 @@ void VectorStream::SetSize(uint64 Size)
 
 void VectorStream::SetCapacity(size_t Capacity)
 {
-	if (Capacity < m_Size || Capacity == 0)
+	if (Capacity < m_Size)
 		throw Error(Format(_T("Cannot change capacity of VectorStream stream (size: #, desired capacity: #).")) % m_Size % Capacity, __TFILE__, __LINE__);
 	
 	if (Capacity != m_Capacity)
