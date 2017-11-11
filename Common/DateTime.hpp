@@ -409,7 +409,6 @@ public:
 	int64 operator % (GameTime v) const { return m_PerfCount % v.m_PerfCount; }
 	GameTime operator + (GameTime v) const { return GameTime(m_PerfCount + v.m_PerfCount); }
 	GameTime operator - (GameTime v) const { return GameTime(m_PerfCount - v.m_PerfCount); }
-	GameTime & operator = (GameTime v) { m_PerfCount = v.m_PerfCount; return *this; }
 	GameTime & operator += (GameTime v) { m_PerfCount += v.m_PerfCount; return *this; }
 	GameTime & operator -= (GameTime v) { m_PerfCount -= v.m_PerfCount; return *this; }
 	GameTime & operator *= (int64 v) { m_PerfCount *= v; return *this; }

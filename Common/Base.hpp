@@ -950,7 +950,7 @@ inline T ReverseBits(T v)
     // http://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
     
     T r = v; // r will be reversed bits of v; first get LSB of v
-    int s = sizeof(v) * 8 - 1; // extra shift needed at end
+    int s = (int)sizeof(v) * 8 - 1; // extra shift needed at end
 
     for (v >>= 1; v; v >>= 1)
     {   
@@ -1264,7 +1264,7 @@ int QuadraticEquation(float a, float b, float c, float *Out_x1, float *Out_x2);
 /** sqrt(Variance) is the standard deviation.
 \param Variance Can pass NULL if not needed. */
 void CalcMeanAndVariance(const float Numbers[], size_t NumberCount, float *OutMean, float *OutVariance = NULL, bool VarianceBiased = true);
-void CalcMeanAndVariance(const void *NumberData, size_t NumberCount, int NumberStride, float *OutMean, float *OutVariance = NULL, bool VarianceBiased = true);
+void CalcMeanAndVariance(const void *NumberData, size_t NumberCount, ptrdiff_t NumberStride, float *OutMean, float *OutVariance = NULL, bool VarianceBiased = true);
 
 /// MurmurHash 2.0 - declared as very fast hash function. Unfortunately not incremental.
 uint MurmurHash(const void *Data, uint DataLen, uint Seed);
@@ -1338,28 +1338,28 @@ void RoundInterpolator<T>::Calc(T *Out, float t) const
 	// For the start take saved index and check if it's correct, if not return to zero.
 	uint Index = m_LastUsedIndex;
 	// - Index out of range
-	if (Index >= Items.size())
+	if (Index >= (uint)Items.size())
 		Index = 0;
 	// - Bad time on the left
-	if (Items[Index].t > t)
+	if (Items[(size_t)Index].t > t)
 		Index = 0;
 
 	// Proceed further
-	while (Index < Items.size()-1 && Items[Index+1].t < t)
+	while (Index < (uint)Items.size()-1 && Items[(size_t)Index+1].t < t)
 		Index++;
 
 	// Save the index
 	m_LastUsedIndex = Index;
 
-	if (Index < Items.size()-1)
+	if (Index < (uint)Items.size()-1)
 	{
-		float my_t = (t - Items[Index].t) / (Items[Index+1].t - Items[Index].t);
+		float my_t = (t - Items[(size_t)Index].t) / (Items[(size_t)Index+1].t - Items[(size_t)Index].t);
 		RoundInterpolatorLerp(Out, Items[Index].Value, Items[Index+1].Value, my_t);
 	}
 	else
 	{
-		float my_t = (t - Items[Index].t) / (Items[0].t + 1.0f - Items[Index].t);
-		RoundInterpolatorLerp(Out, Items[Index].Value, Items[0].Value, my_t);
+		float my_t = (t - Items[(size_t)Index].t) / (Items[0].t + 1.0f - Items[(size_t)Index].t);
+		RoundInterpolatorLerp(Out, Items[(size_t)Index].Value, Items[0].Value, my_t);
 	}
 }
 
@@ -1502,7 +1502,7 @@ inline bool CharIsWhitespace_f(tchar ch)
 
 /// Szuka w ³añcuchu Str pod³añcucha SubStr, bez rozró¿niania wielkoœci liter.
 /** Zwraca indeks/wskaŸnik do pierwszego znaku pierwszego znalezionego wyst¹pienia wewn¹trz str.
-Jesli nie znaleziono, zwraca MAXUINT32. */
+Jesli nie znaleziono, zwraca SIZE_MAX. */
 size_t StrStrI(const tstring &Str, const tstring &SubStr, size_t Count = SIZE_MAX);
 const tchar * StrStrI(const tchar *Str, const tchar *SubStr, size_t Count = SIZE_MAX);
 /// Odwraca ³añcuch w miejscu
@@ -2350,13 +2350,13 @@ class RandomGenerator
 private:
 	// Current seed
 	uint32 m_Seed;
-	float m_NextNormalNumber; bool m_NextNormalNumberIs;
+	float m_NextNormalNumber; bool m_HasNextNormalNumber;
 
 public:
 	/// Constructor - seed from the clock
 	RandomGenerator();
 	/// Constructor - seed with given seed
-	RandomGenerator(uint32 seed) : m_Seed(seed), m_NextNormalNumberIs(false) { }
+	RandomGenerator(uint32 seed) : m_Seed(seed), m_HasNextNormalNumber(false) { }
 
 	/// Wpisuje nowe ziarno.
 	void Seed(uint32 a_Seed)
@@ -2424,7 +2424,7 @@ public:
 	/// Generuje losowy stan logiczny
 	bool RandBool()
 	{
-		return (RandUint() >= 0x7FFFFFFF);
+		return (RandUint() >= 0x7FFFFFFFu);
 	}
 
 	/// Generuje liczbê losow¹ ca³kowit¹ ze znakiem z zakresu Min .. Max-1
@@ -2576,8 +2576,8 @@ public:
 	const uint8 * AccessData() const { return Data; }
 	uint8 * AccessData() { return Data; }
 
-	const uint8 & operator [] (uint i) const { return Data[i]; }
-	uint8 & operator [] (uint i) { return Data[i]; }
+	const uint8 & operator [] (size_t i) const { return Data[i]; }
+	uint8 & operator [] (size_t i) { return Data[i]; }
 
 	bool operator == (const CommonGUID &v) const { return Cmp(*this, v) == 0; }
 	bool operator != (const CommonGUID &v) const { return Cmp(*this, v) != 0; }

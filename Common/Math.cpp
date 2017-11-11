@@ -179,10 +179,6 @@ void CalcBarycentric(const VEC3 &p, const VEC3 &p1, const VEC3 &p2, const VEC3 &
 {
 	// Na podstawie ksia¿ki "3D Math Primer for Graphics and Game Development", str. 263.
 
-	// First, compute two clockwise edge vectors
-	VEC3 d1 = p2-p1;
-	VEC3 d2 = p3-p2;
-
 	// Compute surface normal using cross product. In many cases
 	// this step could be skipped, since we would have the surface
 	// normal precomputed. We do not need to normalize it, although
@@ -191,7 +187,13 @@ void CalcBarycentric(const VEC3 &p, const VEC3 &p1, const VEC3 &p2, const VEC3 &
 	if (Normal)
 		n = *Normal;
 	else
-		Cross(&n, d1, d2);
+    {
+	    // First, compute two clockwise edge vectors
+	    VEC3 d1 = p2-p1;
+	    VEC3 d2 = p3-p2;
+
+        Cross(&n, d1, d2);
+    }
 
 	// Locate dominant axis of normal, and select plane of projection
 	float u1, u2, u3, u4;
@@ -675,20 +677,20 @@ void ColorToStr(tstring *Out, const COLORF &Color, char Format)
 {
 	if (Format == 'f')
 	{
-		tstring sr, sg, sb;
-		FloatToStr(&sr, Color.R);
+		tstring sg, sb;
+		FloatToStr(Out, Color.R);
 		FloatToStr(&sg, Color.G);
 		FloatToStr(&sb, Color.B);
-		*Out = sr; *Out += _T(','); *Out += sg; *Out += _T(','); *Out += sb;
+		*Out += _T(','); *Out += sg; *Out += _T(','); *Out += sb;
 	}
 	else if (Format == 'F')
 	{
-		tstring sa, sr, sg, sb;
-		FloatToStr(&sa, Color.A);
+		tstring sr, sg, sb;
+		FloatToStr(Out, Color.A);
 		FloatToStr(&sr, Color.R);
 		FloatToStr(&sg, Color.G);
 		FloatToStr(&sb, Color.B);
-		*Out = sa; *Out += _T(','); *Out += sr; *Out += _T(','); *Out += sg; *Out += _T(','); *Out += sb;
+		*Out += _T(','); *Out += sr; *Out += _T(','); *Out += sg; *Out += _T(','); *Out += sb;
 	}
 	else if (Format == 'x' || Format == 'X')
 	{
@@ -1466,9 +1468,7 @@ void Untransform(VEC3 *Out, const VEC3 &v, const MATRIX &m)
 
 void UntransformNormal(VEC3 *Out, const VEC3 &v, const MATRIX &m)
 {
-	Out->x = v.x * m._11 + v.y * m._12 + v.z * m._13;
-	Out->y = v.x * m._21 + v.y * m._22 + v.z * m._23;
-	Out->z = v.x * m._31 + v.y * m._32 + v.z * m._33;
+    TransformNormalByTranspose(Out, v, m);
 }
 
 void Transform(PLANE *Out, const PLANE &p, const MATRIX &m)
@@ -3409,12 +3409,16 @@ float PointToSegmentDistanceSq(const VEC2 &p, const VEC2 &segment_p1, const VEC2
 {
 	// Na podstawie ksi¹¿ki: Real-Time Collision Detection, Christer Ericson
 
-	VEC2 ab = segment_p2 - segment_p1, ac = p - segment_p1, bc = p - segment_p2;
+	VEC2 ab = segment_p2 - segment_p1, ac = p - segment_p1;
 	float e = Dot(ac, ab);
 	// Handle cases where p projects outside ab
 	if (e <= 0.0f) return Dot(ac, ac);
 	float f = Dot(ab, ab);
-	if (e >= f) return Dot(bc, bc);
+	if (e >= f)
+    {
+        VEC2 bc = p - segment_p2;
+        return Dot(bc, bc);
+    }
 	// Handle cases where p projects onto ab
 	return Dot(ac, ac) - e * e / f;
 }
@@ -4444,12 +4448,12 @@ bool RayToQuad(const VEC3 &RayOrig, const VEC3 &RayDir, const VEC3 QuadPoints[4]
 	// Na podstawie ksi¹¿ki: Real-Time Collision Detection, Christer Ericson
 
 	VEC3 pa = QuadPoints[0] - RayOrig;
-	VEC3 pb = QuadPoints[1] - RayOrig;
 	VEC3 pc = QuadPoints[2] - RayOrig;
 	// Determine which triangle to test against by testing against diagonal first
 	VEC3 m; Cross(&m, pc, RayDir);
 	float v = Dot(pa, m); // ScalarTriple(RayDir, pa, pc);
 	if (v >= 0.0f) {
+    	VEC3 pb = QuadPoints[1] - RayOrig;
 		// Test intersection against triangle abc
 		float u = -Dot(pb, m); // ScalarTriple(RayDir, pc, pb);
 		if (u < 0.0f) return false;

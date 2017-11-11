@@ -81,9 +81,9 @@ void TestBase()
 		const uint32 cu4 = 1234567890;
 		const unsigned cu = 123456789;
 		const size_t cs = 12345678;
-		uint32 u4 = cu; u4 = cs;
-		unsigned u = cu4; u = cs;
-		size_t s = cu4; s = cu;
+		uint32 u4 = cu, u4_2 = cs;
+		unsigned u = cu4, u_2 = cs;
+		size_t s = cu4, s_2 = cu;
 	}
 
 	{
@@ -282,6 +282,97 @@ void TestBase()
         u64 = 0x00000000FFFFFFFF; result = CountBitsSet(u64); assert(result == 32);
         u64 = 0xFFFFFFFFFFFFFFFF; result = CountBitsSet(u64); assert(result == 64);
     }
+
+    // PtrToStr
+    {
+        int* ptr = nullptr;
+        wstring str1, str2;
+        PtrToStr(&str1, ptr);
+        ptr += 8;
+        PtrToStr(&str2, ptr);
+
+#ifdef _WIN64
+        assert(str1 == L"0000000000000000");
+        assert(str2 == L"0000000000000020");
+#else
+        assert(str1 == L"00000000");
+        assert(str2 == L"00000020");
+#endif
+    }
+
+    // ValidateWildcard
+    {
+        assert(ValidateWildcard(L"", L"") == true);
+        assert(ValidateWildcard(L"", L"aaa") == false);
+        
+        assert(ValidateWildcard(L"*", L"") == true);
+        assert(ValidateWildcard(L"*", L"a") == true);
+        assert(ValidateWildcard(L"*", L"aaa") == true);
+        
+        assert(ValidateWildcard(L"?", L"") == false);
+        assert(ValidateWildcard(L"?", L"a") == true);
+        assert(ValidateWildcard(L"?", L"aaa") == false);
+        
+        assert(ValidateWildcard(L"?a", L"") == false);
+        assert(ValidateWildcard(L"?a", L"xa") == true);
+        assert(ValidateWildcard(L"?a", L"xaa") == false);
+        assert(ValidateWildcard(L"?a", L"axa") == false);
+        
+        assert(ValidateWildcard(L"a?", L"") == false);
+        assert(ValidateWildcard(L"a?", L"ax") == true);
+        assert(ValidateWildcard(L"a?", L"axa") == false);
+        assert(ValidateWildcard(L"a?", L"axa") == false);
+
+        assert(ValidateWildcard(L"a?bb", L"") == false);
+        assert(ValidateWildcard(L"a?bb", L"aXbb") == true);
+        assert(ValidateWildcard(L"a?bb", L"abb") == false);
+        assert(ValidateWildcard(L"a?bb", L"bXbb") == false);
+        assert(ValidateWildcard(L"a?bb", L"aXaa") == false);
+        assert(ValidateWildcard(L"a?bb", L"aXbba") == false);
+        assert(ValidateWildcard(L"a?bb", L"aaXbb") == false);
+
+        assert(ValidateWildcard(L"aa*", L"") == false);
+        assert(ValidateWildcard(L"aa*", L"aa") == true);
+        assert(ValidateWildcard(L"aa*", L"ab") == false);
+        assert(ValidateWildcard(L"aa*", L"aaXXX") == true);
+        assert(ValidateWildcard(L"aa*", L"abXXX") == false);
+        
+        assert(ValidateWildcard(L"*ab", L"") == false);
+        assert(ValidateWildcard(L"*ab", L"ab") == true);
+        assert(ValidateWildcard(L"*ab", L"aC") == false);
+        assert(ValidateWildcard(L"*ab", L"XXXab") == true);
+        assert(ValidateWildcard(L"*ab", L"XXXaC") == false);
+        assert(ValidateWildcard(L"*ab", L"XXXaCC") == false);
+        assert(ValidateWildcard(L"*ab", L"XXXabCC") == false);
+
+        assert(ValidateWildcard(L"xy*abc", L"") == false);
+        assert(ValidateWildcard(L"xy*abc", L"xyabc") == true);
+        assert(ValidateWildcard(L"xy*abc", L"xy") == false);
+        assert(ValidateWildcard(L"xy*abc", L"abc") == false);
+        assert(ValidateWildcard(L"xy*abc", L"xabc") == false);
+        assert(ValidateWildcard(L"xy*abc", L"xyXXXabc") == true);
+        assert(ValidateWildcard(L"xy*abc", L"xZabc") == false);
+        assert(ValidateWildcard(L"xy*abc", L"xyXXXaDc") == false);
+
+        assert(ValidateWildcard(L"???", L"") == false);
+        assert(ValidateWildcard(L"???", L"ab") == false);
+        assert(ValidateWildcard(L"???", L"abc") == true);
+        assert(ValidateWildcard(L"???", L"abcdef") == false);
+
+        assert(ValidateWildcard(L"??*?", L"") == false);
+        assert(ValidateWildcard(L"?*??", L"ab") == false);
+        assert(ValidateWildcard(L"*???", L"abc") == true);
+        assert(ValidateWildcard(L"???*", L"abcd") == true);
+        
+        assert(ValidateWildcard(L"a?b?c*d", L"") == false);
+        assert(ValidateWildcard(L"a?b?c*d", L"abc") == false);
+        assert(ValidateWildcard(L"a?b?c*d", L"ad") == false);
+        assert(ValidateWildcard(L"a?b?c*d", L"abcd") == false);
+        assert(ValidateWildcard(L"a?b?c*d", L"aXbYcd") == true);
+        assert(ValidateWildcard(L"a?b?c*d", L"aXbYcZZZd") == true);
+        assert(ValidateWildcard(L"a?b?c*d", L"BXbYcZZZd") == false);
+        assert(ValidateWildcard(L"a?b?c*d", L"aXbY") == false);
+    }
 }
 
 void TestError()
@@ -431,6 +522,22 @@ void TestMath()
 		BOX box = BOX_ZERO;
 		VEC2 boxRangeX = VEC2_SWIZZLE(box,Min.x,Max.x);
 	}
+
+    // TriangleToTriangle
+    {
+        // TODO Fix!
+        /*
+        // Both degenerated.
+        assert(TriangleToTriangle(
+            VEC3(0.0f, 0.0f, 0.0f), VEC3(0.0f, 0.0f, 0.0f), VEC3(0.0f, 0.0f, 0.0f),
+            VEC3(1.0f, 1.0f, 1.0f), VEC3(1.0f, 1.0f, 1.0f), VEC3(1.0f, 1.0f, 1.0f)) == false);
+
+        // Really colliding triangles.
+        assert(TriangleToTriangle(
+            VEC3(3.0f, -1.0f, -0.1f), VEC3(0.0f, 3.0f, -0.3f), VEC3(-2.0f, -2.0f, -0.2f),
+            VEC3(-2.0f, 1.0f, -0.1f), VEC3(3.0f, 3.0f, -0.3f), VEC3(1.0f, -3.0f, 0.3f)) == true);
+        */
+    }
 }
 
 void TestProfiler()
@@ -1965,7 +2072,8 @@ void TestTokDoc()
 void Test()
 {
 	Initialize();
-	TestBase();
+	
+    TestBase();
 	TestError();
 	TestMath();
 	TestProfiler();
@@ -2005,7 +2113,7 @@ int main(int argc, char* argv[])
 	{
 		Test();
 	}
-	catch (Error Err)
+	catch (const Error& Err)
 	{
 		tcout << _T("!!!!!!!!!!! EXCEPTION !!!!!!!!!!!") << endl;
 		tstring s;

@@ -174,7 +174,7 @@ size_t StrStrI(const tstring &Str, const tstring &SubStr, size_t Count)
 	const tchar *StrSz    = Str.c_str();
 	const tchar *SubStrSz = SubStr.c_str();
 	const tchar *R = StrStrI(StrSz, SubStrSz, Count);
-	return (R == NULL) ? MAXUINT32 : (R - StrSz);
+	return (R == NULL) ? SIZE_MAX : (R - StrSz);
 }
 
 const tchar * StrStrI(const tchar *Str, const tchar *SubStr, size_t Count)
@@ -543,7 +543,7 @@ int StrCmpI(const tstring &s1, const tstring &s2, size_t Count)
 int StrCmpI(const tchar *s1, const tchar *s2, size_t Count)
 {
 #ifdef _WIN32
-	if (Count == MAXUINT32)
+	if (Count == SIZE_MAX)
 		return _tcsicmp(s1, s2);
 	else
 		return _tcsnicmp(s1, s2, Count);
@@ -558,13 +558,13 @@ int StrCmpI(const tchar *s1, const tchar *s2, size_t Count)
 int SubStrCmp(const tstring &s1, size_t off1, const tstring &s2, size_t off2, size_t length)
 {
 #ifdef _UNICODE
-	if (length == MAXUINT32)
-		return wcscmp(s1.c_str()+off1, s1.c_str()+off2);
+	if (length == SIZE_MAX)
+		return wcscmp(s1.c_str()+off1, s2.c_str()+off2);
 	else
-		return wcsncmp(s1.c_str()+off1, s1.c_str()+off2, length);
+		return wcsncmp(s1.c_str()+off1, s2.c_str()+off2, length);
 #else
 	if (length == MAXUINT32)
-		return strcmp(s1.c_str()+off1, s1.c_str()+off2);
+		return strcmp(s1.c_str()+off1, s2.c_str()+off2);
 	else
 		return strncmp(s1.c_str()+off1, s2.c_str()+off2, length);
 #endif
@@ -573,7 +573,7 @@ int SubStrCmp(const tstring &s1, size_t off1, const tstring &s2, size_t off2, si
 int SubStrCmpI(const tstring &s1, size_t off1, const tstring &s2, size_t off2, size_t length)
 {
 #ifdef _WIN32
-	if (length == MAXUINT32)
+	if (length == SIZE_MAX)
 		return _tcsicmp(s1.c_str()+off1, s2.c_str()+off2);
 	else
 		return _tcsncicmp(s1.c_str()+off1, s2.c_str()+off2, length);
@@ -1042,7 +1042,6 @@ void StrErase(tchar *str, size_t off, size_t count)
 	if (count == 0) return;
 	size_t strLen = common_strlen(str);
 	if (off >= strLen) return;
-	if (strLen == 0) return;
 	// obetnij
 	if (count >= strLen - off)
 		str[off] = _T('\0');
@@ -1150,14 +1149,14 @@ bool ConvertUnicodeToChars(string *Out, const wstring &S, unsigned CodePage)
 	}
 
 	// Phase 2 - Do conversion.
-	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[Size]);
+	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[(size_t)Size]);
 	int R = WideCharToMultiByte(CodePage, 0, S.data(), (int)S.length(), Buf.get(), Size, NULL, NULL);
 	if (R == 0)
 	{
 		Out->clear(); return false;
 	}
 	
-	Out->assign(Buf.get(), Size);
+	Out->assign(Buf.get(), (size_t)Size);
 	return true;
 }
 
@@ -1178,14 +1177,14 @@ bool ConvertUnicodeToChars(string *Out, const wchar_t *S, size_t NumChars, unsig
 	}
 
 	// Phase 2 - Do conversion.
-	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[Size]);
+	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[(size_t)Size]);
 	int R = WideCharToMultiByte(CodePage, 0, S, (int)NumChars, Buf.get(), Size, NULL, NULL);
 	if (R == 0)
 	{
 		Out->clear(); return false;
 	}
 	
-	Out->assign(Buf.get(), Size);
+	Out->assign(Buf.get(), (size_t)Size);
 	return true;
 }
 
@@ -1204,14 +1203,14 @@ bool ConvertCharsToUnicode(wstring *Out, const string &S, unsigned CodePage)
 	}
 
 	// Phase 2 - Do conversion.
-	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[Size]);
+	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[(size_t)Size]);
 	int R = MultiByteToWideChar(CodePage, 0, S.data(), (int)S.length(), Buf.get(), Size);
 	if (R == 0)
 	{
 		Out->clear(); return false;
 	}
 
-	Out->assign(Buf.get(), Size);
+	Out->assign(Buf.get(), (size_t)Size);
 	return true;
 }
 
@@ -1232,14 +1231,14 @@ bool ConvertCharsToUnicode(wstring *Out, const char *S, size_t NumChars, unsigne
 	}
 
 	// Phase 2 - Do conversion.
-	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[Size]);
+	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[(size_t)Size]);
 	int R = MultiByteToWideChar(CodePage, 0, S, (int)NumChars, Buf.get(), Size);
 	if (R == 0)
 	{
 		Out->clear(); return false;
 	}
 
-	Out->assign(Buf.get(), Size);
+	Out->assign(Buf.get(), (size_t)Size);
 	return true;
 }
 
@@ -1817,7 +1816,7 @@ static const tchar * const DOUBLE_TO_STR_FORMAT[] = {
 
 void DoubleToStr(tstring *Out, double x, char mode, int precision)
 {
-	tchar sz[256], Format[6];
+	tchar sz[256], Format[7];
 
 #ifdef _WIN32
 	#ifdef _UNICODE
@@ -1982,7 +1981,7 @@ bool StrToBool(bool *result, const tstring &s)
 
 void PtrToStr(tstring *Out, const void* p)
 {
-	tchar sz[9];
+	tchar sz[17];
 #ifdef _UNICODE
 	_stprintf_s(sz, _countof(sz), L"%p", p);
 #else
@@ -2215,7 +2214,7 @@ void CalcMeanAndVariance(const float Numbers[], size_t NumberCount, float *OutMe
 	CalcMeanAndVariance(Numbers, NumberCount, sizeof(float), OutMean, OutVariance, VarianceBiased);
 }
 
-void CalcMeanAndVariance(const void *NumberData, size_t NumberCount, int NumberStride, float *OutMean, float *OutVariance, bool VarianceBiased)
+void CalcMeanAndVariance(const void *NumberData, size_t NumberCount, ptrdiff_t NumberStride, float *OutMean, float *OutVariance, bool VarianceBiased)
 {
 	assert(NumberCount > 0);
 	const char *NumberBytes = (const char*)NumberData;
@@ -2303,7 +2302,7 @@ uint MurmurHash(const void *Data, uint DataLen, uint Seed)
 uint SuperFastHash(const void *DataBytes, size_t DataLen)
 {
 	const char *data = (const char *)DataBytes;
-    assert(DataLen <= UINT_MAX);
+    assert(DataLen <= (size_t)UINT32_MAX);
 	uint hash = (uint)DataLen, tmp;
 	int rem;
 
@@ -2543,7 +2542,7 @@ float BrownianNoise3(float x, float y, float z, uint i, float Persistence)
 // GENERATOR LICZB PSEUDOLOSOWYCH
 
 RandomGenerator::RandomGenerator() :
-	m_NextNormalNumberIs(false)
+	m_HasNextNormalNumber(false)
 {
 	m_Seed = (uint32)time(0);
 }
@@ -2586,9 +2585,9 @@ float RandomGenerator::RandNormal(float sigma)
 	// ród³o: http://www.taygeta.com/random/gaussian.html
 	// Ten algorytm generuje dwie liczby na raz, wiêc jedn¹ zwraca od razu, a drug¹
 	// zapamiêtuje do nastêpnego wywo³ania tej metody.
-	if (m_NextNormalNumberIs)
+	if (m_HasNextNormalNumber)
 	{
-		m_NextNormalNumberIs = false;
+		m_HasNextNormalNumber = false;
 		return m_NextNormalNumber * sigma;
 	}
 	else
@@ -2601,7 +2600,7 @@ float RandomGenerator::RandNormal(float sigma)
 		} while (w >= 1.0f);
 		w = sqrtf((-2.0f * logf(w)) / w);
 		m_NextNormalNumber = x2 * w; // Druga wygenerowana liczba
-		m_NextNormalNumberIs = true;
+		m_HasNextNormalNumber = true;
 		return x1 * w * sigma; // Pierwsza wygenerowana liczba
 	}
 
@@ -3492,7 +3491,7 @@ void CommonGUID::GenerateVersion4()
 
 bool CommonGUID::FromString(const tchar *s)
 {
-	int ints[16];
+	uint ints[16];
 #ifdef _UNICODE
 	int R = swscanf_s(s, L"%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 		&ints[15], &ints[14], &ints[13], &ints[12],
@@ -3526,26 +3525,28 @@ bool CommonGUID::FromString(const tstring &s)
 Format::Format(const Format &f, const tstring &Element) :
 	pimpl(f.pimpl)
 {
-	size_t index = pimpl->m_String.find(pimpl->m_Sep, pimpl->m_Index);
+    tstring& str = pimpl->m_String;
+	size_t index = str.find(pimpl->m_Sep, pimpl->m_Index);
 
 	// nie ma ju¿ gdzie dodaæ - nie zmieniamy
 	if (index == tstring::npos) return;
 
-	pimpl->m_String.erase(index, 1);
-	pimpl->m_String.insert(index, Element);
+	str.erase(index, 1);
+	str.insert(index, Element);
 	pimpl->m_Index = index + Element.length();
 }
 
 Format::Format(const Format &f, const tchar *Element) :
 	pimpl(f.pimpl)
 {
-	size_t index = pimpl->m_String.find(pimpl->m_Sep, pimpl->m_Index);
+    tstring& str = pimpl->m_String;
+	size_t index = str.find(pimpl->m_Sep, pimpl->m_Index);
 
 	// nie ma ju¿ gdzie dodaæ - nie zmieniamy
 	if (index == tstring::npos) return;
 
-	pimpl->m_String.erase(index, 1);
-	pimpl->m_String.insert(index, Element);
+	str.erase(index, 1);
+	str.insert(index, Element);
 #ifdef _UNICODE
 	pimpl->m_Index = index + _tcslen(Element);
 #else

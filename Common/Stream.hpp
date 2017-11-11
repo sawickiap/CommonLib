@@ -714,7 +714,7 @@ public:
 
 	// ======== Statyczne ========
 	/// Po prostu oblicza sumê kontroln¹ z podanych danych
-	static uint32 Calc(const void *Buf, uint32 BufLen);
+	static uint32 Calc(const void *Buf, size_t BufLen);
 	static uint32 Calc(const string &s);
 #ifdef _WIN32
 	static uint32 Calc(const wstring &s);
@@ -731,7 +731,7 @@ private:
 	uint m_CRC;
 
 public:
-	CRC32_Calc() { m_CRC = 0xFFFFFFFF; }
+	CRC32_Calc() { m_CRC = 0xFFFFFFFFu; }
 
 	// ======== Implementacja Stream ========
 	virtual void Write(const void *Data, size_t Size);
@@ -739,7 +739,7 @@ public:
 	/// Zwraca policzon¹ dotychczas sumê
 	uint GetResult() { return ~m_CRC; }
 	/// Rozpoczyna liczenie nowej sumy
-	void Reset() { m_CRC = 0xFFFFFFFF; }
+	void Reset() { m_CRC = 0xFFFFFFFFu; }
 
 	// ======== Statyczne ========
 	/// Po prostu oblicza sumê kontroln¹ z podanych danych
@@ -807,7 +807,7 @@ public:
 
 	// ======== Statyczne ========
 	/// Po prostu oblicza sumê kontroln¹ z podanych danych
-	static void Calc(MD5_SUM *Out, const void *Buf, uint32 BufLen);
+	static void Calc(MD5_SUM *Out, const void *Buf, size_t BufLen);
 };
 
 /// Koduje lub dekoduje zapisywane/odczytywane bajty XOR podany bajt lub ci¹g bajtów.
@@ -818,8 +818,8 @@ class XorCoder : public OverlayStream
 private:
 	std::vector<char> m_Buf;
 	std::vector<char> m_Key;
-	uint m_EncodeKeyIndex;
-	uint m_DecodeKeyIndex;
+	size_t m_EncodeKeyIndex;
+	size_t m_DecodeKeyIndex;
 
 public:
 	XorCoder(Stream *a_Stream, char KeyByte);
@@ -889,7 +889,7 @@ public:
 	static bool DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	static bool DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
-	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca MAXUINT32 (0xFFFFFFFF).
+	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca SIZE_MAX.
 	\param[out] OutData musi byæ tablic¹ zaalokowan¹ przynajmniej na rozmiar ustalony wywo³aniem DecodeLength()
 	lub jeœli nie chcesz wywo³ywaæ DecodeLength(), na d³ugoœæ równ¹ d³ugoœci danych wejœciowych / 8. */
 	static size_t Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
@@ -947,7 +947,7 @@ public:
 	static bool DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	static bool DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
-	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca MAXUINT32 (0xFFFFFFFF).
+	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca SIZE_MAX.
 	\param[out] OutData musi byæ tablic¹ zaalokowan¹ przynajmniej na rozmiar ustalony wywo³aniem DecodeLength
 	lub jeœli nie chcesz wywo³ywaæ DecodeLength, na d³ugoœæ równ¹ d³ugoœci danych wejœciowych / 2. */
 	static size_t Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
@@ -1038,7 +1038,7 @@ public:
 	static bool DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	static bool DecodeLength(size_t *OutLength, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	/// Dekoduje dane binarne. Zwraca liczbê zdekodowanych bajtów.
-	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca MAXUINT32 (0xFFFFFFFF).
+	/** Jeœli nie uda³o siê zdekodowaæ (jakiœ b³¹d), zwraca SIZE_MAX.
 	\param[out] OutData musi byæ tablic¹ zaalokowan¹ przynajmniej na rozmiar ustalony wywo³aniem DecodeLength(). */
 	static size_t Decode(void *OutData, const string &s, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);
 	static size_t Decode(void *OutData, const char *s, size_t s_Length, DECODE_TOLERANCE Tolerance = DECODE_TOLERANCE_NONE);

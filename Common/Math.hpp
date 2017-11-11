@@ -81,8 +81,8 @@ struct POINT_
 	POINT_ & operator *= (int v) { x *= v; y *= v; return *this; }
 	POINT_ & operator /= (int v) { x /= v; y /= v; return *this; }
 
-	int & operator [] (uint32 Index) { return v[Index]; }
-	const int & operator [] (uint32 Index) const { return v[Index]; }
+	int & operator [] (size_t Index) { return v[Index]; }
+	const int & operator [] (size_t Index) const { return v[Index]; }
 
 	int * GetArray() { return &x; }
 	const int * GetArray() const { return &x; }
@@ -1161,17 +1161,17 @@ struct RECTF
 	float Field() const { return (Max.x-Min.x)*(Max.y-Min.y); }
 	
 	void GetSize(VEC2 *out) const { *out = Max - Min; }
-	float GetSizeDim(uint dim) const { return Max[dim] - Min[dim]; }
+	float GetSizeDim(size_t dim) const { return Max[dim] - Min[dim]; }
 	
 	void GetHalfSize(VEC2 *out) { *out = (Max - Min) * 0.5f; }
-	float GetHalfSizeDim(uint dim) const { return (Max[dim] - Min[dim]) * 0.5f; }
+	float GetHalfSizeDim(size_t dim) const { return (Max[dim] - Min[dim]) * 0.5f; }
 
 	/// Zmienia szerokoœæ i wysokoœæ na podan¹
 	void SetSize(const VEC2 &newSize) { Max = Min + newSize; }
-	void SetSizeDim(uint dim, float newSize) { Max[dim] = Min[dim] + newSize; }
+	void SetSizeDim(size_t dim, float newSize) { Max[dim] = Min[dim] + newSize; }
 	/// Oblicza i zwraca pozycjê œrodka
 	void GetCenter(VEC2 *Out) const { *Out = (Min+Max)*0.5f; }
-	float GetCenterDim(uint dim) const { return (Min[dim]+Max[dim])*0.5f; }
+	float GetCenterDim(size_t dim) const { return (Min[dim]+Max[dim])*0.5f; }
 
 	void GetCorner(VEC2 *out, uint i) const
 	{
@@ -1424,24 +1424,24 @@ struct BOX
 	void Extend(float d) { Min.x -= d; Min.y -= d; Min.z -= d; Max.x += d; Max.y += d; Max.z += d; }
 	/// Oblicza i zwraca rozmiary boksa w trzech wymiarach
 	void GetSize(VEC3 *Out) const { Out->x = Max.x-Min.x; Out->y = Max.y-Min.y; Out->z = Max.z-Min.z; }
-	float GetSizeDim(uint dim) const { return Max[dim]-Min[dim]; }
+	float GetSizeDim(size_t dim) const { return Max[dim]-Min[dim]; }
 	/// Zmienia wielkoœæ na podan¹
 	void SetSize(const VEC3 &NewSize) { Max.x = Min.x + NewSize.x; Max.y = Min.y + NewSize.y; Max.z = Min.z + NewSize.z; }
-	void SetSizeDim(uint dim, float newSize) { Max[dim] = Min[dim] + newSize; }
+	void SetSizeDim(size_t dim, float newSize) { Max[dim] = Min[dim] + newSize; }
 	/// Oblicza i zwraca d³ugoœæ przek¹tnej
 	float Diagonal() const { return sqrtf( (Max.x-Min.x)*(Max.x-Min.x) + (Max.y-Min.y)*(Max.y-Min.y) + (Max.z-Min.z)*(Max.z-Min.z) ); }
 	/// Oblicza i zwraca objêtoœæ
 	float Volume() const { return (Max.x-Min.x)*(Max.y-Min.y)*(Max.z-Min.z); }
 	/// Oblicza i zwraca pozycjê œrodka
 	void GetCenter(VEC3 *Out) const { Out->x = (Min.x+Max.x)*0.5f; Out->y = (Min.y+Max.y)*0.5f; Out->z = (Min.z+Max.z)*0.5f; }
-	float GetCenterDim(uint dim) const { return (Min[dim]+Max[dim])*0.5f; }
+	float GetCenterDim(size_t dim) const { return (Min[dim]+Max[dim])*0.5f; }
 	/// Oblicza i zwraca po³owy rozmiarów
 	void GetHalfSize(VEC3 *OutHalfSize) const {
 		OutHalfSize->x = (Max.x-Min.x)*0.5f;
 		OutHalfSize->y = (Max.y-Min.y)*0.5f;
 		OutHalfSize->z = (Max.z-Min.z)*0.5f;
 	}
-	float GetHalfSizeDim(uint dim) { return (Max[dim]-Min[dim])*0.5f; }
+	float GetHalfSizeDim(size_t dim) { return (Max[dim]-Min[dim])*0.5f; }
 	/// Zwraca wybrany wierzcho³ek
 	void GetCorner(VEC3 *Out, uint i) const
 	{
@@ -3265,12 +3265,12 @@ public:
 	/// Tworzy zainicjalizowany
 	SmoothCD_obj(const T &Pos, float SmoothTime, const T &Vel) : Pos(Pos), Dest(Pos), Vel(Vel), SmoothTime(SmoothTime) { }
 	/// Ustawia parametry
-	void Set(const T &Pos, const T &Vel) { this->Pos = Pos; this->Dest = Pos; this->Vel = Vel; }
+	void Set(const T &pos, const T &vel) { this->Pos = pos; this->Dest = pos; this->Vel = vel; }
 
 	/// Wykonuje krok czasowy
-	void Update(const T &Dest, float TimeDelta) {
-		this->Dest = Dest;
-		SmoothCD_T<T>(&Pos, Dest, &Vel, SmoothTime, TimeDelta);
+	void Update(const T &dest, float timeDelta) {
+		this->Dest = dest;
+		SmoothCD_T<T>(&Pos, dest, &Vel, SmoothTime, timeDelta);
 	}
 };
 
@@ -3362,7 +3362,7 @@ template <typename T>
 inline void EvalQuadraticBezierCurve(T *out, const T &a, const T &b, const T &c, float t)
 {
 	float t_inv = 1.f - t;
-	out = t_inv*t_inv*a + 2.f*t*t_inv*b + t*t*c;
+	*out = t_inv*t_inv*a + 2.f*t*t_inv*b + t*t*c;
 }
 
 /// Calculates value of cubic Bezier curve at given point t = 0..1 between points a and d.

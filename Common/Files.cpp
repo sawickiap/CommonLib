@@ -104,20 +104,20 @@ namespace common
 	void FileStream::Write(const void *Data, size_t Size)
 	{
 		uint32 WrittenSize;
-        assert(Size <= UINT_MAX);
+        assert(Size <= (size_t)UINT_MAX);
 		if (WriteFile(pimpl->m_File, Data, (DWORD)Size, (LPDWORD)&WrittenSize, 0) == 0)
 			throw Win32Error(Format(_T("Cannot write # bytes to file.")) % Size, __TFILE__, __LINE__);
-		if (WrittenSize != Size)
+		if ((size_t)WrittenSize != Size)
 			throw Error(Format(_T("Cannot write to file. #/# bytes written.")) % WrittenSize % Size, __TFILE__, __LINE__);
 	}
 
 	size_t FileStream::Read(void *Data, size_t Size)
 	{
 		uint32 ReadSize;
-        assert(Size <= UINT_MAX);
+        assert(Size <= (size_t)UINT_MAX);
 		if (ReadFile(pimpl->m_File, Data, (DWORD)Size, (LPDWORD)&ReadSize, 0) == 0)
 			throw Win32Error(Format(_T("Cannot read # bytes from file.")) % Size, __TFILE__, __LINE__);
-		return ReadSize;
+		return (size_t)ReadSize;
 	}
 
 	void FileStream::Flush()
@@ -780,7 +780,7 @@ void SaveUnicodeToFile(const tstring &FileName, const wstring &Data, unsigned En
 	ERR_CATCH(_T("Cannot save Unicode string to file: ") + FileName);
 }
 
-void SaveUnicodeToFile(const tstring &FileName, const wchar_t *Data, unsigned NumChars, unsigned Encoding)
+void SaveUnicodeToFile(const tstring &FileName, const wchar_t *Data, size_t NumChars, unsigned Encoding)
 {
 	ERR_TRY;
 
@@ -835,7 +835,7 @@ void SaveUnicodeToStream(Stream *Dest, const wstring &Data, unsigned Encoding)
 	ERR_CATCH(_T("Cannot save Unicode string to stream."));
 }
 
-void SaveUnicodeToStream(Stream *Dest, const wchar_t *Data, unsigned NumChars, unsigned Encoding)
+void SaveUnicodeToStream(Stream *Dest, const wchar_t *Data, size_t NumChars, unsigned Encoding)
 {
 	ERR_TRY;
 

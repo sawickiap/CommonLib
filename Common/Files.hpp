@@ -198,10 +198,10 @@ enum FILE_ENCODING
 /** Musisz podaæ jedn¹ flagê common::FILE_ENCODING z kodowaniem.
 Mo¿esz dodaæ jedn¹ z flag wymuszaj¹c nag³ówek BOM lub jego brak. */
 void SaveUnicodeToFile(const tstring &FileName, const wstring &Data, unsigned Encoding);
-void SaveUnicodeToFile(const tstring &FileName, const wchar_t *Data, unsigned NumChars, unsigned Encoding);
+void SaveUnicodeToFile(const tstring &FileName, const wchar_t *Data, size_t NumChars, unsigned Encoding);
 
 void SaveUnicodeToStream(Stream *Dest, const wstring &Data, unsigned Encoding);
-void SaveUnicodeToStream(Stream *Dest, const wchar_t *Data, unsigned NumChars, unsigned Encoding);
+void SaveUnicodeToStream(Stream *Dest, const wchar_t *Data, size_t NumChars, unsigned Encoding);
 
 /// Wczytuje plik tekstowy do ³añcucha Unicode
 /** \param Encoding:

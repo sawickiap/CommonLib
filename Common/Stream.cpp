@@ -291,10 +291,10 @@ void Stream::ReadString1(string *s)
 	typedef uint8 T;
 	T Length;
 	MustRead(&Length, sizeof(T));
-	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[Length]);
-	MustRead(Buf.get(), Length);
+	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[(size_t)Length]);
+	MustRead(Buf.get(), (size_t)Length);
 	s->clear();
-	s->append(Buf.get(), Length);
+	s->append(Buf.get(), (size_t)Length);
 }
 
 void Stream::ReadString2(string *s)
@@ -302,10 +302,10 @@ void Stream::ReadString2(string *s)
 	typedef uint16 T;
 	T Length;
 	MustRead(&Length, sizeof(T));
-	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[Length]);
-	MustRead(Buf.get(), Length);
+	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[(size_t)Length]);
+	MustRead(Buf.get(), (size_t)Length);
 	s->clear();
-	s->append(Buf.get(), Length);
+	s->append(Buf.get(), (size_t)Length);
 }
 
 void Stream::ReadString4(string *s)
@@ -313,10 +313,10 @@ void Stream::ReadString4(string *s)
 	typedef uint32 T;
 	T Length;
 	MustRead(&Length, sizeof(T));
-	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[Length]);
-	MustRead(Buf.get(), Length);
+	scoped_ptr<char, DeleteArrayPolicy> Buf(new char[(size_t)Length]);
+	MustRead(Buf.get(), (size_t)Length);
 	s->clear();
-	s->append(Buf.get(), Length);
+	s->append(Buf.get(), (size_t)Length);
 }
 
 void Stream::ReadStringF(string *s, size_t NumChars)
@@ -348,10 +348,10 @@ void Stream::ReadString1(wstring *s)
 	typedef uint8 T;
 	T Length;
 	MustRead(&Length, sizeof(T));
-	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[Length]);
-	MustRead(Buf.get(), Length * sizeof(wchar_t));
+	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[(size_t)Length]);
+	MustRead(Buf.get(), (size_t)Length * sizeof(wchar_t));
 	s->clear();
-	s->append(Buf.get(), Length);
+	s->append(Buf.get(), (size_t)Length);
 }
 
 void Stream::ReadString2(wstring *s)
@@ -359,10 +359,10 @@ void Stream::ReadString2(wstring *s)
 	typedef uint16 T;
 	T Length;
 	MustRead(&Length, sizeof(T));
-	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[Length]);
-	MustRead(Buf.get(), Length * sizeof(wchar_t));
+	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[(size_t)Length]);
+	MustRead(Buf.get(), (size_t)Length * sizeof(wchar_t));
 	s->clear();
-	s->append(Buf.get(), Length);
+	s->append(Buf.get(), (size_t)Length);
 }
 
 void Stream::ReadString4(wstring *s)
@@ -370,10 +370,10 @@ void Stream::ReadString4(wstring *s)
 	typedef uint32 T;
 	T Length;
 	MustRead(&Length, sizeof(T));
-	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[Length]);
-	MustRead(Buf.get(), Length * sizeof(wchar_t));
+	scoped_ptr<wchar_t, DeleteArrayPolicy> Buf(new wchar_t[(size_t)Length]);
+	MustRead(Buf.get(), (size_t)Length * sizeof(wchar_t));
 	s->clear();
-	s->append(Buf.get(), Length);
+	s->append(Buf.get(), (size_t)Length);
 }
 
 void Stream::ReadStringF(wstring *s, size_t NumChars)
@@ -1658,7 +1658,7 @@ uint32 Hash_Calc::Finish()
 	return m_Hash;
 }
 
-uint32 Hash_Calc::Calc(const void *Buf, uint32 BufLen)
+uint32 Hash_Calc::Calc(const void *Buf, size_t BufLen)
 {
 	uint32 Hash = 0;
 
@@ -1797,7 +1797,7 @@ uint CRC32_Calc::Calc(const void *Data, size_t DataLength)
 	uint32 crc = 0xFFFFFFFF; // preconditioning sets non zero value
 	
 	// loop through the buffer and calculate CRC
-	for(uint32 i = 0; i < DataLength; ++i)
+	for(size_t i = 0; i < DataLength; ++i)
 	{
 		int k = (crc ^ ((uint8*)(Data))[i]) & 0x000000FF;
 		crc = ((crc >> 8) & 0x00FFFFFF) ^ CRC32_TABLE[k];
@@ -1898,7 +1898,7 @@ void MD5_Calc::Process(uint8 data[64])
     MD5_GET_UINT32_LE( X[14], data, 56 );
     MD5_GET_UINT32_LE( X[15], data, 60 );
 
-#define S(x,n) ((x << n) | ((x & 0xFFFFFFFF) >> (32 - n)))
+#define S(x,n) (((x) << (n)) | (((x) & 0xFFFFFFFF) >> (32 - (n))))
 
 #define P(a,b,c,d,k,s,t)                                \
 {                                                       \
@@ -1910,7 +1910,7 @@ void MD5_Calc::Process(uint8 data[64])
     C = state[2];
     D = state[3];
 
-#define F(x,y,z) (z ^ (x & (y ^ z)))
+#define F(x,y,z) ((z) ^ ((x) & ((y) ^ (z))))
     P( A, B, C, D,  0,  7, 0xD76AA478 );
     P( D, A, B, C,  1, 12, 0xE8C7B756 );
     P( C, D, A, B,  2, 17, 0x242070DB );
@@ -1929,7 +1929,7 @@ void MD5_Calc::Process(uint8 data[64])
     P( B, C, D, A, 15, 22, 0x49B40821 );
 #undef F
 
-#define F(x,y,z) (y ^ (z & (x ^ y)))
+#define F(x,y,z) ((y) ^ ((z) & ((x) ^ (y))))
     P( A, B, C, D,  1,  5, 0xF61E2562 );
     P( D, A, B, C,  6,  9, 0xC040B340 );
     P( C, D, A, B, 11, 14, 0x265E5A51 );
@@ -1948,7 +1948,7 @@ void MD5_Calc::Process(uint8 data[64])
     P( B, C, D, A, 12, 20, 0x8D2A4C8A );
 #undef F
     
-#define F(x,y,z) (x ^ y ^ z)
+#define F(x,y,z) ((x) ^ (y) ^ (z))
     P( A, B, C, D,  5,  4, 0xFFFA3942 );
     P( D, A, B, C,  8, 11, 0x8771F681 );
     P( C, D, A, B, 11, 16, 0x6D9D6122 );
@@ -1967,7 +1967,7 @@ void MD5_Calc::Process(uint8 data[64])
     P( B, C, D, A,  2, 23, 0xC4AC5665 );
 #undef F
 
-#define F(x,y,z) (y ^ (x | ~z))
+#define F(x,y,z) ((y) ^ ((x) | ~(z)))
     P( A, B, C, D,  0,  6, 0xF4292244 );
     P( D, A, B, C,  7, 10, 0x432AFF97 );
     P( C, D, A, B, 14, 15, 0xAB9423A7 );
@@ -2073,7 +2073,7 @@ void MD5_Calc::Reset()
 	state[3] = 0x10325476;
 }
 
-void MD5_Calc::Calc(MD5_SUM *Out, const void *Buf, uint32 BufLen)
+void MD5_Calc::Calc(MD5_SUM *Out, const void *Buf, size_t BufLen)
 {
 	MD5_Calc md5;
 	md5.Write(Buf, BufLen);
@@ -2116,7 +2116,7 @@ XorCoder::XorCoder(Stream *a_Stream, const string &Key) :
 	m_Buf.resize(BUFFER_SIZE);
 
 	m_Key.resize(Key.length());
-	for (uint i = 0; i < Key.length(); i++)
+	for (size_t i = 0; i < Key.length(); i++)
 		m_Key[i] = Key[i];
 }
 
@@ -2275,7 +2275,7 @@ void BinEncoder::Write(const void *Data, size_t Size)
 	uint8 Byte;
 	char Octet[8];
 
-	for (uint i = 0; i < Size; i++)
+	for (size_t i = 0; i < Size; i++)
 	{
 		Byte = *Bytes;
 		Octet[0] = (Byte & 0x80) ? '1' : '0';
@@ -2350,7 +2350,7 @@ size_t BinDecoder::Read(void *Out, size_t Size)
 
 	uint8 *OutBytes = (uint8*)Out;
 	uint8 Byte;
-	uint Sum = 0;
+	size_t Sum = 0;
 	char Ch;
 
 	if (m_Tolerance == DECODE_TOLERANCE_NONE)
@@ -2532,8 +2532,8 @@ bool BinDecoder::DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERAN
 	// Pewne dodatkowe znaki są tolerowane - trzeba wszystkie przejrzeć i zliczyć same cyfry
 	else
 	{
-		uint DigitCount = 0;
-		for (uint i = 0; i < s.length(); i++)
+		size_t DigitCount = 0;
+		for (size_t i = 0; i < s.length(); i++)
 		{
 			if (s[i] == '1' || s[i] == '0')
 				DigitCount++;
@@ -2561,7 +2561,7 @@ bool BinDecoder::DecodeLength(size_t *OutLength, const char *s, size_t s_Length,
 	{
 		// s będzie przesuwany. s_Length będzie zmniejszany.
 
-		uint DigitCount = 0;
+		size_t DigitCount = 0;
 		while (s_Length > 0)
 		{
 			if (*s == '1' || *s == '0')
@@ -2581,24 +2581,24 @@ size_t BinDecoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE Toler
 {
 	uint8 *OutBytes = (uint8*)OutData;
 	uint8 Byte;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	char Ch;
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
 	{
-		if ((s.length() & 0x03) != 0) return MAXUINT32;
+		if ((s.length() & 0x03) != 0) return SIZE_MAX;
 
 		while (s_i < s.length())
 		{
-			if (s[s_i] == '1') Byte = 0x80; else if (s[s_i] == '0') Byte = 0x00; else return MAXUINT32; s_i++;
+			if (s[s_i] == '1') Byte = 0x80; else if (s[s_i] == '0') Byte = 0x00; else return SIZE_MAX; s_i++;
 
-			if (s[s_i] == '1') Byte |= 0x40; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x20; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x10; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x08; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x04; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x02; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x01; else if (s[s_i] != '0') return MAXUINT32; s_i++;
+			if (s[s_i] == '1') Byte |= 0x40; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x20; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x10; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x08; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x04; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x02; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x01; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
 
 			*OutBytes = Byte;
 			OutBytes++;
@@ -2630,44 +2630,44 @@ size_t BinDecoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE Toler
 					// Nic - nowy obieg tej pętli wewnętrznej
 				}
 				else
-					return MAXUINT32;
+					return SIZE_MAX;
 			}
 
 			// Następne 7 bitów
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x40; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x40; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x20; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x20; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x10; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x10; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x08; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x08; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x04; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x04; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x02; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x02; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x01; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x01; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 
 			*OutBytes = Byte;
@@ -2701,37 +2701,37 @@ break_2_WHITESPACE:
 
 			// Następne 7 bitów
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x40; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x20; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x10; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x08; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x04; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x02; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s.length()) return MAXUINT32;
+				if (s_i == s.length()) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x01; break; } else if (Ch == '0') break;
 			}
@@ -2756,19 +2756,19 @@ size_t BinDecoder::Decode(void *OutData, const char *s, size_t s_Length, DECODE_
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
 	{
-		if ((s_Length & 0x03) != 0) return MAXUINT32;
+		if ((s_Length & 0x03) != 0) return SIZE_MAX;
 
 		while (s_i < s_Length)
 		{
-			if (s[s_i] == '1') Byte = 0x80; else if (s[s_i] == '0') Byte = 0x00; else return MAXUINT32; s_i++;
+			if (s[s_i] == '1') Byte = 0x80; else if (s[s_i] == '0') Byte = 0x00; else return SIZE_MAX; s_i++;
 
-			if (s[s_i] == '1') Byte |= 0x40; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x20; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x10; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x08; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x04; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x02; else if (s[s_i] != '0') return MAXUINT32; s_i++;
-			if (s[s_i] == '1') Byte |= 0x01; else if (s[s_i] != '0') return MAXUINT32; s_i++;
+			if (s[s_i] == '1') Byte |= 0x40; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x20; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x10; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x08; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x04; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x02; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
+			if (s[s_i] == '1') Byte |= 0x01; else if (s[s_i] != '0') return SIZE_MAX; s_i++;
 
 			*OutBytes = Byte;
 			OutBytes++;
@@ -2800,44 +2800,44 @@ size_t BinDecoder::Decode(void *OutData, const char *s, size_t s_Length, DECODE_
 					// Nic - nowy obieg tej pętli wewnętrznej
 				}
 				else
-					return MAXUINT32;
+					return SIZE_MAX;
 			}
 
 			// Następne 7 bitów
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x40; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x40; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x20; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x20; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x10; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x10; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x08; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x08; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x04; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x04; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x02; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x02; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
-				if (Ch == '1') { Byte |= 0x01; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return MAXUINT32;
+				if (Ch == '1') { Byte |= 0x01; break; } else if (Ch == '0') break; else if (!CharIsWhitespace(Ch)) return SIZE_MAX;
 			}
 
 			*OutBytes = Byte;
@@ -2871,37 +2871,37 @@ break_2_WHITESPACE:
 
 			// Następne 7 bitów
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x40; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x20; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x10; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x08; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x04; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x02; break; } else if (Ch == '0') break;
 			}
 			for (;;) {
-				if (s_i == s_Length) return MAXUINT32;
+				if (s_i == s_Length) return SIZE_MAX;
 				Ch = s[s_i++];
 				if (Ch == '1') { Byte |= 0x01; break; } else if (Ch == '0') break;
 			}
@@ -3112,7 +3112,7 @@ size_t HexDecoder::Read(void *Out, size_t Size)
 
 	uint8 *OutBytes = (uint8*)Out;
 	uint8 Byte, HexNumber;
-	uint Sum = 0;
+	size_t Sum = 0;
 	char Ch;
 
 	if (m_Tolerance == DECODE_TOLERANCE_NONE)
@@ -3242,8 +3242,8 @@ bool HexDecoder::DecodeLength(size_t *OutLength, const string &s, DECODE_TOLERAN
 	// Pewne dodatkowe znaki są tolerowane - trzeba wszystkie przejrzeć i zliczyć same cyfry
 	else
 	{
-		uint DigitCount = 0;
-		for (uint i = 0; i < s.length(); i++)
+		size_t DigitCount = 0;
+		for (size_t i = 0; i < s.length(); i++)
 		{
 			if (s[i] == '1' || s[i] == '0')
 				DigitCount++;
@@ -3296,16 +3296,16 @@ size_t HexDecoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE Toler
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
 	{
-		if ((s.length() & 0x01) != 0) return MAXUINT32;
+		if ((s.length() & 0x01) != 0) return SIZE_MAX;
 
 		while (s_i < s.length())
 		{
 			HexNumber = HexDigitToNumber(s[s_i++]);
-			if (HexNumber == 0xFF) return MAXUINT32;
+			if (HexNumber == 0xFF) return SIZE_MAX;
 			Byte = HexNumber << 4;
 
 			HexNumber = HexDigitToNumber(s[s_i++]);
-			if (HexNumber == 0xFF) return MAXUINT32;
+			if (HexNumber == 0xFF) return SIZE_MAX;
 			Byte |= HexNumber;
 
 			*OutBytes = Byte;
@@ -3327,7 +3327,7 @@ size_t HexDecoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE Toler
 				if (HexNumber == 0xFF)
 				{
 					if (!CharIsWhitespace(Ch))
-						return MAXUINT32;
+						return SIZE_MAX;
 				}
 				else
 				{
@@ -3340,13 +3340,13 @@ size_t HexDecoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE Toler
 			for (;;)
 			{
 				if (s_i == s.length())
-					return MAXUINT32;
+					return SIZE_MAX;
 				Ch = s[s_i++];
 				HexNumber = HexDigitToNumber(Ch);
 				if (HexNumber == 0xFF)
 				{
 					if (!CharIsWhitespace(Ch))
-						return MAXUINT32;
+						return SIZE_MAX;
 				}
 				else
 				{
@@ -3384,7 +3384,7 @@ break_2_WHITESPACE:
 			for (;;)
 			{
 				if (s_i == s.length())
-					return MAXUINT32;
+					return SIZE_MAX;
 				Ch = s[s_i++];
 				HexNumber = HexDigitToNumber(Ch);
 				if (HexNumber != 0xFF)
@@ -3528,21 +3528,21 @@ size_t HexDecoder::Decode(void *OutData, const wstring &s, DECODE_TOLERANCE Tole
 {
 	uint8 *OutBytes = (uint8*)OutData;
 	uint8 Byte, HexNumber;
-	uint s_i = 0, Sum = 0;
+	size_t s_i = 0, Sum = 0;
 	wchar_t Ch;
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
 	{
-		if ((s.length() & 0x01) != 0) return MAXUINT32;
+		if ((s.length() & 0x01) != 0) return SIZE_MAX;
 
 		while (s_i < s.length())
 		{
 			HexNumber = HexDigitToNumber(s[s_i++]);
-			if (HexNumber == 0xFF) return MAXUINT32;
+			if (HexNumber == 0xFF) return SIZE_MAX;
 			Byte = HexNumber << 4;
 
 			HexNumber = HexDigitToNumber(s[s_i++]);
-			if (HexNumber == 0xFF) return MAXUINT32;
+			if (HexNumber == 0xFF) return SIZE_MAX;
 			Byte |= HexNumber;
 
 			*OutBytes = Byte;
@@ -3564,7 +3564,7 @@ size_t HexDecoder::Decode(void *OutData, const wstring &s, DECODE_TOLERANCE Tole
 				if (HexNumber == 0xFF)
 				{
 					if (!CharIsWhitespace(Ch))
-						return MAXUINT32;
+						return SIZE_MAX;
 				}
 				else
 				{
@@ -3577,13 +3577,13 @@ size_t HexDecoder::Decode(void *OutData, const wstring &s, DECODE_TOLERANCE Tole
 			for (;;)
 			{
 				if (s_i == s.length())
-					return MAXUINT32;
+					return SIZE_MAX;
 				Ch = s[s_i++];
 				HexNumber = HexDigitToNumber(Ch);
 				if (HexNumber == 0xFF)
 				{
 					if (!CharIsWhitespace(Ch))
-						return MAXUINT32;
+						return SIZE_MAX;
 				}
 				else
 				{
@@ -3621,7 +3621,7 @@ break_2_WHITESPACE:
 			for (;;)
 			{
 				if (s_i == s.length())
-					return MAXUINT32;
+					return SIZE_MAX;
 				Ch = s[s_i++];
 				HexNumber = HexDigitToNumber(Ch);
 				if (HexNumber != 0xFF)
@@ -3651,16 +3651,16 @@ size_t HexDecoder::Decode(void *OutData, const wchar_t *s, size_t s_Length, DECO
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
 	{
-		if ((s_Length & 0x01) != 0) return MAXUINT32;
+		if ((s_Length & 0x01) != 0) return SIZE_MAX;
 
 		while (s_i < s_Length)
 		{
 			HexNumber = HexDigitToNumber(s[s_i++]);
-			if (HexNumber == 0xFF) return MAXUINT32;
+			if (HexNumber == 0xFF) return SIZE_MAX;
 			Byte = HexNumber << 4;
 
 			HexNumber = HexDigitToNumber(s[s_i++]);
-			if (HexNumber == 0xFF) return MAXUINT32;
+			if (HexNumber == 0xFF) return SIZE_MAX;
 			Byte |= HexNumber;
 
 			*OutBytes = Byte;
@@ -3682,7 +3682,7 @@ size_t HexDecoder::Decode(void *OutData, const wchar_t *s, size_t s_Length, DECO
 				if (HexNumber == 0xFF)
 				{
 					if (!CharIsWhitespace(Ch))
-						return MAXUINT32;
+						return SIZE_MAX;
 				}
 				else
 				{
@@ -3695,13 +3695,13 @@ size_t HexDecoder::Decode(void *OutData, const wchar_t *s, size_t s_Length, DECO
 			for (;;)
 			{
 				if (s_i == s_Length)
-					return MAXUINT32;
+					return SIZE_MAX;
 				Ch = s[s_i++];
 				HexNumber = HexDigitToNumber(Ch);
 				if (HexNumber == 0xFF)
 				{
 					if (!CharIsWhitespace(Ch))
-						return MAXUINT32;
+						return SIZE_MAX;
 				}
 				else
 				{
@@ -3739,7 +3739,7 @@ break_2_WHITESPACE:
 			for (;;)
 			{
 				if (s_i == s_Length)
-					return MAXUINT32;
+					return SIZE_MAX;
 				Ch = s[s_i++];
 				HexNumber = HexDigitToNumber(Ch);
 				if (HexNumber != 0xFF)
@@ -4119,10 +4119,10 @@ bool Base64Decoder::DecodeLength(size_t *OutLength, const string &s, DECODE_TOLE
 	// Mogą być też inne znaki - trzeba wszystkie przejrzeć i policzyć
 	else
 	{
-		uint EqualCount = 0;
-		uint DigitCount = 0;
+		size_t EqualCount = 0;
+		size_t DigitCount = 0;
 		*OutLength = 0;
-		for (uint i = 0; i < s.length(); i++)
+		for (size_t i = 0; i < s.length(); i++)
 		{
 			switch (Base64CharType(s[i]))
 			{
@@ -4214,7 +4214,7 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
 	{
-		if ((s.length() & 3) != 0) return MAXUINT32;
+		if ((s.length() & 3) != 0) return SIZE_MAX;
 
 		while (s_i < s.length())
 		{
@@ -4231,8 +4231,8 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 					// Kołczy się na "=="
 					if (Numbers[2] == 0xFE)
 					{
-						if (Numbers[0] >= 0xFE) return MAXUINT32;
-						if (Numbers[1] >= 0xFE) return MAXUINT32;
+						if (Numbers[0] >= 0xFE) return SIZE_MAX;
+						if (Numbers[1] >= 0xFE) return SIZE_MAX;
 
 						*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); //OutBytes++;
 						Sum += 1;
@@ -4241,9 +4241,9 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 					// Kołczy się na "="
 					else
 					{
-						if (Numbers[0] >= 0xFE) return MAXUINT32;
-						if (Numbers[1] >= 0xFE) return MAXUINT32;
-						if (Numbers[2] >= 0xFE) return MAXUINT32;
+						if (Numbers[0] >= 0xFE) return SIZE_MAX;
+						if (Numbers[1] >= 0xFE) return SIZE_MAX;
+						if (Numbers[2] >= 0xFE) return SIZE_MAX;
 
 						*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 						*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); //OutBytes++;
@@ -4254,10 +4254,10 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 			}
 
 			// Błędne znaki lub '=' tam gdzie nie trzeba.
-			if (Numbers[0] >= 0xFE) return MAXUINT32;
-			if (Numbers[1] >= 0xFE) return MAXUINT32;
-			if (Numbers[2] >= 0xFE) return MAXUINT32;
-			if (Numbers[3] >= 0xFE) return MAXUINT32;
+			if (Numbers[0] >= 0xFE) return SIZE_MAX;
+			if (Numbers[1] >= 0xFE) return SIZE_MAX;
+			if (Numbers[2] >= 0xFE) return SIZE_MAX;
+			if (Numbers[3] >= 0xFE) return SIZE_MAX;
 
 			*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 			*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); OutBytes++;
@@ -4282,7 +4282,7 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 					break;
 				// Nie jesteśmy na granicy czwórki znaków - błąd, niedokończone dane
 				else
-					return MAXUINT32;
+					return SIZE_MAX;
 			}
 
 			// Wczytaj znak
@@ -4292,7 +4292,7 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 			{
 				// Opcjonalny błąd
 				if (Tolerance == DECODE_TOLERANCE_WHITESPACE && !CharIsWhitespace(Ch))
-					return MAXUINT32;
+					return SIZE_MAX;
 			}
 			// Znak znany - cyfra base64 lub '='
 			else
@@ -4310,8 +4310,8 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 						// Kończy się na "=="
 						if (Numbers[2] == 0xFE)
 						{
-							if (Numbers[0] >= 0xFE) return MAXUINT32;
-							if (Numbers[1] >= 0xFE) return MAXUINT32;
+							if (Numbers[0] >= 0xFE) return SIZE_MAX;
+							if (Numbers[1] >= 0xFE) return SIZE_MAX;
 
 							*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); //OutBytes++;
 							Sum += 1;
@@ -4320,9 +4320,9 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 						// Kończy się na "="
 						else
 						{
-							if (Numbers[0] >= 0xFE) return MAXUINT32;
-							if (Numbers[1] >= 0xFE) return MAXUINT32;
-							if (Numbers[2] >= 0xFE) return MAXUINT32;
+							if (Numbers[0] >= 0xFE) return SIZE_MAX;
+							if (Numbers[1] >= 0xFE) return SIZE_MAX;
+							if (Numbers[2] >= 0xFE) return SIZE_MAX;
 
 							*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 							*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); //OutBytes++;
@@ -4334,10 +4334,10 @@ size_t Base64Decoder::Decode(void *OutData, const string &s, DECODE_TOLERANCE To
 					// Nie kończy się - normalne znaki
 
 					// Błędne znaki lub '=' tam gdzie nie trzeba.
-					if (Numbers[0] >= 0xFE) return MAXUINT32;
-					if (Numbers[1] >= 0xFE) return MAXUINT32;
-					if (Numbers[2] >= 0xFE) return MAXUINT32;
-					if (Numbers[3] >= 0xFE) return MAXUINT32;
+					if (Numbers[0] >= 0xFE) return SIZE_MAX;
+					if (Numbers[1] >= 0xFE) return SIZE_MAX;
+					if (Numbers[2] >= 0xFE) return SIZE_MAX;
+					if (Numbers[3] >= 0xFE) return SIZE_MAX;
 
 					*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 					*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); OutBytes++;
@@ -4362,7 +4362,7 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 
 	if (Tolerance == DECODE_TOLERANCE_NONE)
 	{
-		if ((s_Length & 3) != 0) return MAXUINT32;
+		if ((s_Length & 3) != 0) return SIZE_MAX;
 
 		while (s_i < s_Length)
 		{
@@ -4379,8 +4379,8 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 					// Kończy się na "=="
 					if (Numbers[2] == 0xFE)
 					{
-						if (Numbers[0] >= 0xFE) return MAXUINT32;
-						if (Numbers[1] >= 0xFE) return MAXUINT32;
+						if (Numbers[0] >= 0xFE) return SIZE_MAX;
+						if (Numbers[1] >= 0xFE) return SIZE_MAX;
 
 						*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); //OutBytes++;
 						Sum += 1;
@@ -4389,9 +4389,9 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 					// Kończy się na "="
 					else
 					{
-						if (Numbers[0] >= 0xFE) return MAXUINT32;
-						if (Numbers[1] >= 0xFE) return MAXUINT32;
-						if (Numbers[2] >= 0xFE) return MAXUINT32;
+						if (Numbers[0] >= 0xFE) return SIZE_MAX;
+						if (Numbers[1] >= 0xFE) return SIZE_MAX;
+						if (Numbers[2] >= 0xFE) return SIZE_MAX;
 
 						*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 						*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); //OutBytes++;
@@ -4402,10 +4402,10 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 			}
 
 			// Błędne znaki lub '=' tam gdzie nie trzeba.
-			if (Numbers[0] >= 0xFE) return MAXUINT32;
-			if (Numbers[1] >= 0xFE) return MAXUINT32;
-			if (Numbers[2] >= 0xFE) return MAXUINT32;
-			if (Numbers[3] >= 0xFE) return MAXUINT32;
+			if (Numbers[0] >= 0xFE) return SIZE_MAX;
+			if (Numbers[1] >= 0xFE) return SIZE_MAX;
+			if (Numbers[2] >= 0xFE) return SIZE_MAX;
+			if (Numbers[3] >= 0xFE) return SIZE_MAX;
 
 			*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 			*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); OutBytes++;
@@ -4430,7 +4430,7 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 					break;
 				// Nie jesteśmy na granicy czwórki znaków - błąd, niedokończone dane
 				else
-					return MAXUINT32;
+					return SIZE_MAX;
 			}
 
 			// Wczytaj znak
@@ -4440,7 +4440,7 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 			{
 				// Opcjonalny błąd
 				if (Tolerance == DECODE_TOLERANCE_WHITESPACE && !CharIsWhitespace(Ch))
-					return MAXUINT32;
+					return SIZE_MAX;
 			}
 			// Znak znany - cyfra base64 lub '='
 			else
@@ -4458,8 +4458,8 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 						// Kończy się na "=="
 						if (Numbers[2] == 0xFE)
 						{
-							if (Numbers[0] >= 0xFE) return MAXUINT32;
-							if (Numbers[1] >= 0xFE) return MAXUINT32;
+							if (Numbers[0] >= 0xFE) return SIZE_MAX;
+							if (Numbers[1] >= 0xFE) return SIZE_MAX;
 
 							*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); //OutBytes++;
 							Sum += 1;
@@ -4468,9 +4468,9 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 						// Kończy się na "="
 						else
 						{
-							if (Numbers[0] >= 0xFE) return MAXUINT32;
-							if (Numbers[1] >= 0xFE) return MAXUINT32;
-							if (Numbers[2] >= 0xFE) return MAXUINT32;
+							if (Numbers[0] >= 0xFE) return SIZE_MAX;
+							if (Numbers[1] >= 0xFE) return SIZE_MAX;
+							if (Numbers[2] >= 0xFE) return SIZE_MAX;
 
 							*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 							*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); //OutBytes++;
@@ -4482,10 +4482,10 @@ size_t Base64Decoder::Decode(void *OutData, const char *s, size_t s_Length, DECO
 					// Nie kończy się - normalne znaki
 
 					// Błędne znaki lub '=' tam gdzie nie trzeba.
-					if (Numbers[0] >= 0xFE) return MAXUINT32;
-					if (Numbers[1] >= 0xFE) return MAXUINT32;
-					if (Numbers[2] >= 0xFE) return MAXUINT32;
-					if (Numbers[3] >= 0xFE) return MAXUINT32;
+					if (Numbers[0] >= 0xFE) return SIZE_MAX;
+					if (Numbers[1] >= 0xFE) return SIZE_MAX;
+					if (Numbers[2] >= 0xFE) return SIZE_MAX;
+					if (Numbers[3] >= 0xFE) return SIZE_MAX;
 
 					*OutBytes = (Numbers[0] << 2) | (Numbers[1] >> 4); OutBytes++;
 					*OutBytes = (Numbers[1] << 4) | (Numbers[2] >> 2); OutBytes++;

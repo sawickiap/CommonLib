@@ -322,10 +322,7 @@ void Node::LinkChildBefore( Node *beforeThis, Node *addThis )
 	addThis->m_PrevSibling = afterThis;
 	addThis->m_NextSibling = beforeThis;
 	
-	if (beforeThis)
-		beforeThis->m_PrevSibling = addThis;
-	else
-		m_LastChild = addThis;
+	beforeThis->m_PrevSibling = addThis;
 	if (afterThis)
 		afterThis->m_NextSibling = addThis;
 	else
@@ -347,10 +344,7 @@ void Node::LinkChildAfter( Node *afterThis, Node *addThis )
 		beforeThis->m_PrevSibling = addThis;
 	else
 		m_LastChild = addThis;
-	if (afterThis)
-		afterThis->m_NextSibling = addThis;
-	else
-		m_FirstChild = addThis;
+	afterThis->m_NextSibling = addThis;
 }
 
 void Node::UnlinkChild( Node *deleteThis )
@@ -432,9 +426,9 @@ void NodeValueFromEnum( Node &node, uint val, const tchar * const *itemNames, co
 	}
 	else
 	{
-		if (val < itemCount)
+		if ((size_t)val < itemCount)
 		{
-			node.Value = itemNames[val];
+			node.Value = itemNames[(size_t)val];
 			return;
 		}
 	}

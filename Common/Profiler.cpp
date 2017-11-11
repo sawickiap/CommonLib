@@ -18,11 +18,11 @@ namespace common
 //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 // Klasa ProfilerItem
 
-ProfilerItem::ProfilerItem(const tstring &Name)
+ProfilerItem::ProfilerItem(const tstring &Name) :
+    m_Time(GameTime::ZERO),
+    m_Count(0),
+    m_strName(Name)
 {
-	m_Time = GameTime::ZERO;
-	m_Count = 0;
-	m_strName = Name;
 }
 
 ProfilerItem* ProfilerItem::Begin(const tstring &Name)
@@ -42,7 +42,7 @@ void ProfilerItem::FormatString(tstring *S, unsigned dwLevel, PROFILER_UNITS uni
 {
 	if (dwLevel > 0)
 	{
-		DuplicateString(S, _T("  "), dwLevel-1);
+		DuplicateString(S, _T("  "), (size_t)dwLevel-1);
 		*S += m_strName;
 		*S += _T(" : ");
 

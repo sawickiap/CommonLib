@@ -376,21 +376,22 @@ void TextFileLog::OnLog(uint32 Type, const tstring &Prefix, const tstring &TypeP
 		pimpl->m_File.reset(new FileStream(pimpl->m_FileName, common::FM_APPEND, false));
 	}
 
-	assert(pimpl->m_File.get());
+    FileStream* const fs = pimpl->m_File.get();
+	assert(fs);
 
 	// Zapisanie
 	tstring s;
 	ReplaceEOL(&s, Prefix, pimpl->m_EolMode);
-	pimpl->m_File->WriteStringF(s);
+	fs->WriteStringF(s);
 	ReplaceEOL(&s, TypePrefix, pimpl->m_EolMode);
-	pimpl->m_File->WriteStringF(s);
+	fs->WriteStringF(s);
 	ReplaceEOL(&s, Message, pimpl->m_EolMode);
-	pimpl->m_File->WriteStringF(s);
-	pimpl->m_File->WriteStringF(pimpl->m_EOL);
+	fs->WriteStringF(s);
+	fs->WriteStringF(pimpl->m_EOL);
 
 	// Flush
 	if (pimpl->m_Mode == FILE_MODE_FLUSH)
-		pimpl->m_File->Flush();
+		fs->Flush();
 	// Zamkniêcie
 	else if (pimpl->m_Mode == FILE_MODE_REOPEN)
 		pimpl->m_File.reset(0);
@@ -420,18 +421,19 @@ TextFileLog::TextFileLog(const tstring &FileName, LOG_FILE_MODE Mode, EOLMODE Eo
 		FileName,
 		Append ? common::FM_APPEND : common::FM_WRITE,
 		false));
+    FileStream* const fs = pimpl->m_File.get();
 
 #ifdef _UNICODE
 	// Zapisanie nag³ówka BOM
 	if (WriteBOM)
-		pimpl->m_File->WriteStringF(BOM_UTF16_LE);
+		fs->WriteStringF(BOM_UTF16_LE);
 #endif
 
 	// Dopisanie tekstu startowego
 	if (!StartText.empty())
 	{
-		pimpl->m_File->WriteStringF(StartText);
-		pimpl->m_File->WriteStringF(pimpl->m_EOL);
+		fs->WriteStringF(StartText);
+		fs->WriteStringF(pimpl->m_EOL);
 	}
 
 	// Zamkniêcie pliku, jeœli ma byæ otwierany za ka¿dym razem.
@@ -485,7 +487,8 @@ void HtmlFileLog::OnLog(uint32 Type, const tstring &Prefix, const tstring &TypeP
 		pimpl->m_File.reset(new FileStream(pimpl->m_FileName, common::FM_APPEND, false));
 	}
 
-	assert(pimpl->m_File.get());
+    FileStream* const fs = pimpl->m_File.get();
+	assert(fs);
 
 	// Styl
 	STYLE Style;
@@ -517,11 +520,11 @@ void HtmlFileLog::OnLog(uint32 Type, const tstring &Prefix, const tstring &TypeP
 	Code += _T("</b>");
 	Code += HtmlSpecialChars(Message);
 	Code += _T("</div>\n");
-	pimpl->m_File->WriteStringF(Code);
+	fs->WriteStringF(Code);
 
 	// Flush
 	if (pimpl->m_Mode == FILE_MODE_FLUSH)
-		pimpl->m_File->Flush();
+		fs->Flush();
 	// Zamkniêcie
 	else if (pimpl->m_Mode == FILE_MODE_REOPEN)
 		pimpl->m_File.reset(0);

@@ -47,8 +47,8 @@ public:
 	BstrString(const wchar_t *wcs, size_t wcsLen);
 	BstrString(const std::string &s);
 	BstrString(const std::wstring &s);
-	BstrString(BSTR bstr); ///< Takes ownership of existing BSTR.
-	BstrString(UINT length); ///< Allocates, but doesn't initialize.
+	explicit BstrString(BSTR bstr); ///< Takes ownership of existing BSTR.
+	explicit BstrString(UINT length); ///< Allocates, but doesn't initialize.
 	~BstrString();
 
 	void assign(const BstrString &bstr);
@@ -58,12 +58,11 @@ public:
 	void assign(const wchar_t *wcs, size_t wcsLen);
 	void assign(const std::string &s);
 	void assign(const std::wstring &s);
-	void assign(BSTR bstr); ///< Takes ownership of existing BSTR.
+	void assignBstr(BSTR bstr); ///< Takes ownership of existing BSTR.
 
 	BstrString & operator = (const BstrString &bstr) { assign(bstr); return *this; }
 	BstrString & operator = (const char *str)        { assign(str);  return *this; }
 	BstrString & operator = (const wchar_t *wcs)     { assign(wcs);  return *this; }
-	BstrString & operator = (BSTR bstr)              { assign(bstr); return *this; } ///< Takes ownership of existing BSTR.
 	BstrString & operator = (const std::string &s)   { assign(s);    return *this; }
 	BstrString & operator = (const std::wstring &s)  { assign(s);    return *this; }
 
@@ -84,14 +83,12 @@ public:
 	void append(const wchar_t *wcs, size_t wcsLen);
 	void append(const std::string &s);
 	void append(const std::wstring &s);
-	void append(BSTR bstr);
 
 	BstrString & operator += (const BstrString &bstr) { append(bstr); return *this; }
 	BstrString & operator += (const char *str)        { append(str);  return *this; }
 	BstrString & operator += (const wchar_t *wcs)     { append(wcs);  return *this; }
 	BstrString & operator += (const std::string &s)   { append(s);    return *this; }
 	BstrString & operator += (const std::wstring &s)  { append(s);    return *this; }
-	BstrString & operator += (BSTR bstr)              { append(bstr); return *this; }
 
 	BstrString operator + (const BstrString &bstr) const;
 

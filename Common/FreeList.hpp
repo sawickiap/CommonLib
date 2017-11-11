@@ -95,26 +95,26 @@ public:
 
 	/// Alokacja z wywo³aniem konstruktora domyœlnego. Typy atomowe pozostaj¹ niezainicjalizowane.
 	/** Próbuje zaalokowaæ. Jeœli siê nie da, zwraca NULL. */
-	T * TryNew() { T *Ptr = PrvTryNew(); return new (Ptr) T; }
+	T * TryNew() { T *Ptr = PrvTryNew(); return Ptr ? new (Ptr) T : nullptr; }
 	/// Alokacja z wywo³aniem konstruktora domyœlnego. Typy atomowe pozostaj¹ niezainicjalizowane.
 	/** Alokuje. Jeœli siê nie da, rzuca wyj¹tek bad_alloc. */
 	T * New   () { T *Ptr = PrvNew   (); return new (Ptr) T; }
 
 	/// Wersje do alokacji z jawnym wywo³aniem konstruktora domyœlnego. Dla typów atomowych oznacza to wyzerowanie.
-	T * TryNew_ctor() { T *Ptr = PrvTryNew(); return new (Ptr) T(); }
+	T * TryNew_ctor() { T *Ptr = PrvTryNew(); return Ptr ? new (Ptr) T() : nullptr; }
 	/// Wersje do alokacji z jawnym wywo³aniem konstruktora domyœlnego. Dla typów atomowych oznacza to wyzerowanie.
 	T * New_ctor   () { T *Ptr = PrvNew   (); return new (Ptr) T(); }
 
 	/// Wersje do alokacji z wywo³aniem konstruktora posiadaj¹cego 1, 2, 3, 4, 5 parametrów.
-	template <typename T1> T * TryNew(const T1 &v1) { T *Ptr = PrvTryNew(); return new (Ptr) T(v1); }
+	template <typename T1> T * TryNew(const T1 &v1) { T *Ptr = PrvTryNew(); return Ptr ? new (Ptr) T(v1) : nullptr; }
 	template <typename T1> T * New   (const T1 &v1) { T *Ptr = PrvNew   (); return new (Ptr) T(v1); }
-	template <typename T1, typename T2> T * TryNew(const T1 &v1, const T2 &v2) { T *Ptr = PrvTryNew(); return new (Ptr) T(v1, v2); }
+	template <typename T1, typename T2> T * TryNew(const T1 &v1, const T2 &v2) { T *Ptr = PrvTryNew(); return Ptr ? new (Ptr) T(v1, v2) : nullptr; }
 	template <typename T1, typename T2> T * New   (const T1 &v1, const T2 &v2) { T *Ptr = PrvNew   (); return new (Ptr) T(v1, v2); }
-	template <typename T1, typename T2, typename T3> T * TryNew(const T1 &v1, const T2 &v2, const T3 &v3) { T *Ptr = PrvTryNew(); return new (Ptr) T(v1, v2, v3); }
+	template <typename T1, typename T2, typename T3> T * TryNew(const T1 &v1, const T2 &v2, const T3 &v3) { T *Ptr = PrvTryNew(); return Ptr ? new (Ptr) T(v1, v2, v3) : nullptr; }
 	template <typename T1, typename T2, typename T3> T * New   (const T1 &v1, const T2 &v2, const T3 &v3) { T *Ptr = PrvNew   (); return new (Ptr) T(v1, v2, v3); }
-	template <typename T1, typename T2, typename T3, typename T4> T * TryNew(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4) { T *Ptr = PrvTryNew(); return new (Ptr) T(v1, v2, v3, v4); }
+	template <typename T1, typename T2, typename T3, typename T4> T * TryNew(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4) { T *Ptr = PrvTryNew(); return Ptr ? new (Ptr) T(v1, v2, v3, v4) : nullptr; }
 	template <typename T1, typename T2, typename T3, typename T4> T * New   (const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4) { T *Ptr = PrvNew   (); return new (Ptr) T(v1, v2, v3, v4); }
-	template <typename T1, typename T2, typename T3, typename T4, typename T5> T * TryNew(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4, const T5 &v5) { T *Ptr = PrvTryNew(); return new (Ptr) T(v1, v2, v3, v4, v5); }
+	template <typename T1, typename T2, typename T3, typename T4, typename T5> T * TryNew(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4, const T5 &v5) { T *Ptr = PrvTryNew(); return Ptr ? new (Ptr) T(v1, v2, v3, v4, v5) : nullptr; }
 	template <typename T1, typename T2, typename T3, typename T4, typename T5> T * New   (const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4, const T5 &v5) { T *Ptr = PrvNew   (); return new (Ptr) T(v1, v2, v3, v4, v5); }
 
 	/// Zwalnia komórkê pamiêci zaalokowan¹ wczeœniej z tej listy.
@@ -139,8 +139,8 @@ public:
 	//@}
 	/** \name Statystyki w bajtach */
 	//@{
-	uint GetUsedSize() { return GetUsedCount() * sizeof(T); }
-	uint GetFreeSize() { return GetFreeCount() * sizeof(T); }
+	size_t GetUsedSize() { return GetUsedCount() * sizeof(T); }
+	size_t GetFreeSize() { return GetFreeCount() * sizeof(T); }
 	size_t GetAllSize() { return m_Capacity * sizeof(T); }
 	//@}
 

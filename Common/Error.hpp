@@ -14,7 +14,6 @@ Module components: \ref code_error
 #ifndef COMMON_ERROR_H_
 #define COMMON_ERROR_H_
 
-typedef long HRESULT;
 #ifdef _WIN32
 	#include <windows.h>
 #endif

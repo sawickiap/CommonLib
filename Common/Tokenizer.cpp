@@ -608,8 +608,8 @@ void Tokenizer::RegisterKeyword(uint Id, const tstring &Keyword)
 
 void Tokenizer::RegisterKeywords(const tchar **Keywords, size_t KeywordCount)
 {
-	for (uint i = 0; i < KeywordCount; i++)
-		RegisterKeyword(i, Keywords[i]);
+	for (size_t i = 0; i < KeywordCount; i++)
+		RegisterKeyword((uint)i, Keywords[i]);
 }
 
 void Tokenizer::Next()
@@ -831,7 +831,7 @@ void TokenWriter::Escape(tstring *Out, const tstring &In, uint EscapeFlags)
 	bool EscapeOther = ( (EscapeFlags & ESCAPE_OTHER) != 0 );
 
 	tchar Ch;
-	for (uint i = 0; i < In.length(); i++)
+	for (size_t i = 0; i < In.length(); i++)
 	{
 		Ch = In[i]; 
 		if (Ch == _T('\r'))
